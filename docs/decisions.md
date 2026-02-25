@@ -26,3 +26,24 @@
 - Consequences:
   - Pros: Consistent runtime and fewer environment mismatch bugs.
   - Cons: Commands are slightly longer.
+
+## ADR-004: Use app-level tenancy models instead of package defaults
+- Date: 2026-02-25
+- Status: Accepted
+- Context: Domain relationship methods (`domains()`, `createDomain()`) are required by provisioning flow.
+- Decision:
+  - Create `App\Models\Tenant` extending Stancl base tenant with `HasDatabase` and `HasDomains`.
+  - Create `App\Models\Domain` extending Stancl base domain.
+  - Bind both in `config/tenancy.php` (`tenant_model`, `domain_model`).
+- Consequences:
+  - Pros: Explicit control and predictable tenant-domain behavior.
+  - Cons: Slightly more setup than using package defaults directly.
+
+## ADR-005: Database-per-tenant isolation strategy
+- Date: 2026-02-25
+- Status: Accepted
+- Context: Need strong isolation between tenants for rebuild architecture.
+- Decision: Use dedicated database per tenant (`tenant` prefix + tenant id, e.g. `tenantt001`) and keep platform data in central DB.
+- Consequences:
+  - Pros: Strong isolation and easier tenant-level backup/restore.
+  - Cons: More operational complexity as tenant count grows.
