@@ -1,0 +1,8 @@
+*
+!.gitignore
+!/Product/
+!/Product/**/*
+!/Customer/
+!/Customer/**/*
+!/Sale/
+!/Sale/**/*

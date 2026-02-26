@@ -33,3 +33,7 @@ Route::middleware([
     Route::post('/modules/install', [ModuleRequestController::class, 'install'])->name('tenant.modules.install');
     Route::post('/modules/uninstall', [ModuleRequestController::class, 'uninstall'])->name('tenant.modules.uninstall');
 });
+
+Route::get('/login', function () {
+    return response('Login page not implemented yet.', 401);
+})->name('login');

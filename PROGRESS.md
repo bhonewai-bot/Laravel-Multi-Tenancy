@@ -24,28 +24,38 @@
   - Central can approve request.
   - Tenant can install approved module.
   - Tenant can uninstall installed module.
+- Completed Step 10 install flow behavior for module lifecycle:
+  - Tenant install validates module is active + approved before execution.
+  - Tenant module migrations run against tenant connection during install.
+  - Tenant `installed_modules` state is updated on install/uninstall.
+- Completed module access guard setup:
+  - Middleware alias `module` is active.
+  - Module routes enforce `module:customer`, `module:product`, and `module:sale`.
+- Completed smoke test wrap-up (manual validation):
+  - Verified module middleware visibility in route list (`route:list -v`).
+  - After uninstalling `Customer`, `/customers` returned `403`.
+  - After reinstalling `Customer`, `/customers` returned `200`.
+  - `Product` route access remained available when installed.
 
 ### Commands Run
 - `docker compose exec app php artisan route:list | rg "modules|module-requests"`
 - `docker compose exec app php artisan view:clear`
+- `php artisan route:list -v` (module middleware verification)
 
 ### Result
 - Central module pages now render without `View [modules.index] not found`.
 - Tenant module page now shows consistent dark UI and correct request status.
 - Module request approve/reject routes are correctly addressable.
 - Step 9 is complete.
-- Step 10 is in progress: install/uninstall UI flow works, migration execution on install is pending.
+- Step 10 is complete.
+- Module route protection is confirmed by smoke test.
 
 ### Next
-1. Complete Step 10 install internals:
-   - run module migration/seed for tenant on install
-   - keep redirect to `tenant.modules.index` after install/uninstall
-2. Add/verify module middleware guard (`module:<name>`) for protected tenant routes.
-3. Add end-to-end tests:
-   - request module from tenant
-   - approve/reject in central
-   - install/uninstall visibility state on tenant side
-   - route access blocked when module not installed.
+1. Step 11: Central tenant onboarding (tenant create flow with domain + provisioning).
+2. Step 12: Automatic tenant bootstrap seeding (default admin + baseline data).
+3. Step 13: Tenant RBAC (roles/permissions + policy/middleware enforcement).
+4. Step 14: Custom domain lifecycle (add, verify TXT, activate/deactivate).
+5. Add automated feature tests for the completed module lifecycle smoke flow.
 
 ### Blockers
 - None currently.

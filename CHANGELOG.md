@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
   - `resources/views/layouts/dark.blade.php`
 - Tenant module page migrated to shared dark layout:
   - `resources/views/tenant/modules/index.blade.php`
+- Module access guard coverage for tenant modules:
+  - `module:customer`
+  - `module:product`
+  - `module:sale`
 
 ### Changed
 - Central approve route corrected to:
@@ -19,6 +23,8 @@ All notable changes to this project will be documented in this file.
 - Module model fillable key aligned to migration/controller payload:
   - `icon_path` (replacing `image_path`)
 - Tenant module actions now include install/uninstall transitions after approval.
+- Module lifecycle milestone status:
+  - Step 9 and Step 10 are now complete.
 
 ### Fixed
 - Central UI crash:
@@ -26,6 +32,9 @@ All notable changes to this project will be documented in this file.
 - Tenant modules status rendering bug:
   - incorrect variable reference `$requests` corrected to `$requestModules`
 - Tenant module state now reflects installed/uninstalled transitions in UI.
+- Manual smoke-test validation completed:
+  - uninstalling `Customer` blocks `/customers` with `403`
+  - reinstalling `Customer` restores `/customers` access (`200`)
 
 ## [0.1.0] - 2026-02-25
 ### Added

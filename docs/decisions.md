@@ -81,3 +81,15 @@
 - Consequences:
   - Pros: Clear responsibility split and auditable approval flow.
   - Cons: Requires additional install checks and migration hooks on tenant side.
+
+## ADR-009: Enforce tenant module access with middleware + smoke-test gate
+- Date: 2026-02-26
+- Status: Accepted
+- Context: Module routes must be inaccessible unless a module is installed for the current tenant.
+- Decision:
+  - Use `module:<slug>` middleware on tenant module routes (`customer`, `product`, `sale`).
+  - Read tenant-installed module state from tenant metadata (`installed_modules`).
+  - Keep manual smoke-test gate: uninstall should produce `403`, reinstall should restore `200`.
+- Consequences:
+  - Pros: Strong route-level safety and clear operational verification criteria.
+  - Cons: Requires careful consistency of module slug naming across routes, UI, and tenant metadata.

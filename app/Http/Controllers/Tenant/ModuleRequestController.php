@@ -5,13 +5,18 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Module;
 use App\Models\ModuleRequest;
+use App\Services\TenantModuleInstaller;
+use App\Services\TenantModuleRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class ModuleRequestController extends Controller
 {
-    public function index(): View
+    public function index(TenantModuleRegistry $registry): View
     {
         $tenant = tenant();
 
@@ -20,19 +25,19 @@ class ModuleRequestController extends Controller
         $requestModules = ModuleRequest::where('tenant_id', $tenant->id)
             ->pluck('status', 'module_id');
 
-        $installedModules = $this->getInstalledModules($tenant);
+        $installedModules = $registry->getInstalledModules($tenant);
 
         return view('tenant.modules.index', compact('modules', 'requestModules', 'installedModules'));
     }
 
-    public function request(Request $request): RedirectResponse
+    public function request(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
         $tenant = tenant();
 
         $data = $request->validate(['module_id' => ['required', 'integer']]);
         $module = Module::whereKey($data['module_id'])->where('is_active', true)->firstOrFail();
 
-        $installedModules = $this->getInstalledModules($tenant);
+        $installedModules = $registry->getInstalledModules($tenant);
 
         // Check if already installed
         if (in_array($module->slug, $installedModules, true)) {
@@ -64,7 +69,7 @@ class ModuleRequestController extends Controller
         return back()->with('success', 'Module request sent.');
     }  
 
-    public function install(Request $request): RedirectResponse
+    public function install(Request $request, TenantModuleInstaller $installer): RedirectResponse
     {
         $tenant = tenant();
 
@@ -80,51 +85,34 @@ class ModuleRequestController extends Controller
             return back()->with('error', 'Module is not approved yet.');
         }
 
-        $installedModules = $this->getInstalledModules($tenant);
-
-        if (in_array($module->slug, $installedModules, true)) {
-            return back()->with('error', 'Module is already installed.');
+        try {
+            $installer->install($tenant, $module);
+        } catch (Throwable $e) {
+            report($e);
+            return back()->with('error', $e->getMessage());
         }
-
-        $installedModules[] = $module->slug;
-        $this->saveInstalledModules($tenant, $installedModules);
 
         return back()->with('success', "Module '{$module->name}' installed.");
     }
 
-    public function uninstall(Request $request): RedirectResponse
+    public function uninstall(Request $request, TenantModuleInstaller $installer, TenantModuleRegistry $registry): RedirectResponse
     {
         $tenant = tenant();
 
         $data = $request->validate(['module_id' => ['required', 'integer']]);
         $module = Module::whereKey($data['module_id'])->firstOrFail();
 
-        $installedModules = $this->getInstalledModules($tenant);
-
-        if (!in_array($module->slug, $installedModules, true)) {
+        if (!in_array($module->slug, $registry->getInstalledModules($tenant), true)) {
             return back()->with('error', 'Module is not installed.');
         }
 
-        unset($installedModules[array_search($module->slug, $installedModules, true)]);
-        $this->saveInstalledModules($tenant, $installedModules);
-
-        return back()->with('success', "Module '{$module->name}' uninstalled.");
-    }
-
-    private function getInstalledModules($tenant): array
-    {
-        $installedModules = $tenant->getAttribute('installed_modules') ?? [];
-
-        if (!is_array($installedModules)) {
-            return [];
+        try {
+            $installer->uninstall($tenant, $module);
+        } catch (Throwable $e) {
+            report($e);
+            return back()->with('error', $e->getMessage());
         }
 
-        return $installedModules;
-    }
-
-    private function saveInstalledModules($tenant, array $installedModules): void
-    {
-        $tenant->setAttribute('installed_modules', $installedModules);
-        $tenant->save();
+        return back()->with('success', "Module '{$module->name}' uninstalled.");
     }
 }
