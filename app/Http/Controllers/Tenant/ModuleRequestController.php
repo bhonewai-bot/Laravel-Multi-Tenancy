@@ -20,7 +20,7 @@ class ModuleRequestController extends Controller
         $requestModules = ModuleRequest::where('tenant_id', $tenant->id)
             ->pluck('status', 'module_id');
 
-        $installedModules = $tenant->installed_modules ?? [];
+        $installedModules = $this->getInstalledModules($tenant);
 
         return view('tenant.modules.index', compact('modules', 'requestModules', 'installedModules'));
     }
@@ -32,8 +32,7 @@ class ModuleRequestController extends Controller
         $data = $request->validate(['module_id' => ['required', 'integer']]);
         $module = Module::whereKey($data['module_id'])->where('is_active', true)->firstOrFail();
 
-
-        $installedModules = $tenant->installed_modules ?? [];
+        $installedModules = $this->getInstalledModules($tenant);
 
         // Check if already installed
         if (in_array($module->slug, $installedModules, true)) {
@@ -63,5 +62,69 @@ class ModuleRequestController extends Controller
         );
 
         return back()->with('success', 'Module request sent.');
-    }   
+    }  
+
+    public function install(Request $request): RedirectResponse
+    {
+        $tenant = tenant();
+
+        $data = $request->validate(['module_id' => ['required', 'integer']]);
+        $module = Module::whereKey($data['module_id'])->where('is_active', true)->firstOrFail();
+
+        $isApproved =ModuleRequest::where('tenant_id', $tenant->id)
+            ->where('module_id', $module->id)
+            ->where('status', 'approved')
+            ->exists();
+
+        if (!$isApproved) {
+            return back()->with('error', 'Module is not approved yet.');
+        }
+
+        $installedModules = $this->getInstalledModules($tenant);
+
+        if (in_array($module->slug, $installedModules, true)) {
+            return back()->with('error', 'Module is already installed.');
+        }
+
+        $installedModules[] = $module->slug;
+        $this->saveInstalledModules($tenant, $installedModules);
+
+        return back()->with('success', "Module '{$module->name}' installed.");
+    }
+
+    public function uninstall(Request $request): RedirectResponse
+    {
+        $tenant = tenant();
+
+        $data = $request->validate(['module_id' => ['required', 'integer']]);
+        $module = Module::whereKey($data['module_id'])->firstOrFail();
+
+        $installedModules = $this->getInstalledModules($tenant);
+
+        if (!in_array($module->slug, $installedModules, true)) {
+            return back()->with('error', 'Module is not installed.');
+        }
+
+        unset($installedModules[array_search($module->slug, $installedModules, true)]);
+        $this->saveInstalledModules($tenant, $installedModules);
+
+        return back()->with('success', "Module '{$module->name}' uninstalled.");
+    }
+
+    private function getInstalledModules($tenant): array
+    {
+        $installedModules = $tenant->getAttribute('installed_modules') ?? [];
+
+        if (!is_array($installedModules)) {
+            return [];
+        }
+
+        return $installedModules;
+    }
+
+    private function saveInstalledModules($tenant, array $installedModules): void
+    {
+        $tenant->setAttribute('installed_modules', $installedModules);
+        $tenant->save();
+    }
 }

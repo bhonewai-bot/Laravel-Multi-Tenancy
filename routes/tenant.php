@@ -30,4 +30,6 @@ Route::middleware([
 
     Route::get('/modules', [ModuleRequestController::class, 'index'])->name('tenant.modules.index');
     Route::post('/modules/request', [ModuleRequestController::class, 'request'])->name('tenant.modules.request');
+    Route::post('/modules/install', [ModuleRequestController::class, 'install'])->name('tenant.modules.install');
+    Route::post('/modules/uninstall', [ModuleRequestController::class, 'uninstall'])->name('tenant.modules.uninstall');
 });

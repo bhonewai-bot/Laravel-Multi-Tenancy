@@ -44,9 +44,31 @@
                     </td>
                     <td>
                         @if($isInstalled)
-                            <span>-</span>
+                            <div class="row-actions">
+                                <span class="badge green">Installed</span>
+                                <form method="POST" action="{{ route('tenant.modules.uninstall') }}">
+                                    @csrf
+                                    <input type="hidden" name="module_id" value="{{ $module->id }}">
+                                    <button type="submit" class="danger">Uninstall</button>
+                                </form>
+                            </div>
+                        @elseif($requestStatus === 'approved')
+                            <form method="POST" action="{{ route('tenant.modules.install') }}">
+                                @csrf
+                                <input type="hidden" name="module_id" value="{{ $module->id }}">
+                                <button type="submit">Install</button>
+                            </form>
                         @elseif($requestStatus === 'pending')
                             <span>Waiting for central approval</span>
+                        @elseif($requestStatus === 'rejected')
+                            <div class="row-actions">
+                                <span class="badge red">Rejected</span>
+                                <form method="POST" action="{{ route('tenant.modules.request') }}">
+                                    @csrf
+                                    <input type="hidden" name="module_id" value="{{ $module->id }}">
+                                    <button type="submit">Request Again</button>
+                                </form>
+                            </div>
                         @else
                             <form method="POST" action="{{ route('tenant.modules.request') }}">
                                 @csrf

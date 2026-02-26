@@ -1,5 +1,55 @@
 # Progress Log
 
+## 2026-02-26
+
+### Done
+- Completed Step 9 module platform skeleton (central-first):
+  - Added central views:
+    - `resources/views/modules/index.blade.php`
+    - `resources/views/modules/create.blade.php`
+    - `resources/views/module-requests/index.blade.php`
+  - Added shared dark layout:
+    - `resources/views/layouts/dark.blade.php`
+  - Applied dark layout to tenant modules page:
+    - `resources/views/tenant/modules/index.blade.php`
+- Fixed central route typo:
+  - `POST /module-requests/{moduleRequest}/approve` (was misspelled as `/modues-requests/...`)
+- Fixed module model field mismatch:
+  - `app/Models/Module.php` fillable key changed from `image_path` to `icon_path`.
+- Fixed tenant module list rendering bug:
+  - Replaced wrong variable `$requests` with `$requestModules` in tenant module view.
+- Verified route wiring for both central and tenant module endpoints.
+- Confirmed request/approval/install state transitions in UI:
+  - Tenant can request module.
+  - Central can approve request.
+  - Tenant can install approved module.
+  - Tenant can uninstall installed module.
+
+### Commands Run
+- `docker compose exec app php artisan route:list | rg "modules|module-requests"`
+- `docker compose exec app php artisan view:clear`
+
+### Result
+- Central module pages now render without `View [modules.index] not found`.
+- Tenant module page now shows consistent dark UI and correct request status.
+- Module request approve/reject routes are correctly addressable.
+- Step 9 is complete.
+- Step 10 is in progress: install/uninstall UI flow works, migration execution on install is pending.
+
+### Next
+1. Complete Step 10 install internals:
+   - run module migration/seed for tenant on install
+   - keep redirect to `tenant.modules.index` after install/uninstall
+2. Add/verify module middleware guard (`module:<name>`) for protected tenant routes.
+3. Add end-to-end tests:
+   - request module from tenant
+   - approve/reject in central
+   - install/uninstall visibility state on tenant side
+   - route access blocked when module not installed.
+
+### Blockers
+- None currently.
+
 ## 2026-02-25
 
 ### Done

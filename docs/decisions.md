@@ -47,3 +47,37 @@
 - Consequences:
   - Pros: Strong isolation and easier tenant-level backup/restore.
   - Cons: More operational complexity as tenant count grows.
+
+## ADR-006: Keep module management UI self-contained with Blade layout
+- Date: 2026-02-26
+- Status: Accepted
+- Context: Need fast, consistent UI for central and tenant module pages without coupling to global app CSS/Vite pipeline.
+- Decision:
+  - Introduce `resources/views/layouts/dark.blade.php`.
+  - Build module pages on top of this layout for central and tenant screens.
+  - Keep styling local to Blade during early rebuild milestones.
+- Consequences:
+  - Pros: Fast iteration, low blast radius, consistent look between central and tenant views.
+  - Cons: Styling is not yet integrated with a global design system.
+
+## ADR-007: Module catalog and requests remain central-connection models
+- Date: 2026-02-26
+- Status: Accepted
+- Context: Tenant UI needs to query global module metadata and request workflow; tenant DB does not own `modules` catalog.
+- Decision:
+  - Keep `Module` and `ModuleRequest` using `Stancl\Tenancy\Database\Concerns\CentralConnection`.
+  - Query these models from tenant controllers for marketplace/request status display.
+- Consequences:
+  - Pros: Single source of truth for module metadata and request lifecycle.
+  - Cons: Requires careful route/controller logic to avoid accidental tenant-scoped table assumptions.
+
+## ADR-008: Approval and installation are separate responsibilities
+- Date: 2026-02-26
+- Status: Accepted
+- Context: Need governance control from central while preserving tenant-controlled install lifecycle.
+- Decision:
+  - Central app handles request review only (`pending` -> `approved`/`rejected`).
+  - Tenant app performs actual install/uninstall and writes `installed_modules`.
+- Consequences:
+  - Pros: Clear responsibility split and auditable approval flow.
+  - Cons: Requires additional install checks and migration hooks on tenant side.

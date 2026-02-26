@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Module;
 use App\Models\ModuleRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ModuleRequestController extends Controller
@@ -17,15 +19,22 @@ class ModuleRequestController extends Controller
         return view('module-requests.index', compact('moduleRequests'));
     }
 
-    public function approve(ModuleRequest $moduleRequest)
+    public function approve(ModuleRequest $moduleRequest): RedirectResponse
     {
         if ($moduleRequest->status !== 'pending') {
             return back()->with('error', 'Request is not pending');
         }
 
+        $moduleRequest->loadMissing(['tenant', 'module']);
+
+        if (!$moduleRequest->tenant || !$moduleRequest->module) {
+            return back()->with('error', 'Request not found');
+        }
+
         $moduleRequest->update([
             'status' => 'approved',
-            'reviewed_at' => now()
+            'reviewed_at' => now(),
+            'review_note' => null
         ]);
 
         return back()->with('success', 'Module request approved.');
