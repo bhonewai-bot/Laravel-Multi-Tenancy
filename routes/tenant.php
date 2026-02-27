@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Tenant\ModuleRequestController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -25,15 +26,23 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     Route::get('/', function () {
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
+        return redirect('dashboard');
     });
 
-    Route::get('/modules', [ModuleRequestController::class, 'index'])->name('tenant.modules.index');
-    Route::post('/modules/request', [ModuleRequestController::class, 'request'])->name('tenant.modules.request');
-    Route::post('/modules/install', [ModuleRequestController::class, 'install'])->name('tenant.modules.install');
-    Route::post('/modules/uninstall', [ModuleRequestController::class, 'uninstall'])->name('tenant.modules.uninstall');
-});
+    Route::middleware('auth')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('dashboard');
+        })->name('dashboard');
 
-Route::get('/login', function () {
-    return response('Login page not implemented yet.', 401);
-})->name('login');
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('tenant.profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('tenant.profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('tenant.profile.destroy');
+
+        Route::get('/modules', [ModuleRequestController::class, 'index'])->name('tenant.modules.index');
+        Route::post('/modules/request', [ModuleRequestController::class, 'request'])->name('tenant.modules.request');
+        Route::post('/modules/install', [ModuleRequestController::class, 'install'])->name('tenant.modules.install');
+        Route::post('/modules/uninstall', [ModuleRequestController::class, 'uninstall'])->name('tenant.modules.uninstall');
+    });
+
+    require __DIR__.'/auth.php';
+});

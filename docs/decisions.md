@@ -93,3 +93,29 @@
 - Consequences:
   - Pros: Strong route-level safety and clear operational verification criteria.
   - Cons: Requires careful consistency of module slug naming across routes, UI, and tenant metadata.
+
+## ADR-010: Central tenant onboarding provisions DB via tenancy events
+- Date: 2026-02-27
+- Status: Accepted
+- Context: Central admin onboarding should create a fully usable tenant without manual `tenants:migrate`.
+- Decision:
+  - Use central `POST /tenants` onboarding to create tenant + primary domain.
+  - Rely on `TenantCreated` event pipeline in `TenancyServiceProvider` for provisioning:
+    - `CreateDatabase`
+    - `MigrateDatabase`
+  - Keep seeding out of Step 11 and defer to Step 12 (`SeedDatabase`).
+- Consequences:
+  - Pros: Predictable zero-manual provisioning flow and cleaner onboarding UX.
+  - Cons: Requires event pipeline health/visibility for operational debugging.
+
+## ADR-011: Use integrated Breeze-style sidebar shell for authenticated pages
+- Date: 2026-02-27
+- Status: Accepted
+- Context: Previous page-level layouts and drawer-like sidebar made UI feel fragmented and inconsistent.
+- Decision:
+  - Standardize authenticated pages on a shared Breeze-style white app shell with fixed left sidebar.
+  - Use grouped/collapsible sidebar navigation per context (central vs tenant).
+  - Keep tables in full-width fixed layout for better scanability in admin screens.
+- Consequences:
+  - Pros: Consistent UX, better information density, cleaner navigation mental model.
+  - Cons: Requires mobile sidebar behavior to be explicitly handled in a follow-up iteration.

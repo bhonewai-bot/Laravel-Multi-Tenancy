@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Central tenant onboarding flow:
+  - `POST /tenants` creates tenant + primary domain in central DB.
+  - Automatic provisioning pipeline on `TenantCreated`:
+    - `CreateDatabase`
+    - `MigrateDatabase`
+- Breeze-style integrated sidebar app shell with grouped navigation.
+- Sidebar footer logout action.
 - Central module management views:
   - `resources/views/modules/index.blade.php`
   - `resources/views/modules/create.blade.php`
@@ -18,6 +25,10 @@ All notable changes to this project will be documented in this file.
   - `module:sale`
 
 ### Changed
+- Tenant list action UI changed to single `Action` dropdown (`View`, `Edit`, `Delete`).
+- Tenant list, module list, and module requests tables now use full-width fixed column layouts.
+- Module request status UI upgraded with visual badges (dot + border + semantic colors).
+- Main authenticated shell switched to sidebar-oriented Breeze white theme.
 - Central approve route corrected to:
   - `POST /module-requests/{moduleRequest}/approve`
 - Module model fillable key aligned to migration/controller payload:
@@ -27,6 +38,7 @@ All notable changes to this project will be documented in this file.
   - Step 9 and Step 10 are now complete.
 
 ### Fixed
+- Eliminated isolated/floating sidebar feel by integrating sidebar into the app shell layout flow.
 - Central UI crash:
   - `View [modules.index] not found`
 - Tenant modules status rendering bug:

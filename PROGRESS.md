@@ -1,5 +1,48 @@
 # Progress Log
 
+## 2026-02-27
+
+### Done
+- Completed Step 11: Central Tenant Onboarding.
+  - Central tenant CRUD routes/controller are active for onboarding.
+  - `TenantStoreRequest` validates unique `tenant_id` (`tenants.id`) and `domain` (`domains.domain`).
+  - `TenantController@store` creates tenant + primary domain in central DB.
+  - No manual `tenants:migrate` is needed after onboarding.
+- Confirmed automatic tenant provisioning pipeline is wired:
+  - `TenantCreated` -> `CreateDatabase` -> `MigrateDatabase`
+  - Implemented in `app/Providers/TenancyServiceProvider.php`.
+- Refactored app UI from dark custom layout to Breeze-style shell:
+  - Replaced old dark layout usage with `x-app-layout` across tenant/module pages.
+  - Implemented integrated sidebar app shell and removed isolated/floating behavior.
+  - Added sidebar logout button.
+- Updated table layouts for better full-width data distribution:
+  - Tenant list uses action dropdown and fixed-width table columns.
+  - Modules list and module requests list use full-width fixed column layouts.
+  - Module request statuses now have more visual badges (dot + color + border).
+
+### Commands Run
+- `php artisan view:clear`
+- `php artisan view:cache`
+- `rg -n "TenantCreated|CreateDatabase|MigrateDatabase" app/Providers config/tenancy.php`
+
+### Result
+- New tenant onboarding is central-first and automatic:
+  - create tenant + domain in central
+  - tenant DB created
+  - tenant migrations run
+  - tenant is reachable without manual migration command
+- UI is now consistent with Breeze-style white theme and shared sidebar shell.
+- Tenant/module/module-request tables are more readable and proportional.
+
+### Next
+1. Step 12: Auto-seeding on tenant provision (`SeedDatabase` pipeline + baseline tenant data).
+2. Step 13: Tenant RBAC (roles/permissions/policies + middleware enforcement).
+3. Step 14: Custom domain lifecycle (add, verify, activate/deactivate).
+4. Add feature tests for central onboarding pipeline and tenant usability after create.
+
+### Blockers
+- None currently.
+
 ## 2026-02-26
 
 ### Done
