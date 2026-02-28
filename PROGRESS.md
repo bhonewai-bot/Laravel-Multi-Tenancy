@@ -19,6 +19,13 @@
   - login works on tenant domain with seeded admin credentials
 - Polished central tenant list action UX:
   - switched action to dropdown style and adjusted overflow/clipping behavior.
+- Added minimal CI + test pipeline baseline:
+  - GitHub Actions workflow at `.github/workflows/ci.yml`
+  - CI runs composer validation, dependency install, app bootstrap, and `php artisan test`.
+- Added tenancy-focused feature tests:
+  - central tenant onboarding request creates tenant + domain
+  - tenant bootstrap seeder is idempotent and seeds hashed password
+- Updated baseline example test to match central root redirect behavior (`/` -> `/tenants`).
 
 ### Commands Run
 - `php artisan tenants:seed`

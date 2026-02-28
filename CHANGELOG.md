@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
   - Default tenant admin is seeded with deterministic email pattern `admin@{tenant_id}.local`.
 - Tenant cache migration support:
   - `database/migrations/tenant/0001_01_01_000001_create_cache_table.php`
+- Minimal CI workflow:
+  - `.github/workflows/ci.yml` runs composer validation + bootstrap + `php artisan test`.
 - Breeze-style integrated sidebar app shell with grouped navigation.
 - Sidebar footer logout action.
 - Central module management views:
@@ -37,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - Main authenticated shell switched to sidebar-oriented Breeze white theme.
 - Tenant bootstrap credentials strategy uses env-driven default password:
   - `TENANT_DEFAULT_ADMIN_PASSWORD`
+- Baseline root feature test now reflects redirect contract (`/` -> `/tenants`).
 - Central approve route corrected to:
   - `POST /module-requests/{moduleRequest}/approve`
 - Module model fillable key aligned to migration/controller payload:
@@ -57,6 +60,10 @@ All notable changes to this project will be documented in this file.
 - Manual smoke-test validation completed:
   - uninstalling `Customer` blocks `/customers` with `403`
   - reinstalling `Customer` restores `/customers` access (`200`)
+
+### Tests
+- Added `tests/Feature/Tenancy/TenantOnboardingTest.php`.
+- Added `tests/Feature/Tenancy/TenantBootstrapSeederTest.php`.
 
 ## [0.1.0] - 2026-02-25
 ### Added

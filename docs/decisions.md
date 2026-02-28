@@ -137,3 +137,19 @@
 - Consequences:
   - Pros: Zero-manual bootstrap for new tenants; predictable login for onboarding/handover.
   - Cons: Requires strict tenant migration parity (e.g., cache table availability when `CACHE_STORE=database`).
+
+## ADR-013: Start with minimal CI focused on test gate
+- Date: 2026-02-28
+- Status: Accepted
+- Context: Project needs reliable merge safety quickly, but style debt currently causes full lint gate noise.
+- Decision:
+  - Add GitHub Actions CI workflow with a single required job:
+    - composer validation
+    - dependency install
+    - test app bootstrap (`.env`, key, sqlite file)
+    - `php artisan test`
+  - Add tenancy-focused regression tests for onboarding + tenant bootstrap seeding.
+  - Defer strict formatting/lint gate to a follow-up cleanup pass.
+- Consequences:
+  - Pros: Immediate merge protection and confidence on core behavior with low friction.
+  - Cons: Coding style consistency is not enforced by CI yet.
