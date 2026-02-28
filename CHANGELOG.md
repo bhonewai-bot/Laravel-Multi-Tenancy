@@ -9,6 +9,12 @@ All notable changes to this project will be documented in this file.
   - Automatic provisioning pipeline on `TenantCreated`:
     - `CreateDatabase`
     - `MigrateDatabase`
+- Auto tenant bootstrap seeding (Step 12):
+  - `TenantCreated` pipeline now includes `SeedDatabase`.
+  - Tenant seeder configured to `TenantBootstrapSeeder`.
+  - Default tenant admin is seeded with deterministic email pattern `admin@{tenant_id}.local`.
+- Tenant cache migration support:
+  - `database/migrations/tenant/0001_01_01_000001_create_cache_table.php`
 - Breeze-style integrated sidebar app shell with grouped navigation.
 - Sidebar footer logout action.
 - Central module management views:
@@ -29,6 +35,8 @@ All notable changes to this project will be documented in this file.
 - Tenant list, module list, and module requests tables now use full-width fixed column layouts.
 - Module request status UI upgraded with visual badges (dot + border + semantic colors).
 - Main authenticated shell switched to sidebar-oriented Breeze white theme.
+- Tenant bootstrap credentials strategy uses env-driven default password:
+  - `TENANT_DEFAULT_ADMIN_PASSWORD`
 - Central approve route corrected to:
   - `POST /module-requests/{moduleRequest}/approve`
 - Module model fillable key aligned to migration/controller payload:
@@ -44,6 +52,8 @@ All notable changes to this project will be documented in this file.
 - Tenant modules status rendering bug:
   - incorrect variable reference `$requests` corrected to `$requestModules`
 - Tenant module state now reflects installed/uninstalled transitions in UI.
+- Tenant login failure caused by missing tenant `cache` table when using `CACHE_STORE=database`.
+- Tenant list action dropdown clipping/overflow issues in table layout.
 - Manual smoke-test validation completed:
   - uninstalling `Customer` blocks `/customers` with `403`
   - reinstalling `Customer` restores `/customers` access (`200`)

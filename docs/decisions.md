@@ -119,3 +119,21 @@
 - Consequences:
   - Pros: Consistent UX, better information density, cleaner navigation mental model.
   - Cons: Requires mobile sidebar behavior to be explicitly handled in a follow-up iteration.
+
+## ADR-012: Seed tenant bootstrap data automatically on tenant creation
+- Date: 2026-02-28
+- Status: Accepted
+- Context: New tenants should be usable immediately after central onboarding without manual `tenants:seed`.
+- Decision:
+  - Extend `TenantCreated` pipeline to include:
+    1. `CreateDatabase`
+    2. `MigrateDatabase`
+    3. `SeedDatabase`
+  - Configure tenancy seeder root class to `TenantBootstrapSeeder`.
+  - Keep seed scope tenant-only and idempotent (`firstOrCreate` for default admin user).
+  - Use deterministic credentials pattern:
+    - email: `admin@{tenant_id}.local`
+    - password: `TENANT_DEFAULT_ADMIN_PASSWORD` from env (never persisted in plaintext).
+- Consequences:
+  - Pros: Zero-manual bootstrap for new tenants; predictable login for onboarding/handover.
+  - Cons: Requires strict tenant migration parity (e.g., cache table availability when `CACHE_STORE=database`).

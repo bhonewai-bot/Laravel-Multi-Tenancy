@@ -45,7 +45,15 @@ class TenantController extends Controller
             'domain' => $request->domain,
         ]);
 
-        return redirect()->route('tenants.index')->with('success', 'Tenant created successfully.');
+        return redirect()
+            ->route('tenants.index')
+            ->with('success', 'Tenant created successfully.');
+            /* ->with('onboarding_credentials', [
+                'tenant_id' => $tenant->id,
+                'domain' => $request->domain,
+                'admin_email' => "admin@{$tenant->id}.local",
+                'password_source' => 'TENANT_DEFAULT_ADMIN_PASSWORD',
+            ]); */
     }
 
     /**

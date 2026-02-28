@@ -136,12 +136,25 @@
         @endif
     </nav>
 
-    <div class="border-t border-gray-200 p-4">
+    <div class="space-y-1 border-t border-gray-200 p-4">
+        <a href="{{ $isTenant ? route('tenant.profile.edit', absolute: false) : route('profile.edit', absolute: false) }}"
+            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-8 10a6 6 0 1112 0H8z" />
+            </svg>
+            <span>Profile</span>
+        </a>
+
         <form method="POST" action="{{ route('logout', absolute: false) }}">
             @csrf
             <button type="submit"
-                class="inline-flex w-full items-center justify-center rounded-md border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500">
-                Log Out
+                class="inline-flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-7.5A2.25 2.25 0 003.75 5.25v13.5A2.25 2.25 0 006 21h7.5a2.25 2.25 0 002.25-2.25V15m-6-3h10.5m0 0l-3-3m3 3l-3 3" />
+                </svg>
+                <span>Log Out</span>
             </button>
         </form>
     </div>

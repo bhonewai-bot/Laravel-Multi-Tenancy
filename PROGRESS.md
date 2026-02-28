@@ -1,5 +1,45 @@
 # Progress Log
 
+## 2026-02-28
+
+### Done
+- Completed Step 12: Auto Tenant Bootstrap Seed.
+  - Enabled tenant seed job in provisioning pipeline:
+    - `TenantCreated` -> `CreateDatabase` -> `MigrateDatabase` -> `SeedDatabase`
+  - Configured tenancy seeder class to `TenantBootstrapSeeder`.
+  - Added tenant-only bootstrap seeder with idempotent `User::firstOrCreate(...)`.
+  - Seeded default tenant admin strategy:
+    - email: `admin@{tenant_id}.local`
+    - password: `TENANT_DEFAULT_ADMIN_PASSWORD` (env), hashed by model cast.
+- Added tenant cache table migration for database cache driver compatibility:
+  - `database/migrations/tenant/0001_01_01_000001_create_cache_table.php`
+- Verified Step 12 behavior manually:
+  - creating tenant from central auto-creates tenant DB
+  - tenant migrations + seed run automatically
+  - login works on tenant domain with seeded admin credentials
+- Polished central tenant list action UX:
+  - switched action to dropdown style and adjusted overflow/clipping behavior.
+
+### Commands Run
+- `php artisan tenants:seed`
+- `php artisan tenants:seed --tenants=t001 --class=TenantBootstrapSeeder`
+- `php artisan view:clear`
+- `php artisan optimize:clear`
+
+### Result
+- Step 12 Definition of Done is met:
+  - new tenants are login-ready without manual post-create steps.
+- Tenant login path now works with seeded credentials on tenant domains.
+- Database cache-related tenant login error is resolved by tenant cache migration.
+
+### Next
+1. Add CI baseline (lint + test gates) to protect onboarding/seeding flow from regressions.
+2. Add feature test for tenant provisioning + seeded admin account (Step 12 task 8).
+3. Start Step 13: tenant RBAC foundation (roles/permissions/policies).
+
+### Blockers
+- None currently.
+
 ## 2026-02-27
 
 ### Done
