@@ -153,3 +153,17 @@
 - Consequences:
   - Pros: Immediate merge protection and confidence on core behavior with low friction.
   - Cons: Coding style consistency is not enforced by CI yet.
+
+## ADR-014: Use feature-action RBAC with policy-driven authorization in tenant app
+- Date: 2026-03-01
+- Status: Accepted
+- Context: Tenant authorization needs to be understandable, reusable, and enforceable across both route middleware and controller actions.
+- Decision:
+  - Keep RBAC keys in `feature.action` format (e.g., `user.read`, `module.install`).
+  - Keep installable product modules and RBAC features as separate concepts:
+    - `modules` = platform catalog and install lifecycle
+    - `features` = authorization namespace
+  - Use policies (`$this->authorize(...)`) in controllers for business actions, with middleware as route-level guard where needed.
+- Consequences:
+  - Pros: Clear separation of concerns, easier future expansion, and consistent authorization semantics.
+  - Cons: Requires discipline to keep permission naming and policy checks aligned.

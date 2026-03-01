@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Tenant RBAC foundation (Step 13):
+  - Tenant RBAC schema: `roles`, `features`, `permissions`, `role_permissions`, and tenant `users.role_id`.
+  - Tenant RBAC models: `Role`, `Feature`, `Permission`.
+  - Tenant RBAC seed data: `admin`, `staff`, plus feature-action permissions (including module permissions).
+  - Middleware aliases for tenant authorization:
+    - `role:<name>`
+    - `permission:<feature.action>`
+- Policy-driven tenant module authorization:
+  - `$this->authorize(...)` enforced in tenant module request/install/uninstall controller actions.
+  - `ModuleRequestPolicy` abilities for `viewAny`, `request`, `install`, `uninstall`.
 - Central tenant onboarding flow:
   - `POST /tenants` creates tenant + primary domain in central DB.
   - Automatic provisioning pipeline on `TenantCreated`:
@@ -33,6 +43,11 @@ All notable changes to this project will be documented in this file.
   - `module:sale`
 
 ### Changed
+- Tenant user role checks are now case-insensitive (`hasRole`).
+- Tenant users migration now supports both fresh tenants and existing tenants:
+  - creates `users` if missing
+  - adds nullable `role_id` if `users` exists without it
+- Super admin seeder now uses env-driven credentials and `updateOrCreate`.
 - Tenant list action UI changed to single `Action` dropdown (`View`, `Edit`, `Delete`).
 - Tenant list, module list, and module requests tables now use full-width fixed column layouts.
 - Module request status UI upgraded with visual badges (dot + border + semantic colors).
@@ -49,6 +64,10 @@ All notable changes to this project will be documented in this file.
   - Step 9 and Step 10 are now complete.
 
 ### Fixed
+- Unauthorized access in tenant permission middleware now returns `403` consistently.
+- Super admin central seed failure due to missing password.
+- Existing-tenant migration failure when `users` table already existed.
+- Tenant permission route key mismatch (`users` -> `user.read`).
 - Eliminated isolated/floating sidebar feel by integrating sidebar into the app shell layout flow.
 - Central UI crash:
   - `View [modules.index] not found`

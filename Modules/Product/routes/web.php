@@ -10,5 +10,7 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
     'module:product'
 ])->group(function () {
-    Route::resource('products', ProductController::class)->names('product');
+    Route::group(['middleware' => 'auth'], function () {
+        Route::resource('products', ProductController::class)->names('product');
+    });
 });

@@ -1,5 +1,40 @@
 # Progress Log
 
+## 2026-03-01
+
+### Done
+- Completed Step 13: Tenant RBAC.
+  - Added tenant RBAC schema (`roles`, `features`, `permissions`, `role_permissions`, and tenant `users.role_id`).
+  - Added RBAC models/relations (`Role`, `Feature`, `Permission`) and user helpers (`hasRole`, `hasPermission`).
+  - Added tenant RBAC middleware aliases (`role`, `permission`) and enforced denial for unauthorized users.
+  - Switched tenant module actions to policy-driven authorization using `$this->authorize(...)`.
+  - Added `ModuleRequestPolicy` abilities for `viewAny`, `request`, `install`, `uninstall`.
+  - Added module feature permissions in tenant RBAC seed:
+    - `module.read`, `module.request`, `module.install`, `module.uninstall`.
+- Hardened bootstrap and migration safety:
+  - Tenant `users` migration is now safe for existing tenants (create-if-missing, add `role_id` if missing).
+  - Super admin seeder is now idempotent and writes password from env.
+  - Added central super admin env keys in `.env.example`.
+- Verified tests after RBAC/policy updates:
+  - `php artisan test` passed.
+
+### Commands Run
+- `php artisan test`
+
+### Result
+- Step 13 Definition of Done is met:
+  - tenant resources are protected with role/permission + policies
+  - non-admin users are blocked from admin-level tenant module actions
+  - tenant onboarding still provisions login-ready admin users automatically
+
+### Next
+1. Add focused feature tests for RBAC route/policy denials (staff vs admin).
+2. Start Step 14: custom domain lifecycle (request, verify, activate/deactivate).
+3. Add role/permission management UI (tenant-side) for admin users.
+
+### Blockers
+- None currently.
+
 ## 2026-02-28
 
 ### Done

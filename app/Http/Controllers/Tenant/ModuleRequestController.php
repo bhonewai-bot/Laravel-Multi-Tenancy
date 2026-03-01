@@ -9,8 +9,6 @@ use App\Services\TenantModuleInstaller;
 use App\Services\TenantModuleRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Throwable;
 
@@ -18,6 +16,8 @@ class ModuleRequestController extends Controller
 {
     public function index(TenantModuleRegistry $registry): View
     {
+        $this->authorize('viewAny', ModuleRequest::class);
+
         $tenant = tenant();
 
         $modules = Module::where('is_active', true)->orderBy('name')->get();
@@ -32,6 +32,8 @@ class ModuleRequestController extends Controller
 
     public function request(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
+        $this->authorize('request', ModuleRequest::class);
+
         $tenant = tenant();
 
         $data = $request->validate(['module_id' => ['required', 'integer']]);
@@ -71,6 +73,8 @@ class ModuleRequestController extends Controller
 
     public function install(Request $request, TenantModuleInstaller $installer): RedirectResponse
     {
+        $this->authorize('install', ModuleRequest::class);
+
         $tenant = tenant();
 
         $data = $request->validate(['module_id' => ['required', 'integer']]);
@@ -97,6 +101,8 @@ class ModuleRequestController extends Controller
 
     public function uninstall(Request $request, TenantModuleInstaller $installer, TenantModuleRegistry $registry): RedirectResponse
     {
+        $this->authorize('uninstall', ModuleRequest::class);
+
         $tenant = tenant();
 
         $data = $request->validate(['module_id' => ['required', 'integer']]);
