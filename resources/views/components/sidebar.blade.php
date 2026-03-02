@@ -75,7 +75,7 @@
             </div>
         @else
             <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">Tenant</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">Platform</p>
                 <div x-data="{ open: {{ request()->routeIs('tenant.modules.*') ? 'true' : 'false' }} }" class="space-y-1">
                     <button type="button"
                         class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -94,42 +94,28 @@
                         </a>
                     </div>
                 </div>
-            </div>
 
-            <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">Business</p>
-                <div x-data="{ open: {{ request()->routeIs('product.*') || request()->routeIs('customer.*') || request()->routeIs('sale.*') ? 'true' : 'false' }} }" class="space-y-1">
+                <div x-data="{ open: {{ request()->routeIs('tenant.domains.*') ? 'true' : 'false' }} }" class="space-y-1">
                     <button type="button"
                         class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         @click="open = ! open">
-                        <span>Management</span>
+                        <span>Custom Domains</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform"
                             :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                         </svg>
                     </button>
                     <div x-show="open" class="space-y-1 ps-6 text-sm">
-                        @if (Route::has('product.index'))
-                            <a href="{{ route('product.index', absolute: false) }}"
-                                class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('product.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                                <span class="text-gray-400">•</span>
-                                <span>Products</span>
-                            </a>
-                        @endif
-                        @if (Route::has('customer.index'))
-                            <a href="{{ route('customer.index', absolute: false) }}"
-                                class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('customer.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                                <span class="text-gray-400">•</span>
-                                <span>Customers</span>
-                            </a>
-                        @endif
-                        @if (Route::has('sale.index'))
-                            <a href="{{ route('sale.index', absolute: false) }}"
-                                class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('sale.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                                <span class="text-gray-400">•</span>
-                                <span>Sales</span>
-                            </a>
-                        @endif
+                        <a href="{{ route('tenant.domains.index', absolute: false) }}"
+                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.domains.index') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
+                            <span class="text-gray-400">•</span>
+                            <span>My Domains</span>
+                        </a>
+                        <a href="{{ route('tenant.domains.create', absolute: false) }}"
+                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.domains.create') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
+                            <span class="text-gray-400">•</span>
+                            <span>Add Domain</span>
+                        </a>
                     </div>
                 </div>
             </div>

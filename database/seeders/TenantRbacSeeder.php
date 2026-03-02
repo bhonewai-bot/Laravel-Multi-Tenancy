@@ -21,6 +21,7 @@ class TenantRbacSeeder extends Seeder
             'user' => ['create', 'read', 'update', 'delete'],
             'role' => ['create', 'read', 'update', 'delete'],
             'module' => ['read', 'request', 'install', 'uninstall'],
+            'domain' => ['create', 'read', 'verify', 'delete'],
         ];
 
         foreach ($featurePermissions as $featureName => $permissions) {

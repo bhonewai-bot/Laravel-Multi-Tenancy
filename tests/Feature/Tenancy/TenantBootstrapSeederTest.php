@@ -55,7 +55,7 @@ class TenantBootstrapSeederTest extends TestCase
 
         $admin = User::firstOrFail();
 
-        $this->assertSame('admin@tenant.local', $admin->email);
+        $this->assertSame('admin@example.com', $admin->email);
         $this->assertTrue(Hash::check('Testing123!', $admin->password));
     }
 }

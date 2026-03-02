@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Tenant\DomainController;
 use App\Http\Controllers\Tenant\ModuleRequestController;
+use App\Http\Middleware\EnsureVerifiedTenantDomain;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -24,6 +26,7 @@ Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
+    EnsureVerifiedTenantDomain::class
 ])->group(function () {
     Route::get('/', function () {
         return redirect('dashboard');
@@ -46,6 +49,27 @@ Route::middleware([
         Route::get('/me/permissions', fn () => 'Ok')
             ->middleware('permission:user.read')
             ->name('tenant.permissions');
+
+        // Custom Domain
+        Route::get('/domains', [DomainController::class, 'index'])
+            ->middleware('permission:domain.read')
+            ->name('tenant.domains.index');
+
+        Route::get('/domains/create', [DomainController::class, 'create'])
+            ->middleware('permission:domain.create')
+            ->name('tenant.domains.create');
+
+        Route::post('/domains', [DomainController::class, 'store'])
+            ->middleware(['permission:domain.create', 'throttle:20,1'])
+            ->name('tenant.domains.store');
+
+        Route::post('/domains/{domain}/verify', [DomainController::class, 'verify'])
+            ->middleware(['permission:domain.verify', 'throttle:30,1'])
+            ->name('tenant.domains.verify');
+
+        Route::delete('/domains/{domain}', [DomainController::class, 'destroy'])
+            ->middleware('permission:domain.delete')
+            ->name('tenant.domains.destroy');
     });
 
     require __DIR__.'/auth.php';

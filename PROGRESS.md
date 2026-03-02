@@ -1,5 +1,43 @@
 # Progress Log
 
+## 2026-03-02
+
+### Done
+- Delivered MVP custom-domain lifecycle hardening for tenant hosts.
+  - Moved Caddy authorization endpoint registration into bootstrap route wiring (central-domain scoped and throttled).
+  - Hardened `DomainCheckController` token contract:
+    - uses `DOMAIN_CHECK_TOKEN`
+    - returns `500` when token is not configured
+    - returns `403` on token mismatch
+    - only returns `200` for central domains or verified custom domains.
+  - Added host normalization improvement (trailing-dot safe) in `TenantDomainService`.
+  - Added tenant route throttling for custom domain create/verify actions.
+- Improved tenant custom-domain UX guidance:
+  - Added explicit DNS checklist in My Domains page (TXT + A/CNAME + HTTPS without `:8000`).
+  - Added setup notes in Add Domain flow for post-create DNS/TLS steps.
+- Added custom-domain regression tests:
+  - `DomainCheckTest` for central domain, verified custom domain, unverified custom domain, invalid token.
+  - `TenantDomainLifecycleTest` for unverified host blocking and verify action stamping `verified_at`.
+- Aligned tenant bootstrap seeder test expectation with current seeded admin email strategy (`admin@example.com`) so test suite reflects runtime behavior.
+
+### Commands Run
+- `php artisan test tests/Feature/Tenancy/DomainCheckTest.php tests/Feature/Tenancy/TenantDomainLifecycleTest.php`
+- `php artisan test`
+
+### Result
+- Domain-check gate now behaves as a strict Caddy contract and is validated by tests.
+- Tenant custom domain flow now includes explicit DNS + TLS guidance in UI.
+- Verified-only domain enforcement is covered by test cases.
+- Full test suite passes.
+
+### Next
+1. Add centralized domain setup docs for production (A/CNAME patterns, TLS expectations, Cloudflare option).
+2. Add optional audit logging for domain verify/remove actions.
+3. Add action-level policies for tenant domain operations if you want policy parity with modules.
+
+### Blockers
+- None currently.
+
 ## 2026-03-01
 
 ### Done

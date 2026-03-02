@@ -15,14 +15,14 @@ class TenantBootstrapSeeder extends Seeder
     {
         $this->call(TenantRbacSeeder::class);
 
-        $tenantId = (string) (tenant('id') ?? 'tenant');
+        // $tenantId = (string) (tenant('id') ?? 'tenant');
         $defaultPassword = (string) env('TENANT_DEFAULT_ADMIN_PASSWORD', 'ChangeMe123!');
 
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
 
         $admin = User::firstOrCreate(
-            ['email' => "admin@{$tenantId}.local"],
-            // ['email' => "admin@example.local"],
+            ['email' => "admin@example.com"],
+            // ['email' => "admin@{$tenantId}.local"],
             [
                 'name' => 'Admin User',
                 'password' => $defaultPassword,

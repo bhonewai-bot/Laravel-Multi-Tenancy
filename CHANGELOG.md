@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Central-domain scoped Caddy authorization gate endpoint:
+  - `/internal/domain-check` is now registered in bootstrap route wiring with request throttling.
+- Tenant custom domain guidance UX:
+  - DNS checklist panel on My Domains page (TXT verification + A/CNAME routing + HTTPS usage).
+  - Post-create setup instructions on Add Domain page.
+- Custom-domain test coverage:
+  - `tests/Feature/Tenancy/DomainCheckTest.php`
+  - `tests/Feature/Tenancy/TenantDomainLifecycleTest.php`
 - Tenant RBAC foundation (Step 13):
   - Tenant RBAC schema: `roles`, `features`, `permissions`, `role_permissions`, and tenant `users.role_id`.
   - Tenant RBAC models: `Role`, `Feature`, `Permission`.
@@ -43,6 +51,10 @@ All notable changes to this project will be documented in this file.
   - `module:sale`
 
 ### Changed
+- Domain-check token validation now uses `DOMAIN_CHECK_TOKEN` and fails closed when misconfigured.
+- Tenant domain normalization now trims trailing dots for more reliable DNS/host matching.
+- Tenant domain create/verify endpoints now include throttle middleware.
+- Tenant bootstrap seeder test now matches current seeded admin email (`admin@example.com`).
 - Tenant user role checks are now case-insensitive (`hasRole`).
 - Tenant users migration now supports both fresh tenants and existing tenants:
   - creates `users` if missing
@@ -64,6 +76,11 @@ All notable changes to this project will be documented in this file.
   - Step 9 and Step 10 are now complete.
 
 ### Fixed
+- Caddy ask endpoint contract now correctly differentiates:
+  - `200` for central + verified custom domains
+  - `404` for unverified custom domains
+  - `403` for invalid token
+- Removed domain-check route coupling from central web routes to keep the ask endpoint independent from auth/session-protected pages.
 - Unauthorized access in tenant permission middleware now returns `403` consistently.
 - Super admin central seed failure due to missing password.
 - Existing-tenant migration failure when `users` table already existed.
@@ -81,6 +98,8 @@ All notable changes to this project will be documented in this file.
   - reinstalling `Customer` restores `/customers` access (`200`)
 
 ### Tests
+- Added feature coverage for domain-check token/verification behavior.
+- Added feature coverage for verified-host enforcement and domain verification timestamp updates.
 - Added `tests/Feature/Tenancy/TenantOnboardingTest.php`.
 - Added `tests/Feature/Tenancy/TenantBootstrapSeederTest.php`.
 
