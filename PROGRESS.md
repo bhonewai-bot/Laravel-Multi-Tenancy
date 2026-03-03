@@ -1,5 +1,40 @@
 # Progress Log
 
+## 2026-03-03
+
+### Done
+- Completed Step 15: Module install/uninstall hardening.
+  - Tenant module install/uninstall now uses idempotent result states:
+    - `installed`
+    - `already_installed`
+    - `uninstalled`
+    - `already_uninstalled`
+  - Added operation-level lock in `TenantModuleInstaller` to prevent concurrent install/uninstall race on same tenant+module.
+  - Kept state consistency rule:
+    - `installed_modules` is updated only after successful migrate/seed.
+    - uninstall state is updated only after successful migration rollback.
+  - Removed controller-side uninstall pre-check so uninstall retries/no-op requests are handled by installer idempotency path.
+
+### Commands Run
+- `php artisan test`
+- `php artisan test --filter=Tenant`
+
+### Result
+- Full test suite passed.
+- Tenancy test subset passed after idempotent uninstall flow update.
+- Step 15 Definition of Done is met:
+  - retries/failures no longer corrupt module install state
+  - repeated uninstall attempts are safe no-op responses
+  - concurrent same-module operations are lock-guarded
+
+### Next
+1. Add focused feature tests specifically for module install/uninstall idempotency + lock contention.
+2. Optionally move install/uninstall execution into queued jobs with uniqueness keys while preserving current idempotent service behavior.
+3. Continue to Step 16 scope.
+
+### Blockers
+- None currently.
+
 ## 2026-03-02
 
 ### Done

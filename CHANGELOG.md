@@ -51,6 +51,11 @@ All notable changes to this project will be documented in this file.
   - `module:sale`
 
 ### Changed
+- Tenant module lifecycle hardening (Step 15):
+  - install/uninstall service now returns explicit idempotent result states
+  - install marks `installed_modules` only after migrate/seed succeeds
+  - uninstall marks `installed_modules` only after rollback succeeds
+- Tenant module uninstall controller flow is now idempotent-friendly by delegating no-op handling to installer service.
 - Domain-check token validation now uses `DOMAIN_CHECK_TOKEN` and fails closed when misconfigured.
 - Tenant domain normalization now trims trailing dots for more reliable DNS/host matching.
 - Tenant domain create/verify endpoints now include throttle middleware.
@@ -76,6 +81,8 @@ All notable changes to this project will be documented in this file.
   - Step 9 and Step 10 are now complete.
 
 ### Fixed
+- Queue/concurrency safety for tenant module operations:
+  - added tenant+module operation lock to prevent same-module race conditions.
 - Caddy ask endpoint contract now correctly differentiates:
   - `200` for central + verified custom domains
   - `404` for unverified custom domains

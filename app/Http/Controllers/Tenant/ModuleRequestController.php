@@ -90,16 +90,24 @@ class ModuleRequestController extends Controller
         }
 
         try {
-            $installer->install($tenant, $module);
+            $result = $installer->install($tenant, $module);
         } catch (Throwable $e) {
             report($e);
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', "Module '{$module->name}' installed.");
+        // return back()->with('success', "Module '{$module->name}' installed.");
+        return match($result) {
+            TenantModuleInstaller::RESULT_ALREADY_INSTALLED
+                => back()->with('success', "Module '{$module->name} is already installed.'"),
+            TenantModuleInstaller::RESULT_INSTALLED
+                => back()->with('success', "Module '{$module->name}' installed."),
+            default
+                => back()->with('error', 'Unexpected install result.'),
+        };
     }
 
-    public function uninstall(Request $request, TenantModuleInstaller $installer, TenantModuleRegistry $registry): RedirectResponse
+    public function uninstall(Request $request, TenantModuleInstaller $installer): RedirectResponse
     {
         $this->authorize('uninstall', ModuleRequest::class);
 
@@ -108,17 +116,20 @@ class ModuleRequestController extends Controller
         $data = $request->validate(['module_id' => ['required', 'integer']]);
         $module = Module::whereKey($data['module_id'])->firstOrFail();
 
-        if (!in_array($module->slug, $registry->getInstalledModules($tenant), true)) {
-            return back()->with('error', 'Module is not installed.');
-        }
-
         try {
-            $installer->uninstall($tenant, $module);
+            $result = $installer->uninstall($tenant, $module);
         } catch (Throwable $e) {
             report($e);
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', "Module '{$module->name}' uninstalled.");
+        return match($result) {
+            TenantModuleInstaller::RESULT_ALREADY_UNINSTALLED
+                => back()->with('success', "Module '{$module->name}' is already uninstalled."),
+            TenantModuleInstaller::RESULT_UNINSTALLED
+                => back()->with('success', "Module '{$module->name}' uninstalled."),
+            default
+                => back()->with('error', 'Unexpected uninstall result.')
+        };
     }
 }

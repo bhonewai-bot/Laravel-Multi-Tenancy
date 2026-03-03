@@ -10,12 +10,12 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $centralDomain = config('tenancy.central_domains.0');
+        $centralDomain = config('tenancy.central_domains.0')
+            ?: parse_url((string) config('app.url', 'http://localhost'), PHP_URL_HOST)
+            ?: 'localhost';
 
-        if (is_string($centralDomain) && $centralDomain !== '') {
-            $this->withServerVariables([
-                'HTTP_HOST' => $centralDomain,
-            ]);
-        }
+        $this->withServerVariables([
+            'HTTP_HOST' => $centralDomain,
+        ]);
     }
 }
