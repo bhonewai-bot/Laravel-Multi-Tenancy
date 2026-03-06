@@ -9,7 +9,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-8">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if (session('error'))
                 <div class="mb-4 rounded-lg border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800 shadow-sm">
@@ -29,8 +29,8 @@
                 </div>
             @endif
 
-            <div class="grid gap-6 xl:grid-cols-12">
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 xl:col-span-8">
+            <div class="space-y-6">
+                <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-100">
                     <h3 class="text-lg font-semibold text-gray-900">Custom Domain Setup</h3>
                     <p class="mt-1 text-sm text-gray-600">Enter your domain host, then verify ownership with DNS TXT.</p>
 
@@ -67,41 +67,39 @@
                     </form>
                 </div>
 
-                <div class="space-y-6 xl:col-span-4">
-                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                        <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-700">Verification Flow</h3>
+                <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-100">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-700">Verification Flow</h3>
 
-                        <div class="mt-4 space-y-4 text-sm text-gray-700">
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                <p class="font-semibold">1) Add Domain</p>
-                                <p class="mt-1">Save your custom domain from this form.</p>
-                            </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                <p class="font-semibold">2) Add DNS TXT</p>
-                                <p class="mt-1">On My Domains page, copy the TXT name and TXT value.</p>
-                            </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                <p class="font-semibold">3) Verify</p>
-                                <p class="mt-1">Click Verify after DNS propagation. Only verified domains are allowed.</p>
-                            </div>
+                    <div class="mt-4 space-y-4 text-sm text-gray-700">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <p class="font-semibold">1) Add Domain</p>
+                            <p class="mt-1">Save your custom domain from this form.</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <p class="font-semibold">2) Add DNS TXT</p>
+                            <p class="mt-1">On My Domains page, copy the TXT name and TXT value.</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <p class="font-semibold">3) Verify</p>
+                            <p class="mt-1">Click Verify after DNS propagation. Only verified domains are allowed.</p>
                         </div>
                     </div>
+                </div>
 
-                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                        <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-700">DNS Record Quick Guide</h3>
-                        <div class="mt-4 space-y-3 text-sm text-gray-700">
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                <p class="font-semibold text-gray-900">Ownership (required)</p>
-                                <p class="mt-1">Add the TXT record name/value from <span class="font-semibold">My Domains</span>.</p>
-                            </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                <p class="font-semibold text-gray-900">Routing (required)</p>
-                                <p class="mt-1">Add <span class="font-semibold">A</span> (to server IP) or <span class="font-semibold">CNAME</span> (to your target host).</p>
-                            </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                <p class="font-semibold text-gray-900">Access URL</p>
-                                <p class="mt-1">Use <span class="font-semibold">https://your-domain</span> after DNS propagates.</p>
-                            </div>
+                <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-100">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-700">DNS Record Quick Guide</h3>
+                    <div class="mt-4 space-y-3 text-sm text-gray-700">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <p class="font-semibold text-gray-900">Ownership (required)</p>
+                            <p class="mt-1">Add the TXT record name/value from <span class="font-semibold">My Domains</span>.</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <p class="font-semibold text-gray-900">Routing (required)</p>
+                            <p class="mt-1">Add <span class="font-semibold">A</span> (to server IP) or <span class="font-semibold">CNAME</span> (to your target host).</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <p class="font-semibold text-gray-900">Access URL</p>
+                            <p class="mt-1">Use <span class="font-semibold">https://your-domain</span> after DNS propagates.</p>
                         </div>
                     </div>
                 </div>

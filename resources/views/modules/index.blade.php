@@ -9,7 +9,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-8">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700 border border-green-200">{{ session('success') }}</div>
@@ -20,11 +20,11 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="mb-4">
+                    <!-- <div class="mb-4">
                         <a href="{{ route('module-requests.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">
                             View module requests
                         </a>
-                    </div>
+                    </div> -->
 
                     <div class="overflow-x-auto">
                         <table class="w-full table-fixed divide-y divide-gray-200">

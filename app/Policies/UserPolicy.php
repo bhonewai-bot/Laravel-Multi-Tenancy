@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
+use App\Models\Role;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
@@ -50,6 +50,14 @@ class UserPolicy
     public function delete(User $user, User $model): bool
     {
         return $user->hasPermission('user.delete');
+    }
+
+    /**
+     * Determine whether the user can assgin the role.
+     */
+    public function assignRole(User $user, Role $role): bool
+    {
+        return $user->hasPermission('user.update');
     }
 
     /**

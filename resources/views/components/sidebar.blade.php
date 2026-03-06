@@ -1,6 +1,9 @@
 @php
     $isTenant = (bool) tenant();
     $homeUrl = $isTenant ? route('dashboard', absolute: false) : route('tenants.index', absolute: false);
+    $tenantUser = auth()->user();
+    $canViewUsers = $isTenant && $tenantUser && ($tenantUser->hasRole('admin') || $tenantUser->hasPermission('user.read'));
+    $canViewRoles = $isTenant && $tenantUser && ($tenantUser->hasRole('admin') || $tenantUser->hasPermission('role.read'));
 @endphp
 
 <aside class="hidden w-64 shrink-0 border-r border-gray-200 bg-white text-gray-700 md:flex md:flex-col">
@@ -94,6 +97,36 @@
                         </a>
                     </div>
                 </div>
+
+                @if ($canViewUsers || $canViewRoles)
+                    <div x-data="{ open: {{ request()->routeIs('tenant.users.*') || request()->routeIs('tenant.roles.*') ? 'true' : 'false' }} }" class="space-y-1">
+                        <button type="button"
+                            class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            @click="open = ! open">
+                            <span>User & Role</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform"
+                                :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div x-show="open" class="space-y-1 ps-6 text-sm">
+                            @if ($canViewUsers)
+                                <a href="{{ route('tenant.users.index', absolute: false) }}"
+                                    class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.users.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
+                                    <span class="text-gray-400">•</span>
+                                    <span>Users</span>
+                                </a>
+                            @endif
+                            @if ($canViewRoles)
+                                <a href="{{ route('tenant.roles.index', absolute: false) }}"
+                                    class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.roles.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
+                                    <span class="text-gray-400">•</span>
+                                    <span>Roles</span>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @endif
 
                 <div x-data="{ open: {{ request()->routeIs('tenant.domains.*') ? 'true' : 'false' }} }" class="space-y-1">
                     <button type="button"

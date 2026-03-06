@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Tenant\DomainController;
 use App\Http\Controllers\Tenant\ModuleRequestController;
+use App\Http\Controllers\Tenant\RoleController;
+use App\Http\Controllers\Tenant\UserController;
 use App\Http\Middleware\EnsureVerifiedTenantDomain;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -49,6 +51,9 @@ Route::middleware([
         Route::get('/me/permissions', fn () => 'Ok')
             ->middleware('permission:user.read')
             ->name('tenant.permissions');
+
+        Route::resource('users', UserController::class)->names('tenant.users');
+        Route::resource('roles', RoleController::class)->names('tenant.roles');
 
         // Custom Domain
         Route::get('/domains', [DomainController::class, 'index'])

@@ -1,5 +1,41 @@
 # Progress Log
 
+## 2026-03-05
+
+### Done
+- Completed Step 16: Automated E2E Feature Tests.
+  - Added `tests/Feature/Tenancy/TenancyE2EFlowTest.php` with end-to-end coverage for:
+    - central tenant provisioning
+    - tenant signup isolation
+    - module request -> approve -> install flow
+    - module guard behavior (`403` before install, `200` after install)
+    - custom domain add + verify + central domain-check gate
+  - Stabilized tenant E2E tests for CI/runtime:
+    - switched this E2E class to migration-based DB lifecycle (`DatabaseMigrations`)
+    - used absolute host URLs in tenant/central HTTP requests
+    - added explicit tenancy context cleanup between assertions/tests.
+- Fixed CI failure caused by missing Vite build manifest:
+  - updated `.github/workflows/ci.yml` to run `npm ci` and `npm run build` before `php artisan test`.
+- Verified GitHub Actions status is green after CI workflow fix.
+
+### Commands Run
+- `php artisan test tests/Feature/Tenancy/TenancyE2EFlowTest.php`
+- `php artisan test`
+
+### Result
+- Step 16 Definition of Done is met:
+  - automated E2E tenancy scenarios now replace manual smoke checks for the covered flows.
+- Full local suite passes.
+- CI workflow passes after frontend build step was added.
+
+### Next
+1. Remove temporary local tenant sqlite artifacts (`database/tenant*`) from working tree or ignore strategy.
+2. Expand E2E coverage with negative-path assertions (rejected module install, unverified domain access path).
+3. Move to next milestone (production-hardening or observability focus).
+
+### Blockers
+- None currently.
+
 ## 2026-03-03
 
 ### Done

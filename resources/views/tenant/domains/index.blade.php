@@ -13,7 +13,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-8">
         <div x-data="{
             expandedDomainId: null,
             copiedKey: null,
