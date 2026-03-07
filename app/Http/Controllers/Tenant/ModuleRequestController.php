@@ -3,31 +3,89 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\InstallTenantModule;
+use App\Jobs\UninstallTenantModule;
 use App\Models\Module;
 use App\Models\ModuleRequest;
-use App\Services\TenantModuleInstaller;
 use App\Services\TenantModuleRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Throwable;
 
 class ModuleRequestController extends Controller
 {
-    public function index(TenantModuleRegistry $registry): View
+    public function index(Request $request, TenantModuleRegistry $registry): View
     {
         $this->authorize('viewAny', ModuleRequest::class);
 
         $tenant = tenant();
-
         $modules = Module::where('is_active', true)->orderBy('name')->get();
-
-        $requestModules = ModuleRequest::where('tenant_id', $tenant->id)
-            ->pluck('status', 'module_id');
-
+        $requestModules = ModuleRequest::where('tenant_id', $tenant->id)->pluck('status', 'module_id');
         $installedModules = $registry->getInstalledModules($tenant);
+        $moduleOperations = $registry->getModuleOperations($tenant);
 
-        return view('tenant.modules.index', compact('modules', 'requestModules', 'installedModules'));
+        $watchModuleId = (int) $request->query('watch_module_id', 0);
+        $watchAction = (string) $request->query('watch_action', '');
+        $watching = in_array($watchAction, ['install', 'uninstall'], true) && $watchModuleId > 0;
+        $watchDone = false;
+        $operationAlert = null;
+
+        if ($watching) {
+            $watchedModule = $modules->firstWhere('id', $watchModuleId);
+
+            if (! $watchedModule) {
+                $watchDone = true;
+                $operationAlert = [
+                    'type' => 'error',
+                    'message' => 'Module not found.',
+                ];
+            } else {
+                $operation = $registry->getModuleOperation($tenant, $watchedModule->slug);
+
+                if ($operation) {
+                    $status = $operation['status'] ?? null;
+                    $watchDone = in_array($status, [
+                        TenantModuleRegistry::OP_STATUS_SUCCESS,
+                        TenantModuleRegistry::OP_STATUS_FAILED,
+                    ], true);
+
+                    if ($watchDone) {
+                        $operationAlert = [
+                            'type' => $status === TenantModuleRegistry::OP_STATUS_SUCCESS ? 'success' : 'error',
+                            'message' => (string) ($operation['message'] ?? 'Module operation completed.'),
+                        ];
+
+                        $registry->clearModuleOperation($tenant, $watchedModule->slug);
+                        unset($moduleOperations[$watchedModule->slug]);
+                    }
+                } else {
+                    // fallback for old in-flight URLs
+                    $isInstalled = in_array($watchedModule->slug, $installedModules, true);
+                    $watchDone = $watchAction === 'install' ? $isInstalled : ! $isInstalled;
+
+                    if ($watchDone) {
+                        $operationAlert = [
+                            'type' => 'success',
+                            'message' => $watchAction === 'install'
+                                ? "Module '{$watchedModule->name}' installed."
+                                : "Module '{$watchedModule->name}' uninstalled.",
+                        ];
+                    }
+                }
+            }
+        }
+
+        return view('tenant.modules.index', compact(
+            'modules',
+            'requestModules',
+            'installedModules',
+            'moduleOperations',
+            'watching',
+            'watchDone',
+            'watchAction',
+            'watchModuleId',
+            'operationAlert'
+        ));
     }
 
     public function request(Request $request, TenantModuleRegistry $registry): RedirectResponse
@@ -41,15 +99,13 @@ class ModuleRequestController extends Controller
 
         $installedModules = $registry->getInstalledModules($tenant);
 
-        // Check if already installed
         if (in_array($module->slug, $installedModules, true)) {
             return back()->with('error', 'Module is already installed.');
         }
 
-        // Check if already requesteds
         $existingRequest = ModuleRequest::where('tenant_id', $tenant->id)
             ->where('module_id', $module->id)
-            ->whereIn('status', ['pending', 'approved']) // Include approved in check to prevent duplicate requests
+            ->whereIn('status', ['pending', 'approved'])
             ->first();
 
         if ($existingRequest) {
@@ -69,9 +125,9 @@ class ModuleRequestController extends Controller
         );
 
         return back()->with('success', 'Module request sent.');
-    }  
+    }
 
-    public function install(Request $request, TenantModuleInstaller $installer): RedirectResponse
+    public function install(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
         $this->authorize('install', ModuleRequest::class);
 
@@ -80,34 +136,27 @@ class ModuleRequestController extends Controller
         $data = $request->validate(['module_id' => ['required', 'integer']]);
         $module = Module::whereKey($data['module_id'])->where('is_active', true)->firstOrFail();
 
-        $isApproved =ModuleRequest::where('tenant_id', $tenant->id)
+        $isApproved = ModuleRequest::where('tenant_id', $tenant->id)
             ->where('module_id', $module->id)
             ->where('status', 'approved')
             ->exists();
 
-        if (!$isApproved) {
+        if (! $isApproved) {
             return back()->with('error', 'Module is not approved yet.');
         }
 
-        try {
-            $result = $installer->install($tenant, $module);
-        } catch (Throwable $e) {
-            report($e);
-            return back()->with('error', $e->getMessage());
-        }
+        $registry->startModuleOperation($tenant, $module->slug, 'install', "Installing '{$module->name}'...");
 
-        // return back()->with('success', "Module '{$module->name}' installed.");
-        return match($result) {
-            TenantModuleInstaller::RESULT_ALREADY_INSTALLED
-                => back()->with('success', "Module '{$module->name} is already installed.'"),
-            TenantModuleInstaller::RESULT_INSTALLED
-                => back()->with('success', "Module '{$module->name}' installed."),
-            default
-                => back()->with('error', 'Unexpected install result.'),
-        };
+        InstallTenantModule::dispatch($tenant->id, $module->id);
+
+        return redirect()->route('tenant.modules.index', [
+            'watch_module_id' => $module->id,
+            'watch_action' => 'install',
+            'watch_attempt' => 0,
+        ]);
     }
 
-    public function uninstall(Request $request, TenantModuleInstaller $installer): RedirectResponse
+    public function uninstall(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
         $this->authorize('uninstall', ModuleRequest::class);
 
@@ -116,20 +165,14 @@ class ModuleRequestController extends Controller
         $data = $request->validate(['module_id' => ['required', 'integer']]);
         $module = Module::whereKey($data['module_id'])->firstOrFail();
 
-        try {
-            $result = $installer->uninstall($tenant, $module);
-        } catch (Throwable $e) {
-            report($e);
-            return back()->with('error', $e->getMessage());
-        }
+        $registry->startModuleOperation($tenant, $module->slug, 'uninstall', "Uninstalling '{$module->name}'...");
 
-        return match($result) {
-            TenantModuleInstaller::RESULT_ALREADY_UNINSTALLED
-                => back()->with('success', "Module '{$module->name}' is already uninstalled."),
-            TenantModuleInstaller::RESULT_UNINSTALLED
-                => back()->with('success', "Module '{$module->name}' uninstalled."),
-            default
-                => back()->with('error', 'Unexpected uninstall result.')
-        };
+        UninstallTenantModule::dispatch($tenant->id, $module->id);
+
+        return redirect()->route('tenant.modules.index', [
+            'watch_module_id' => $module->id,
+            'watch_action' => 'uninstall',
+            'watch_attempt' => 0,
+        ]);
     }
 }

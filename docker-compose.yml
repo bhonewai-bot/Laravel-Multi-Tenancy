@@ -8,7 +8,8 @@ services:
     volumes:
       - ./:/var/www
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - appnet
 
@@ -72,7 +73,30 @@ services:
       PMA_USER: root
       PMA_PASSWORD: ${DB_PASSWORD:-root}
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  queue:
+    build: 
+      context: .
+      dockerfile: DockerFile
+    restart: unless-stopped
+    working_dir: /var/www
+    command: >
+      php artisan queue:work database
+      --queue=${DB_QUEUE:-default}
+      --tries=${QUEUE_WORKER_TRIES:-3}
+      --backoff=${QUEUE_WORKER_BACKOFF:-10}
+      --timeout=${QUEUE_WORKER_TIMEOUT:-120}
+      --sleep=${QUEUE_WORKER_SLEEP:-3}
+      --max-time=${QUEUE_WORKER_MAX_TIME:-3600}
+    volumes:
+      - ./:/var/www
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
       - appnet
 

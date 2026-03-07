@@ -12,6 +12,33 @@
                 <div class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 border border-red-200">{{ session('error') }}</div>
             @endif
 
+            @if (!empty($operationAlert))
+                <div class="mb-4 rounded-md border p-4 text-sm {{ $operationAlert['type'] === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700' }}">
+                    {{ $operationAlert['message'] }}
+                </div>
+            @endif
+
+            @if (($watching ?? false) && !($watchDone ?? true))
+                <script>
+                    setTimeout(() => {
+                        const url = new URL(window.location.href);
+                        const attempt = Number(url.searchParams.get('watch_attempt') || '0') + 1;
+                        const maxAttempts = 20;
+
+                        if (attempt <= maxAttempts) {
+                            url.searchParams.set('watch_attempt', String(attempt));
+                            window.location.href = url.toString();
+                            return;
+                        }
+
+                        url.searchParams.delete('watch_module_id');
+                        url.searchParams.delete('watch_action');
+                        url.searchParams.delete('watch_attempt');
+                        window.location.href = url.toString();
+                    }, 1500);
+                </script>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="overflow-x-auto">
@@ -29,12 +56,24 @@
                                     @php
                                         $isInstalled = in_array($module->slug, $installedModules ?? [], true);
                                         $requestStatus = $requestModules[$module->id] ?? null;
+
+                                        $operation = $moduleOperations[$module->slug] ?? null;
+                                        $operationStatus = $operation['status'] ?? null;
+                                        $operationAction = $operation['action'] ?? null;
+
+                                        $isProcessing = in_array($operationStatus, ['queued', 'running'], true);
+                                        $isQueuedInstall = $isProcessing && $operationAction === 'install';
+                                        $isQueuedUninstall = $isProcessing && $operationAction === 'uninstall';
                                     @endphp
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $module->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $module->version }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            @if ($isInstalled)
+                                            @if ($isQueuedInstall)
+                                                <span class="inline-flex rounded-full bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">Installing...</span>
+                                            @elseif ($isQueuedUninstall)
+                                                <span class="inline-flex rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">Uninstalling...</span>
+                                            @elseif ($isInstalled)
                                                 <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Installed</span>
                                             @elseif ($requestStatus === 'pending')
                                                 <span class="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">Pending</span>
@@ -47,7 +86,12 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            @if ($isInstalled)
+                                            @if ($isProcessing)
+                                                <button type="button" disabled
+                                                    class="inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm cursor-not-allowed">
+                                                    Processing...
+                                                </button>
+                                            @elseif ($isInstalled)
                                                 <form method="POST" action="{{ route('tenant.modules.uninstall') }}">
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">

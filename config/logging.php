@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\AddTenantContext;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -54,8 +55,9 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            'channels' => explode(',', (string) env('LOG_STACK', 'daily')),
             'ignore_exceptions' => false,
+            'tap' => [AddTenantContext::class],
         ],
 
         'single' => [
@@ -63,6 +65,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            'tap' => [AddTenantContext::class],
         ],
 
         'daily' => [
@@ -70,6 +73,16 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
+            'replace_placeholders' => true,
+            'tap' => [AddTenantContext::class],
+        ],
+
+        'ops_alert' => [
+            'driver' => 'slack',
+            'url' => env('OPS_ALERT_SLACK_WEBHOOK_URL'),
+            'username' => env('LOG_SLACK_USERNAME', 'Ops Alert'),
+            'emoji' => env('LOG_SLACK_EMOJI', ':rotating_light:'),
+            'level' => 'error',
             'replace_placeholders' => true,
         ],
 

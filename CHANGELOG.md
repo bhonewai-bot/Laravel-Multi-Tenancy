@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Tenant user/role management pages and sidebar wiring:
+  - tenant users: index/create/edit/show
+  - tenant roles: index/create/edit/show
+- Role permission matrix UX for create/edit:
+  - feature-row permission table
+  - row-level "Select All" behavior per feature row
 - Central-domain scoped Caddy authorization gate endpoint:
   - `/internal/domain-check` is now registered in bootstrap route wiring with request throttling.
 - Tenant custom domain guidance UX:
@@ -51,6 +57,14 @@ All notable changes to this project will be documented in this file.
   - `module:sale`
 
 ### Changed
+- UI layout refactor for create/edit pages:
+  - removed narrow max-width wrappers in key forms so content fills main workspace width.
+  - aligned form card layout patterns across tenant/module/user/role pages.
+- Role details permission display now uses two-column section cards for better readability.
+- Add Domain page layout changed from split panel to stacked full-width sections:
+  - setup form
+  - verification flow
+  - DNS quick guide
 - Tenant module lifecycle hardening (Step 15):
   - install/uninstall service now returns explicit idempotent result states
   - install marks `installed_modules` only after migrate/seed succeeds

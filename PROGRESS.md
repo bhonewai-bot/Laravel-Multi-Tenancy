@@ -1,5 +1,52 @@
 # Progress Log
 
+## 2026-03-06
+
+### Done
+- Completed tenant user/role management UI pass and RBAC page polish.
+  - Added/finished tenant user pages:
+    - `resources/views/tenant/users/index.blade.php`
+    - `resources/views/tenant/users/create.blade.php`
+    - `resources/views/tenant/users/edit.blade.php`
+    - `resources/views/tenant/users/show.blade.php`
+  - Added/finished tenant role pages:
+    - `resources/views/tenant/roles/index.blade.php`
+    - `resources/views/tenant/roles/create.blade.php`
+    - `resources/views/tenant/roles/edit.blade.php`
+    - `resources/views/tenant/roles/show.blade.php`
+  - Aligned role edit layout to role create layout (table-based permission matrix + row-level select-all behavior).
+  - Updated role detail permissions to a two-column card layout for better scanability.
+- Refactored form/page layouts to remove narrow card constraints and use full content width.
+  - Updated:
+    - `resources/views/tenant/users/create.blade.php`
+    - `resources/views/tenant/users/edit.blade.php`
+    - `resources/views/tenant/create.blade.php`
+    - `resources/views/tenant/edit.blade.php`
+    - `resources/views/modules/create.blade.php`
+- Redesigned Add Domain page layout to stacked full-width sections (matching current app layout style).
+  - Updated:
+    - `resources/views/tenant/domains/create.blade.php`
+  - Structure now flows as:
+    1) Setup form
+    2) Verification Flow
+    3) DNS Record Quick Guide
+
+### Commands Run
+- `php artisan view:cache`
+
+### Result
+- Tenant user/role permission management pages are now consistent and easier to maintain.
+- Create/edit forms now fill available main-content space instead of leaving large side whitespace.
+- Add Domain page now uses the same full-width, sectioned layout style as the rest of the app shell.
+
+### Next
+1. Align modules/tenants create-edit form spacing tokens so paddings/margins are identical across all CRUD pages.
+2. Add small component partials for repeated form action footers (cancel/submit) to reduce duplication.
+3. Continue with Step 17 or user/role management enhancements (search/filter, bulk actions, audit log).
+
+### Blockers
+- None currently.
+
 ## 2026-03-05
 
 ### Done
