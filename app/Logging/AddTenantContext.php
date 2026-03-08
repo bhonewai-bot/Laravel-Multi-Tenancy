@@ -2,15 +2,15 @@
 
 namespace App\Logging;
 
+use Illuminate\Log\Logger;
 use Illuminate\Support\Facades\App;
-use Monolog\Logger;
 use Monolog\LogRecord;
 
 class AddTenantContext
 {
     public function __invoke(Logger $logger): void
     {
-        $logger->pushProcessor(function (array|LogRecord $record) {
+        $logger->getLogger()->pushProcessor(function (array|LogRecord $record) {
             $tenantId = null;
 
             if (function_exists('tenant')) {

@@ -44,7 +44,12 @@ class UninstallTenantModule implements ShouldQueue
             return;
         }
 
-        $registry->markModuleOperationRunning($tenant, $module->slug, 'uninstall', "Uninstalling '{$module->name}'...");
+        $registry->markModuleOperationRunning(
+            $tenant,
+            $module->slug,
+            TenantModuleRegistry::ACTION_UNINSTALL,
+            "Uninstalling '{$module->name}'..."
+        );
 
         Tenancy::initialize($tenant);
 
@@ -55,7 +60,12 @@ class UninstallTenantModule implements ShouldQueue
                 ? "Module '{$module->name}' is already uninstalled."
                 : "Module '{$module->name}' uninstalled successfully.";
 
-            $registry->markModuleOperationSucceeded($tenant, $module->slug, 'uninstall', $message);
+            $registry->markModuleOperationSucceeded(
+                $tenant,
+                $module->slug,
+                TenantModuleRegistry::ACTION_UNINSTALL,
+                $message
+            );
 
             logger()->info('UninstallTenantModule completed.', [
                 'tenant_id' => $tenant->id,
@@ -76,7 +86,7 @@ class UninstallTenantModule implements ShouldQueue
             app(TenantModuleRegistry::class)->markModuleOperationFailed(
                 $tenant,
                 $module->slug,
-                'uninstall',
+                TenantModuleRegistry::ACTION_UNINSTALL,
                 "Uninstall failed for '{$module->name}'. Check logs."
             );
         }

@@ -4,6 +4,9 @@ namespace App\Services;
 
 class TenantModuleRegistry
 {
+    public const ACTION_INSTALL = 'install';
+    public const ACTION_UNINSTALL = 'uninstall';
+
     public const OP_STATUS_QUEUED = 'queued';
     public const OP_STATUS_RUNNING = 'running';
     public const OP_STATUS_SUCCESS = 'success';
@@ -23,28 +26,23 @@ class TenantModuleRegistry
     public function markInstalled($tenant, string $slug): void
     {
         $tenant->refresh();
-
         $installed = $this->getInstalledModules($tenant);
-
         if (! in_array($slug, $installed, true)) {
             $installed[] = $slug;
         }
 
-        $tenant->setAttribute('installed_modules', $installed);
-        $tenant->save();
+        $this->saveInstalledModules($tenant, $installed);
     }
 
-    public function markUninstalled($tenant, $slug): void
+    public function markUninstalled($tenant, string $slug): void
     {
         $tenant->refresh();
-
         $installed = array_values(array_filter(
             $this->getInstalledModules($tenant),
             fn (string $item) => $item !== $slug
         ));
 
-        $tenant->setAttribute('installed_modules', $installed);
-        $tenant->save();
+        $this->saveInstalledModules($tenant, $installed);
     }
 
     public function getModuleOperations($tenant): array
@@ -90,6 +88,22 @@ class TenantModuleRegistry
         unset($operations[$slug]);
 
         $tenant->setAttribute('module_operations', $operations);
+        $tenant->save();
+    }
+
+    public function isTerminalStatus(?string $status): bool
+    {
+        return in_array($status, [self::OP_STATUS_SUCCESS, self::OP_STATUS_FAILED], true);
+    }
+
+    public function isProcessingStatus(?string $status): bool
+    {
+        return in_array($status, [self::OP_STATUS_QUEUED, self::OP_STATUS_RUNNING], true);
+    }
+
+    private function saveInstalledModules($tenant, array $installed): void
+    {
+        $tenant->setAttribute('installed_modules', $installed);
         $tenant->save();
     }
 

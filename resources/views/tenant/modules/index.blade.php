@@ -52,46 +52,35 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse ($modules as $module)
-                                    @php
-                                        $isInstalled = in_array($module->slug, $installedModules ?? [], true);
-                                        $requestStatus = $requestModules[$module->id] ?? null;
-
-                                        $operation = $moduleOperations[$module->slug] ?? null;
-                                        $operationStatus = $operation['status'] ?? null;
-                                        $operationAction = $operation['action'] ?? null;
-
-                                        $isProcessing = in_array($operationStatus, ['queued', 'running'], true);
-                                        $isQueuedInstall = $isProcessing && $operationAction === 'install';
-                                        $isQueuedUninstall = $isProcessing && $operationAction === 'uninstall';
-                                    @endphp
+                                @forelse ($moduleRows as $row)
+                                    @php($module = $row['module'])
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $module->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $module->version }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            @if ($isQueuedInstall)
+                                            @if ($row['is_queued_install'])
                                                 <span class="inline-flex rounded-full bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">Installing...</span>
-                                            @elseif ($isQueuedUninstall)
+                                            @elseif ($row['is_queued_uninstall'])
                                                 <span class="inline-flex rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">Uninstalling...</span>
-                                            @elseif ($isInstalled)
+                                            @elseif ($row['is_installed'])
                                                 <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Installed</span>
-                                            @elseif ($requestStatus === 'pending')
+                                            @elseif ($row['request_status'] === 'pending')
                                                 <span class="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">Pending</span>
-                                            @elseif ($requestStatus === 'approved')
+                                            @elseif ($row['request_status'] === 'approved')
                                                 <span class="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">Approved</span>
-                                            @elseif ($requestStatus === 'rejected')
+                                            @elseif ($row['request_status'] === 'rejected')
                                                 <span class="inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">Rejected</span>
                                             @else
                                                 <span class="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">Not requested</span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            @if ($isProcessing)
+                                            @if ($row['is_processing'])
                                                 <button type="button" disabled
                                                     class="inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm cursor-not-allowed">
                                                     Processing...
                                                 </button>
-                                            @elseif ($isInstalled)
+                                            @elseif ($row['is_installed'])
                                                 <form method="POST" action="{{ route('tenant.modules.uninstall') }}">
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
@@ -100,7 +89,7 @@
                                                         Uninstall
                                                     </button>
                                                 </form>
-                                            @elseif ($requestStatus === 'approved')
+                                            @elseif ($row['request_status'] === 'approved')
                                                 <form method="POST" action="{{ route('tenant.modules.install') }}">
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
@@ -109,9 +98,9 @@
                                                         Install
                                                     </button>
                                                 </form>
-                                            @elseif ($requestStatus === 'pending')
+                                            @elseif ($row['request_status'] === 'pending')
                                                 <span class="text-sm text-gray-500">Waiting for approval</span>
-                                            @elseif ($requestStatus === 'rejected')
+                                            @elseif ($row['request_status'] === 'rejected')
                                                 <form method="POST" action="{{ route('tenant.modules.request') }}">
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">

@@ -146,7 +146,11 @@ class TenancyE2EFlowTest extends TestCase
                 'module_id' => $module->id,
             ]);
 
-        $installResponse->assertSessionHas('success');
+        $installResponse->assertRedirect();
+        $installRedirect = (string) $installResponse->headers->get('Location', '');
+        $this->assertStringContainsString('/modules?', $installRedirect);
+        $this->assertStringContainsString('watch_module_id=' . $module->id, $installRedirect);
+        $this->assertStringContainsString('watch_action=install', $installRedirect);
 
         $installedModules = $tenant->fresh()->getAttribute('installed_modules') ?? [];
         $this->assertContains('product', $installedModules);

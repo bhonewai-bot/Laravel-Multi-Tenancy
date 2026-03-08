@@ -44,7 +44,12 @@ class InstallTenantModule implements ShouldQueue
             return;
         }
 
-        $registry->markModuleOperationRunning($tenant, $module->slug, 'install', "Installing '{$module->name}'...");
+        $registry->markModuleOperationRunning(
+            $tenant,
+            $module->slug,
+            TenantModuleRegistry::ACTION_INSTALL,
+            "Installing '{$module->name}'..."
+        );
 
         Tenancy::initialize($tenant);
 
@@ -55,7 +60,12 @@ class InstallTenantModule implements ShouldQueue
                 ? "Module '{$module->name}' is already installed."
                 : "Module '{$module->name}' installed successfully.";
 
-            $registry->markModuleOperationSucceeded($tenant, $module->slug, 'install', $message);
+            $registry->markModuleOperationSucceeded(
+                $tenant,
+                $module->slug,
+                TenantModuleRegistry::ACTION_INSTALL,
+                $message
+            );
 
             logger()->info('InstallTenantModule completed.', [
                 'tenant_id' => $tenant->id,
@@ -76,7 +86,7 @@ class InstallTenantModule implements ShouldQueue
             app(TenantModuleRegistry::class)->markModuleOperationFailed(
                 $tenant,
                 $module->slug,
-                'install',
+                TenantModuleRegistry::ACTION_INSTALL,
                 "Install failed for '{$module->name}'. Check logs."
             );
         }
