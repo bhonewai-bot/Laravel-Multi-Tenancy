@@ -9,6 +9,7 @@ use App\Models\ModuleRequest;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantDomainService;
+use App\Services\TenantModuleRegistry;
 use Database\Seeders\TenantBootstrapSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
@@ -235,6 +236,69 @@ class TenancyE2EFlowTest extends TestCase
             ->get("http://app.localhost/internal/domain-check?domain={$customHost}&token=testing-domain-token");
 
         $domainCheck->assertOk()->assertSeeText('OK');
+    }
+
+    public function test_module_watch_state_shows_processing_when_operation_is_not_terminal(): void
+    {
+        [$tenant, $tenantAdmin] = $this->createTenantAndSeedAdmin($this->makeTenantId('wp'));
+        $tenantHost = "{$tenant->id}.app.localhost";
+
+        $module = Module::create([
+            'name' => 'Product',
+            'slug' => 'product',
+            'version' => '1.0.0',
+            'is_active' => true,
+            'price' => 0,
+        ]);
+
+        app(TenantModuleRegistry::class)->markModuleOperationRunning(
+            $tenant,
+            $module->slug,
+            TenantModuleRegistry::ACTION_INSTALL,
+            "Installing '{$module->name}'..."
+        );
+
+        $response = $this
+            ->actingAs($tenantAdmin)
+            ->get("http://{$tenantHost}/modules?watch_module_id={$module->id}&watch_action=install&watch_attempt=0");
+
+        $response
+            ->assertOk()
+            ->assertDontSeeText("Module '{$module->name}' installed successfully.")
+            ->assertSee('setTimeout(() => {', false);
+    }
+
+    public function test_module_watch_state_shows_terminal_alert_and_clears_operation(): void
+    {
+        [$tenant, $tenantAdmin] = $this->createTenantAndSeedAdmin($this->makeTenantId('wt'));
+        $tenantHost = "{$tenant->id}.app.localhost";
+
+        $module = Module::create([
+            'name' => 'Product',
+            'slug' => 'product',
+            'version' => '1.0.0',
+            'is_active' => true,
+            'price' => 0,
+        ]);
+
+        app(TenantModuleRegistry::class)->markModuleOperationSucceeded(
+            $tenant,
+            $module->slug,
+            TenantModuleRegistry::ACTION_INSTALL,
+            "Module '{$module->name}' installed successfully."
+        );
+
+        $response = $this
+            ->actingAs($tenantAdmin)
+            ->get("http://{$tenantHost}/modules?watch_module_id={$module->id}&watch_action=install&watch_attempt=0");
+
+        $response
+            ->assertOk()
+            ->assertSeeText("Module '{$module->name}' installed successfully.")
+            ->assertDontSee('setTimeout(() => {', false);
+
+        $operations = Tenant::query()->findOrFail($tenant->id)->getAttribute('module_operations') ?? [];
+        $this->assertArrayNotHasKey($module->slug, $operations);
     }
 
     private function createTenantWithPrimaryDomain(string $tenantId): Tenant
