@@ -28,6 +28,7 @@ docker compose restart queue
   - `tries=3`
   - `backoff=[10,30,60]`
   - `timeout=120`
+- Module install/uninstall is async and depends on this worker.
 
 ## 2) Failed Job Operations
 
@@ -70,6 +71,27 @@ docker compose exec app tail -n 200 storage/logs/laravel.log
 2. Hit a tenant route (`t001.app.localhost`).
 3. Trigger one queued module install/uninstall.
 4. Confirm central and tenant log lines show different `context`/`tenant_id`.
+
+## 3.1) Module Operation Watch-State (UI)
+
+Module UI status behavior:
+- `queued/running` -> UI shows `Installing...` or `Uninstalling...`
+- `success/failed` -> UI shows terminal alert on watched refresh
+- terminal operation is cleared after alert is rendered
+
+If module status is stuck in processing:
+
+```bash
+docker compose logs --tail=200 queue
+docker compose exec app php artisan queue:failed
+docker compose exec app php artisan queue:retry all
+```
+
+If queue service had startup race with MySQL:
+
+```bash
+docker compose restart queue
+```
 
 ## 4) Database Backup
 

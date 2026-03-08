@@ -1,59 +1,115 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Multi-Tenancy
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Production-style multi-tenant SaaS skeleton built with Laravel + `stancl/tenancy`.
 
-## About Laravel
+## Architecture at a glance
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Pattern: modular monolith (single Laravel app).
+- Isolation: database-per-tenant (`tenant{tenant_id}`) + central shared DB (`central`).
+- Tenant resolution: by domain/host.
+- Core lifecycle supported:
+  - central tenant onboarding (`tenant + primary domain + DB provision/migrate/seed`)
+  - tenant module request/approve/install/uninstall
+  - custom domain add + DNS TXT verify + verified-host enforcement
+  - tenant RBAC (roles/features/permissions, policy-driven guards)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+For diagrams and deeper architecture notes, see:
+- `docs/architecture.md`
+- `docs/decisions.md`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Local setup (Docker)
 
-## Learning Laravel
+### 1) Boot services
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+docker compose up -d --build
+docker compose exec app composer install
+docker compose exec app cp .env.example .env
+docker compose exec app php artisan key:generate
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2) Configure `.env`
 
-## Laravel Sponsors
+At minimum, verify:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```dotenv
+APP_URL=http://app.localhost:8000
+TENANCY_CENTRAL_DOMAIN=app.localhost
 
-### Premium Partners
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=central
+DB_USERNAME=root
+DB_PASSWORD=root
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+CACHE_STORE=database
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
 
-## Contributing
+DOMAIN_CHECK_TOKEN=replace-with-long-random-token
+TENANT_DEFAULT_ADMIN_PASSWORD=ChangeMe123!
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3) Install dependencies + migrate/seed central
 
-## Code of Conduct
+```bash
+docker compose exec app php artisan migrate --seed
+docker compose exec app npm ci
+docker compose exec app npm run build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4) Access
 
-## Security Vulnerabilities
+- Central app: `http://app.localhost:8000`
+- Tenant example (after onboarding): `http://t001.app.localhost:8000`
+- phpMyAdmin: `http://localhost:9000`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Tenancy workflow
 
-## License
+1. Create tenant from central UI (`/tenants/create`).
+2. System creates tenant + domain in central DB.
+3. Tenancy event pipeline provisions tenant DB:
+   - create database
+   - run tenant migrations
+   - run tenant bootstrap seed
+4. Login to tenant domain using seeded admin credentials:
+   - email: `admin@{tenant_id}.local`
+   - password: `TENANT_DEFAULT_ADMIN_PASSWORD` from `.env`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Queue requirement (important)
+
+Module install/uninstall is async. Keep worker running:
+
+```bash
+docker compose logs -f queue
+```
+
+If queue is down, module status can stay at `Installing...`/`Uninstalling...`.
+
+## Testing and CI parity
+
+Run the same checks locally as CI:
+
+```bash
+docker compose exec app npm ci
+docker compose exec app npm run build
+docker compose exec app php artisan test
+```
+
+## Operations / recovery
+
+Runbook and scripts:
+
+- `docs/operations.md`
+- `scripts/ops/backup-central.sh`
+- `scripts/ops/backup-tenant.sh`
+- `scripts/ops/restore-tenant.sh`
+- `scripts/ops/list-tenant-dbs.sh`
+
+These support single-tenant recovery without impacting other tenants.
+
+## Current milestone status
+
+- Step 11-17 completed (onboarding, tenant bootstrap seed, RBAC, custom domain lifecycle, module hardening, E2E tests, operations baseline).
+- Next focus: Step 18 release cut (final packaging/tag and handoff polish).

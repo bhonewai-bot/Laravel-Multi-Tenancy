@@ -167,3 +167,16 @@
 - Consequences:
   - Pros: Clear separation of concerns, easier future expansion, and consistent authorization semantics.
   - Cons: Requires discipline to keep permission naming and policy checks aligned.
+
+## ADR-015: Keep module install/uninstall async with watch-state polling (no immediate terminal flash)
+- Date: 2026-03-08
+- Status: Accepted
+- Context: Install/uninstall runs in queue jobs; immediate success flash from POST created misleading UX and racey assertions.
+- Decision:
+  - On install/uninstall POST, redirect to module index with watch query parameters.
+  - Render `queued/running` states as processing badges.
+  - Show success/failure alert only when job reaches terminal state.
+  - Clear terminal operation marker after alert render.
+- Consequences:
+  - Pros: UI reflects true async completion, fewer false positives in smoke testing.
+  - Cons: Requires queue worker health; without worker, status remains processing until resolved.

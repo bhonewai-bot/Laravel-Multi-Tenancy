@@ -1,5 +1,44 @@
 # Progress Log
 
+## 2026-03-08
+
+### Done
+- Refactored tenant module watch/install flow for readability and consistency.
+  - Simplified `ModuleRequestController` by extracting:
+    - watch-state resolver
+    - row view-model builder
+    - watch redirect helper
+  - Centralized module operation action/status semantics in `TenantModuleRegistry`.
+  - Aligned module jobs to shared registry action constants.
+  - Simplified tenant module index Blade to consume prepared row state from controller.
+- Fixed logging tap signature compatibility issue in `AddTenantContext` (`Illuminate\Log\Logger` wrapper).
+- Expanded E2E regression coverage for async module watch-state behavior:
+  - processing state keeps polling active
+  - terminal state shows alert and clears operation marker
+- Completed full test verification:
+  - `php artisan test` -> all tests passing.
+- Finalized release-facing docs for developer handoff:
+  - replaced default Laravel README with project-specific quickstart + ops notes
+  - added architecture diagrams and flow docs in `docs/architecture.md`
+  - extended operations runbook with module watch-state troubleshooting
+
+### Commands Run
+- `php artisan test tests/Feature/Tenancy/TenancyE2EFlowTest.php`
+- `php artisan test`
+
+### Result
+- Module lifecycle code is now easier to reason about without changing core behavior.
+- Async UX contract is protected by targeted E2E tests.
+- New developer onboarding and operations guidance is now end-to-end documented.
+
+### Next
+1. Step 18 release cut: create release tag and attach short release notes.
+2. Optional: add role/user management E2E flows to broaden tenancy regression safety.
+3. Optional: split UI table/action patterns into reusable Blade components.
+
+### Blockers
+- None currently.
+
 ## 2026-03-06
 
 ### Done

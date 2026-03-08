@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Architecture reference doc with flow diagrams:
+  - `docs/architecture.md`
+- Additional module lifecycle E2E regression checks:
+  - watch-state processing behavior (polling active)
+  - watch-state terminal behavior (alert shown + operation cleared)
 - Tenant user/role management pages and sidebar wiring:
   - tenant users: index/create/edit/show
   - tenant roles: index/create/edit/show
@@ -57,6 +62,16 @@ All notable changes to this project will be documented in this file.
   - `module:sale`
 
 ### Changed
+- Replaced default Laravel README with project-specific runbook:
+  - docker setup
+  - tenancy onboarding flow
+  - queue dependency for async module operations
+  - test/CI parity commands
+  - operations doc links
+- Refactored tenant module watch-state controller flow for readability:
+  - extracted watch resolver + row view-model builder + redirect helper
+  - standardized install/uninstall action constants through `TenantModuleRegistry`
+- Updated operations runbook with module watch-state troubleshooting and queue recovery steps.
 - UI layout refactor for create/edit pages:
   - removed narrow max-width wrappers in key forms so content fills main workspace width.
   - aligned form card layout patterns across tenant/module/user/role pages.
@@ -95,6 +110,7 @@ All notable changes to this project will be documented in this file.
   - Step 9 and Step 10 are now complete.
 
 ### Fixed
+- Logging tap compatibility issue in `AddTenantContext` (correct logger wrapper type).
 - Queue/concurrency safety for tenant module operations:
   - added tenant+module operation lock to prevent same-module race conditions.
 - Caddy ask endpoint contract now correctly differentiates:
