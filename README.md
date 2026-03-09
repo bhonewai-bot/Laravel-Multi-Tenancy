@@ -33,7 +33,7 @@ docker compose exec app php artisan key:generate
 At minimum, verify:
 
 ```dotenv
-APP_URL=http://app.localhost:8000
+APP_URL=http://app.localhost
 TENANCY_CENTRAL_DOMAIN=app.localhost
 
 DB_CONNECTION=mysql
@@ -61,8 +61,8 @@ docker compose exec app npm run build
 
 ### 4) Access
 
-- Central app: `http://app.localhost:8000`
-- Tenant example (after onboarding): `http://t001.app.localhost:8000`
+- Central app: `http://app.localhost`
+- Tenant example (after onboarding): `http://t001.app.localhost`
 - phpMyAdmin: `http://localhost:9000`
 
 ## Tenancy workflow

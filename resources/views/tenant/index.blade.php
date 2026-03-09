@@ -50,7 +50,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if ($primaryDomain)
                                                 <a class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800"
-                                                    href="http://{{ $primaryDomain }}:8000" target="_blank" rel="noopener noreferrer">
+                                                    href="http://{{ $primaryDomain }}" target="_blank" rel="noopener noreferrer">
                                                     {{ $primaryDomain }}
                                                 </a>
                                             @else

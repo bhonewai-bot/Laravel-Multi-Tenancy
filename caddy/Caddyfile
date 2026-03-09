@@ -6,9 +6,14 @@
     }
 }
 
-# Local central domains (dev certs)
+# Local central + tenant domains over HTTPS with local CA
 app.localhost, *.app.localhost {
     tls internal
+    reverse_proxy nginx:80
+}
+
+# Keep HTTP available for local hosts too
+http://app.localhost, http://*.app.localhost {
     reverse_proxy nginx:80
 }
 

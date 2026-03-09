@@ -18,13 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
         using: function () {
             $centralDomains = config('tenancy.central_domains');
 
+            // Caddy on-demand TLS ask endpoint.
+            // Must be host-agnostic because Caddy calls via docker service host (e.g. nginx).
+            Route::get('/internal/domain-check', DomainCheckController::class)
+                ->middleware('throttle:120,1');
+
             foreach ($centralDomains as $domain) {
                 Route::domain($domain)->group(function () {
                     Route::middleware('web')->group(base_path('routes/web.php'));
-
-                    // Caddy uses this endpoint for on-demand TLS authorization.
-                    Route::get('/internal/domain-check', DomainCheckController::class)
-                        ->middleware('throttle:120,1');
                 });
             }
         }
@@ -37,7 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $request) => '/login');
-
         $middleware->redirectUsersTo(fn (Request $request) => tenant() ? '/dashboard' : '/tenants');
     })
     ->withExceptions(function (Exceptions $exceptions): void {

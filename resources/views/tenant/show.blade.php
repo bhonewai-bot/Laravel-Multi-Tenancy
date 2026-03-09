@@ -62,7 +62,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $domain->domain }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ optional($domain->created_at)->format('M d, Y H:i') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <a href="http://{{ $domain->domain }}:8000" target="_blank" rel="noopener noreferrer"
+                                            <a href="http://{{ $domain->domain }}" target="_blank" rel="noopener noreferrer"
                                                 class="text-indigo-600 hover:text-indigo-800">
                                                 Open site
                                             </a>
