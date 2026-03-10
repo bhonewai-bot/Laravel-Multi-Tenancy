@@ -107,7 +107,7 @@ class DomainController extends Controller
             $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
 
             $cf = $cloudflare->createHostname($host);
-            $status = $cloudflare->mapStatus($cf);
+            $status = $cloudflare->mapStatuses($cf);
 
             $domain->fill($status);
             $domain->cf_last_checked_at = now();
@@ -144,7 +144,7 @@ class DomainController extends Controller
             $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
 
             $cf = $cloudflare->getHostname($domain->cf_hostname_id);
-            $status = $cloudflare->mapStatus($cf);
+            $status = $cloudflare->mapStatuses($cf);
 
             $domain->fill($status);
             $domain->cf_last_checked_at = now();

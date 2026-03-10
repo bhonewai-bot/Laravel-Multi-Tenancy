@@ -8,7 +8,7 @@ use App\Models\Module;
 use App\Models\ModuleRequest;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\TenantDomainService;
+use App\Services\CloudflareService;
 use App\Services\TenantModuleRegistry;
 use Database\Seeders\TenantBootstrapSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -201,6 +201,17 @@ class TenancyE2EFlowTest extends TestCase
         $tenantHost = "{$tenant->id}.app.localhost";
         $customHost = "shop.{$tenant->id}.example.test";
 
+        $createCloudflare = Mockery::mock(CloudflareService::class);
+        $createCloudflare->shouldReceive('createHostname')->once()->with($customHost)->andReturn(['success' => true]);
+        $createCloudflare->shouldReceive('mapStatuses')->once()->andReturn([
+            'cf_hostname_id' => 'cf-e2e-host-001',
+            'cf_hostname_status' => 'pending_validation',
+            'cf_ssl_status' => 'pending_validation',
+            'cf_error' => null,
+            'cf_payload' => ['result' => ['id' => 'cf-e2e-host-001']],
+        ]);
+        $this->app->instance(CloudflareService::class, $createCloudflare);
+
         $storeResponse = $this
             ->actingAs($tenantAdmin)
             ->from("http://{$tenantHost}/domains/create")
@@ -216,16 +227,23 @@ class TenancyE2EFlowTest extends TestCase
             ->firstOrFail();
 
         $this->assertNull($customDomain->verified_at);
-        $this->assertNotNull($customDomain->verification_code);
+        $this->assertSame('cf-e2e-host-001', $customDomain->cf_hostname_id);
 
-        $service = Mockery::mock(TenantDomainService::class)->makePartial();
-        $service->shouldReceive('checkDnsTxtVerification')->once()->andReturnTrue();
-        $this->app->instance(TenantDomainService::class, $service);
+        $statusCloudflare = Mockery::mock(CloudflareService::class);
+        $statusCloudflare->shouldReceive('getHostname')->once()->with('cf-e2e-host-001')->andReturn(['success' => true]);
+        $statusCloudflare->shouldReceive('mapStatuses')->once()->andReturn([
+            'cf_hostname_id' => 'cf-e2e-host-001',
+            'cf_hostname_status' => 'active',
+            'cf_ssl_status' => 'active',
+            'cf_error' => null,
+            'cf_payload' => ['result' => ['id' => 'cf-e2e-host-001']],
+        ]);
+        $this->app->instance(CloudflareService::class, $statusCloudflare);
 
         $verifyResponse = $this
             ->actingAs($tenantAdmin)
             ->from("http://{$tenantHost}/domains")
-            ->post("http://{$tenantHost}/domains/{$customDomain->id}/verify");
+            ->post("http://{$tenantHost}/domains/{$customDomain->id}/check-status");
 
         $verifyResponse->assertSessionHas('success');
 

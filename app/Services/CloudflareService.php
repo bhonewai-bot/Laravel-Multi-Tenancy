@@ -51,7 +51,7 @@ class CloudflareService
         return $json;
     }
 
-    public function mapStatus(array $result): array
+    public function mapStatuses(array $result): array
     {
         $hostnameStatus = data_get($result, 'result.status');
         $sslStatus = data_get($result, 'result.ssl.status');
@@ -68,6 +68,12 @@ class CloudflareService
             'cf_error' => $errors !== '' ? $errors : null,
             'cf_payload' => $result
         ];
+    }
+
+    // Backward-compatible alias while controller/tests are being migrated.
+    public function mapStatus(array $result): array
+    {
+        return $this->mapStatuses($result);
     }
 
     private function endpoint(string $path): string

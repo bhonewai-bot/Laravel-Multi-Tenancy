@@ -65,6 +65,16 @@ docker compose exec app npm run build
 - Tenant example (after onboarding): `http://t001.app.localhost`
 - phpMyAdmin: `http://localhost:9000`
 
+## Production ingress (Cloudflare)
+
+- Keep `caddy` for local only (`docker-compose.yml`).
+- Use `docker-compose.prod.yml` for production (Cloudflare -> nginx origin).
+- Production nginx terminates TLS on `443` using origin cert files:
+  - `docker/nginx/ssl/origin.crt`
+  - `docker/nginx/ssl/origin.key`
+- Create these as Cloudflare Origin Certificate files for your zone.
+- If missing/invalid, Cloudflare can show `525 SSL handshake failed`.
+
 ## Tenancy workflow
 
 1. Create tenant from central UI (`/tenants/create`).
