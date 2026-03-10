@@ -68,6 +68,14 @@ Route::middleware([
             ->middleware(['permission:domain.create', 'throttle:20,1'])
             ->name('tenant.domains.store');
 
+        Route::get('/domains/{domain}', [DomainController::class, 'show'])
+            ->middleware('permission:domain.read')
+            ->name('tenant.domains.show');
+
+        Route::post('/domains/{domain}/check-status', [DomainController::class, 'checkStatus'])
+            ->middleware(['permission:domain.verify', 'throttle:30,1'])
+            ->name('tenant.domains.check-status');
+
         Route::post('/domains/{domain}/verify', [DomainController::class, 'verify'])
             ->middleware(['permission:domain.verify', 'throttle:30,1'])
             ->name('tenant.domains.verify');

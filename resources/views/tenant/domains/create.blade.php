@@ -32,7 +32,7 @@
             <div class="space-y-6">
                 <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-100">
                     <h3 class="text-lg font-semibold text-gray-900">Custom Domain Setup</h3>
-                    <p class="mt-1 text-sm text-gray-600">Enter your domain host, then verify ownership with DNS TXT.</p>
+                    <p class="mt-1 text-sm text-gray-600">Enter your domain host to register with Cloudflare Custom Hostnames.</p>
 
                     <form method="POST" action="{{ route('tenant.domains.store', absolute: false) }}" class="mt-6 space-y-5">
                         @csrf
@@ -51,9 +51,9 @@
                         <div class="rounded-lg bg-gray-50 p-4 text-sm text-gray-700 ring-1 ring-gray-100">
                             <p class="font-semibold text-gray-900">After adding the domain</p>
                             <ul class="mt-2 list-disc space-y-1 pl-5">
-                                <li>Copy TXT record name/value from <span class="font-semibold">My Domains</span> and verify ownership.</li>
-                                <li>Add an <span class="font-semibold">A</span> or <span class="font-semibold">CNAME</span> record for traffic routing.</li>
-                                <li>Use <span class="font-semibold">https://your-domain</span> (no port 8000).</li>
+                                <li>Add a <span class="font-semibold">CNAME</span> record pointing to <span class="font-semibold">{{ config('cloudflare.fallback_origin') }}</span>.</li>
+                                <li>If your DNS provider is Cloudflare, set proxy to <span class="font-semibold">DNS only</span>.</li>
+                                <li>Open domain detail page and click <span class="font-semibold">Check Status</span> until both statuses are active.</li>
                             </ul>
                         </div>
 
@@ -73,15 +73,15 @@
                     <div class="mt-4 space-y-4 text-sm text-gray-700">
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
                             <p class="font-semibold">1) Add Domain</p>
-                            <p class="mt-1">Save your custom domain from this form.</p>
+                            <p class="mt-1">App registers hostname in Cloudflare for SaaS.</p>
                         </div>
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                            <p class="font-semibold">2) Add DNS TXT</p>
-                            <p class="mt-1">On My Domains page, copy the TXT name and TXT value.</p>
+                            <p class="font-semibold">2) Add DNS CNAME</p>
+                            <p class="mt-1">Point your host to <span class="font-semibold">{{ config('cloudflare.fallback_origin') }}</span>.</p>
                         </div>
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                            <p class="font-semibold">3) Verify</p>
-                            <p class="mt-1">Click Verify after DNS propagation. Only verified domains are allowed.</p>
+                            <p class="font-semibold">3) Check Status</p>
+                            <p class="mt-1">Use domain detail page to poll Cloudflare until Hostname + SSL are active.</p>
                         </div>
                     </div>
                 </div>
@@ -90,16 +90,16 @@
                     <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-700">DNS Record Quick Guide</h3>
                     <div class="mt-4 space-y-3 text-sm text-gray-700">
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                            <p class="font-semibold text-gray-900">Ownership (required)</p>
-                            <p class="mt-1">Add the TXT record name/value from <span class="font-semibold">My Domains</span>.</p>
+                            <p class="font-semibold text-gray-900">Type</p>
+                            <p class="mt-1">Use <span class="font-semibold">CNAME</span>.</p>
                         </div>
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                            <p class="font-semibold text-gray-900">Routing (required)</p>
-                            <p class="mt-1">Add <span class="font-semibold">A</span> (to server IP) or <span class="font-semibold">CNAME</span> (to your target host).</p>
+                            <p class="font-semibold text-gray-900">Target</p>
+                            <p class="mt-1">Point to <span class="font-semibold">{{ config('cloudflare.fallback_origin') }}</span>.</p>
                         </div>
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                            <p class="font-semibold text-gray-900">Access URL</p>
-                            <p class="mt-1">Use <span class="font-semibold">https://your-domain</span> after DNS propagates.</p>
+                            <p class="font-semibold text-gray-900">Validation</p>
+                            <p class="mt-1">Cloudflare validates and issues SSL automatically after CNAME resolves.</p>
                         </div>
                     </div>
                 </div>

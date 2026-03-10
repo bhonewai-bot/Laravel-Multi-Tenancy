@@ -1,0 +1,54 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: DockerFile
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - app
+    networks:
+      - appnet
+
+  queue:
+    build: 
+      context: .
+      dockerfile: DockerFile
+    restart: unless-stopped
+    working_dir: /var/www
+    command: >
+      php artisan queue:work database
+      --queue=${DB_QUEUE:-default}
+      --tries=${QUEUE_WORKER_TRIES:-3}
+      --backoff=${QUEUE_WORKER_BACKOFF:-10}
+      --timeout=${QUEUE_WORKER_TIMEOUT:-120}
+      --sleep=${QUEUE_WORKER_SLEEP:-3}
+      --max-time=${QUEUE_WORKER_MAX_TIME:-3600}
+    volumes:
+      - ./:/var/www
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  db_data:

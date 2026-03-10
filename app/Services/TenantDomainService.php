@@ -8,9 +8,6 @@ use Illuminate\Support\Str;
 
 class TenantDomainService
 {
-    /**
-     * Create a new class instance.
-     */
     public function __construct()
     {
         //
