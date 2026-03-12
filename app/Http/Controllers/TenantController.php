@@ -4,13 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
+use App\Models\Domain;
 use App\Models\Tenant;
+use App\Services\CloudflareService;
+use App\Services\TenantDomainService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Throwable;
 
 class TenantController extends Controller
 {
+    public function __construct(
+        private TenantDomainService $domainService,
+        private ?CloudflareService $cloudflareService = null
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -34,6 +43,8 @@ class TenantController extends Controller
      */
     public function store(TenantStoreRequest $request): RedirectResponse
     {
+        $domain = $this->domainService->normalize((string) $request->input('domain'));
+
         $tenant = Tenant::create([
             'id' => $request->tenant_id,
             'name' => $request->name,
@@ -41,9 +52,11 @@ class TenantController extends Controller
             'description' => $request->description,
         ]);
 
-        $tenant->domains()->create([
-            'domain' => $request->domain,
+        $domainModel = $tenant->domains()->create([
+            'domain' => $domain,
         ]);
+
+        $this->syncCloudflareForDomain($tenant, $domainModel);
 
         return redirect()
             ->route('tenants.index')
@@ -81,21 +94,26 @@ class TenantController extends Controller
      */
     public function update(TenantUpdateRequest $request, Tenant $tenant)
     {
+        $domain = $this->domainService->normalize((string) $request->input('domain'));
+        $domainModel = null;
+
         DB::transaction(function () use ($request, $tenant) {
             $tenant->update([
                 'name' => $request->name,
                 'email' => $request->email,
                 'description' => $request->description,
             ]);
-
-            // Update domain if provided
-            $domain = $tenant->domains()->first();
-            if ($domain) {
-                $domain->update(['domain' => $request->domain]);
-            } else {
-                $tenant->domains()->create(['domain' => $request->domain]);
-            }
         });
+
+        $domainModel = $tenant->domains()->first();
+
+        if ($domainModel) {
+            $domainModel->update(['domain' => $domain]);
+        } else {
+            $domainModel = $tenant->domains()->create(['domain' => $domain]);
+        }
+
+        $this->syncCloudflareForDomain($tenant, $domainModel);
 
         return redirect()->route('tenants.index')->with('success', 'Tenant updated successfully.');
     }
@@ -108,5 +126,45 @@ class TenantController extends Controller
         $tenant->delete();
 
         return redirect()->route('tenants.index')->with('success', 'Tenant deleted successfully.');
+    }
+
+    private function syncCloudflareForDomain(Tenant $tenant, Domain $domain): void
+    {
+        if (
+            ! config('cloudflare.enabled') ||
+            $this->domainService->isPrimarySubDomain($tenant, $domain->domain)
+        ) {
+            $domain->forceFill([
+                'cf_hostname_id' => null,
+                'cf_hostname_status' => null,
+                'cf_ssl_status' => null,
+                'cf_last_checked_at' => null,
+                'cf_error' => null,
+                'cf_payload' => null,
+                'verified_at' => null,
+            ])->save();
+
+            return;
+        }
+
+        try {
+            $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
+            $cf = $cloudflare->createHostname($domain->domain);
+            $status = $cloudflare->mapStatuses($cf);
+
+            $domain->fill($status);
+            $domain->cf_last_checked_at = now();
+            $domain->verified_at = (
+                $domain->cf_hostname_status === 'active' &&
+                $domain->cf_ssl_status === 'active'
+            ) ? now() : null;
+            $domain->save();
+        } catch (Throwable $e) {
+            $domain->forceFill([
+                'cf_last_checked_at' => now(),
+                'cf_error' => $e->getMessage(),
+                'verified_at' => null,
+            ])->save();
+        }
     }
 }
