@@ -9,6 +9,8 @@ class CloudflareService
 {
     public function createHostname(string $hostname): array
     {
+        $this->ensureConfigured();
+
         $response = Http::timeout((int) config('cloudflare.api.timeout', 15))
             ->retry(
                 (int) config('cloudflare.api.retry_times', 2),
@@ -34,6 +36,8 @@ class CloudflareService
 
     public function getHostname(string $cloudflareId): array
     {
+        $this->ensureConfigured();
+
         $response = Http::timeout((int) config('cloudflare.api.timeout', 15))
             ->retry(
                 (int) config('cloudflare.api.retry_times', 2),
@@ -74,6 +78,29 @@ class CloudflareService
     public function mapStatus(array $result): array
     {
         return $this->mapStatuses($result);
+    }
+
+    private function ensureConfigured(): void
+    {
+        if (! config('cloudflare.enabled')) {
+            throw new RuntimeException('Cloudflare integration is disabled.');
+        }
+
+        $missing = [];
+
+        if (trim((string) config('cloudflare.api.token')) === '') {
+            $missing[] = 'CLOUDFLARE_API_TOKEN';
+        }
+
+        if (trim((string) config('cloudflare.api.zone_id')) === '') {
+            $missing[] = 'CLOUDFLARE_ZONE_ID';
+        }
+
+        if ($missing !== []) {
+            throw new RuntimeException(
+                'Cloudflare is enabled but missing configuration: ' . implode(', ', $missing) . '.'
+            );
+        }
     }
 
     private function endpoint(string $path): string

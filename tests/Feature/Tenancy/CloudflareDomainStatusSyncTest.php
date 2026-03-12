@@ -103,6 +103,51 @@ class CloudflareDomainStatusSyncTest extends TestCase
         $this->assertNotNull(Domain::query()->whereKey($domainId)->value('verified_at'));
     }
 
+    public function test_check_status_creates_cloudflare_hostname_when_domain_predates_cloudflare_linkage(): void
+    {
+        $tenant = $this->insertTenant('t943');
+
+        $domainId = (int) DB::table('domains')->insertGetId([
+            'domain' => "delivery.{$tenant->id}.example.test",
+            'tenant_id' => $tenant->id,
+            'cf_hostname_id' => null,
+            'cf_hostname_status' => null,
+            'cf_ssl_status' => null,
+            'verified_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        tenancy()->initialize($tenant);
+
+        $request = Request::create("http://{$tenant->id}.app.localhost/domains/{$domainId}/check-status", 'POST', [], [], [], [
+            'HTTP_REFERER' => "http://{$tenant->id}.app.localhost/domains/{$domainId}",
+        ]);
+        $this->app->instance('request', $request);
+
+        $cloudflare = Mockery::mock(CloudflareService::class);
+        $cloudflare->shouldReceive('createHostname')->once()->with("delivery.{$tenant->id}.example.test")->andReturn(['success' => true]);
+        $cloudflare->shouldReceive('mapStatuses')->once()->andReturn([
+            'cf_hostname_id' => 'cf-host-created',
+            'cf_hostname_status' => 'pending_validation',
+            'cf_ssl_status' => 'initializing',
+            'cf_error' => null,
+            'cf_payload' => ['result' => ['id' => 'cf-host-created']],
+        ]);
+
+        $controller = new DomainController(app(TenantDomainService::class), $cloudflare);
+        $response = $controller->checkStatus(Domain::query()->findOrFail($domainId));
+
+        $this->assertSame(302, $response->getStatusCode());
+
+        $domain = Domain::query()->findOrFail($domainId);
+        $this->assertSame('cf-host-created', $domain->cf_hostname_id);
+        $this->assertSame('pending_validation', $domain->cf_hostname_status);
+        $this->assertSame('initializing', $domain->cf_ssl_status);
+        $this->assertNull($domain->verified_at);
+        $this->assertNotNull($domain->cf_last_checked_at);
+    }
+
     public function test_check_status_keeps_verified_at_null_when_hostname_pending_but_ssl_active(): void
     {
         $tenant = $this->insertTenant('t942');
@@ -144,6 +189,63 @@ class CloudflareDomainStatusSyncTest extends TestCase
         $this->assertSame('active', Domain::query()->whereKey($domainId)->value('cf_ssl_status'));
     }
 
+    public function test_cloudflare_service_requires_token_and_zone_when_enabled(): void
+    {
+        config([
+            'cloudflare.enabled' => true,
+            'cloudflare.api.token' => '',
+            'cloudflare.api.zone_id' => '',
+        ]);
+
+        $service = new CloudflareService();
+
+        $this->expectExceptionObject(
+            new \RuntimeException(
+                'Cloudflare is enabled but missing configuration: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID.'
+            )
+        );
+
+        $service->createHostname('delivery.example.test');
+    }
+
+    public function test_console_sync_command_creates_cloudflare_hostname_for_existing_domain(): void
+    {
+        $this->insertTenant('t944');
+
+        $domainId = (int) DB::table('domains')->insertGetId([
+            'domain' => 'delivery.example.test',
+            'tenant_id' => 't944',
+            'cf_hostname_id' => null,
+            'cf_hostname_status' => null,
+            'cf_ssl_status' => null,
+            'verified_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $cloudflare = Mockery::mock(CloudflareService::class);
+        $cloudflare->shouldReceive('createHostname')->once()->with('delivery.example.test')->andReturn(['success' => true]);
+        $cloudflare->shouldReceive('mapStatuses')->once()->andReturn([
+            'cf_hostname_id' => 'cf-host-cli',
+            'cf_hostname_status' => 'active',
+            'cf_ssl_status' => 'active',
+            'cf_error' => null,
+            'cf_payload' => ['result' => ['id' => 'cf-host-cli']],
+        ]);
+
+        $this->app->instance(CloudflareService::class, $cloudflare);
+
+        $this->artisan('domains:sync-cloudflare', ['domain' => 'delivery.example.test'])
+            ->expectsOutput('Domain is active and verified.')
+            ->assertExitCode(0);
+
+        $domain = Domain::query()->findOrFail($domainId);
+        $this->assertSame('cf-host-cli', $domain->cf_hostname_id);
+        $this->assertSame('active', $domain->cf_hostname_status);
+        $this->assertSame('active', $domain->cf_ssl_status);
+        $this->assertNotNull($domain->verified_at);
+    }
+
     private function insertTenant(string $tenantId): Tenant
     {
         DB::table('tenants')->insert([
@@ -156,4 +258,3 @@ class CloudflareDomainStatusSyncTest extends TestCase
         return Tenant::query()->findOrFail($tenantId);
     }
 }
-

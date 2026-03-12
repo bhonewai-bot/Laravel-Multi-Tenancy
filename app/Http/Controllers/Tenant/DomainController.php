@@ -136,14 +136,12 @@ class DomainController extends Controller
             abort(404);
         }
 
-        if (!$domain->cf_hostname_id) {
-            return back()->with('error', 'Missing Cloudflare hostname Id.');
-        }
-
         try {
             $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
 
-            $cf = $cloudflare->getHostname($domain->cf_hostname_id);
+            $cf = $domain->cf_hostname_id
+                ? $cloudflare->getHostname($domain->cf_hostname_id)
+                : $cloudflare->createHostname($domain->domain);
             $status = $cloudflare->mapStatuses($cf);
 
             $domain->fill($status);
@@ -158,7 +156,11 @@ class DomainController extends Controller
                 return back()->with('success', "Domain is active and SSL is live.");
             }
 
-            return back()->with('warning', "Hostname: {$domain->cf_hostname_status}, SSL: {$domain->cf_ssl_status}.");
+            $message = $domain->cf_hostname_id
+                ? "Hostname: {$domain->cf_hostname_status}, SSL: {$domain->cf_ssl_status}."
+                : "Cloudflare hostname created. Hostname: {$domain->cf_hostname_status}, SSL: {$domain->cf_ssl_status}.";
+
+            return back()->with('warning', $message);
         } catch (Throwable $e) {
             $domain->update([
                 'cf_error' => $e->getMessage(),
