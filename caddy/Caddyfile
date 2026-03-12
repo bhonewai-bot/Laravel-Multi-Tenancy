@@ -6,20 +6,27 @@
     }
 }
 
-# Local central + tenant domains over HTTPS with local CA
+# Local central + tenant domains
 app.localhost, *.app.localhost {
     tls internal
     reverse_proxy nginx:80
 }
 
-# Keep HTTP available for local hosts too
+# Keep local HTTP available too
 http://app.localhost, http://*.app.localhost {
     reverse_proxy nginx:80
 }
 
-# Custom domains (public)
+# Fallback origin for Cloudflare Custom Hostnames
+proxy-fallback.bhonewai.cc.cd {
+    tls internal
+    reverse_proxy nginx:80
+}
+
+# Custom domains
 :443 {
     tls {
+        issuer internal
         on_demand
     }
     reverse_proxy nginx:80
