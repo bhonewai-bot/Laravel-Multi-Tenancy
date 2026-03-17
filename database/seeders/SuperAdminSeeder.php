@@ -12,13 +12,19 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => env('CENTRAL_SUPERADMIN_EMAIL', 'superadmin@example.com')],
-            [
-                'name' => env('CENTRAL_SUPERADMIN_NAME', 'Super Admin'),
-                'password' => env('CENTRAL_SUPERADMIN_PASSWORD', 'password'),
-                'email_verified_at' => now(),
-            ]
-        );
+        $email = trim((string) config('auth.central_admin.email'));
+        $name = trim((string) config('auth.central_admin.name', 'Super Admin'));
+        $password = (string) config('auth.central_admin.password');
+
+        if ($email === '' || $password === '') {
+            return;
+        }
+
+        $user = User::query()->firstOrNew(['email' => $email]);
+        $user->forceFill([
+            'name' => $name !== '' ? $name : 'Super Admin',
+            'password' => $password,
+            'email_verified_at' => now(),
+        ])->save();
     }
 }

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Policies\ModuleRequestPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\UserPolicy;
+use App\Services\CentralAdminService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,5 +30,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ModuleRequest::class, ModuleRequestPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
+
+        app(CentralAdminService::class)->ensureConfiguredSuperAdminExists();
     }
 }
