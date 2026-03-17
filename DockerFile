@@ -2,6 +2,7 @@ FROM php:8.3-fpm
 
 RUN apt-get update && apt-get install -y \
     git \
+    gosu \
     unzip \
     zip \
     libzip-dev \
@@ -26,5 +27,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     gd
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY docker/prod/entrypoint.sh /usr/local/bin/app-entrypoint
+
+RUN chmod +x /usr/local/bin/app-entrypoint
 
 WORKDIR /var/www
+ENTRYPOINT ["/usr/local/bin/app-entrypoint"]

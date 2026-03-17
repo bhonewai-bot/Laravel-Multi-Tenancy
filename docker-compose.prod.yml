@@ -24,8 +24,11 @@ services:
       CLOUDFLARE_TIMEOUT: ${CLOUDFLARE_TIMEOUT}
       CLOUDFLARE_RETRY_TIMES: ${CLOUDFLARE_RETRY_TIMES}
       CLOUDFLARE_RETRY_SLEEP_MS: ${CLOUDFLARE_RETRY_SLEEP_MS}
+      APP_RUNTIME_USER: ${APP_RUNTIME_USER:-www-data}
+      APP_RUNTIME_GROUP: ${APP_RUNTIME_GROUP:-www-data}
     restart: unless-stopped
     working_dir: /var/www
+    command: ["php-fpm"]
     volumes:
       - ./:/var/www
     networks:
@@ -77,16 +80,21 @@ services:
       CLOUDFLARE_TIMEOUT: ${CLOUDFLARE_TIMEOUT}
       CLOUDFLARE_RETRY_TIMES: ${CLOUDFLARE_RETRY_TIMES}
       CLOUDFLARE_RETRY_SLEEP_MS: ${CLOUDFLARE_RETRY_SLEEP_MS}
+      APP_RUNTIME_USER: ${APP_RUNTIME_USER:-www-data}
+      APP_RUNTIME_GROUP: ${APP_RUNTIME_GROUP:-www-data}
     restart: unless-stopped
     working_dir: /var/www
-    command: >
-      php artisan queue:work database
-      --queue=${DB_QUEUE:-default}
-      --tries=${QUEUE_WORKER_TRIES:-3}
-      --backoff=${QUEUE_WORKER_BACKOFF:-10}
-      --timeout=${QUEUE_WORKER_TIMEOUT:-120}
-      --sleep=${QUEUE_WORKER_SLEEP:-3}
-      --max-time=${QUEUE_WORKER_MAX_TIME:-3600}
+    command:
+      - /bin/sh
+      - -lc
+      - >
+        exec php artisan queue:work database
+        --queue="${DB_QUEUE:-default}"
+        --tries="${QUEUE_WORKER_TRIES:-3}"
+        --backoff="${QUEUE_WORKER_BACKOFF:-10}"
+        --timeout="${QUEUE_WORKER_TIMEOUT:-120}"
+        --sleep="${QUEUE_WORKER_SLEEP:-3}"
+        --max-time="${QUEUE_WORKER_MAX_TIME:-3600}"
     volumes:
       - ./:/var/www
     networks:
