@@ -3,29 +3,11 @@ services:
     build:
       context: .
       dockerfile: DockerFile
+    env_file:
+      - .env
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: ${APP_URL}
-      TENANCY_CENTRAL_DOMAIN: ${TENANCY_CENTRAL_DOMAIN}
-      DB_CONNECTION: ${DB_CONNECTION}
-      DB_DATABASE: ${DB_DATABASE}
-      SESSION_DRIVER: ${SESSION_DRIVER}
-      DOMAIN_CHECK_TOKEN: ${DOMAIN_CHECK_TOKEN}
-      CENTRAL_SUPERADMIN_EMAIL: ${CENTRAL_SUPERADMIN_EMAIL}
-      CENTRAL_SUPERADMIN_NAME: ${CENTRAL_SUPERADMIN_NAME}
-      CENTRAL_SUPERADMIN_PASSWORD: ${CENTRAL_SUPERADMIN_PASSWORD}
-      CLOUDFLARE_ENABLED: ${CLOUDFLARE_ENABLED}
-      CLOUDFLARE_API_BASE_URL: ${CLOUDFLARE_API_BASE_URL}
-      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
-      CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID}
-      CLOUDFLARE_FALLBACK_ORIGIN: ${CLOUDFLARE_FALLBACK_ORIGIN}
-      CLOUDFLARE_VALIDATION_METHOD: ${CLOUDFLARE_VALIDATION_METHOD}
-      CLOUDFLARE_TIMEOUT: ${CLOUDFLARE_TIMEOUT}
-      CLOUDFLARE_RETRY_TIMES: ${CLOUDFLARE_RETRY_TIMES}
-      CLOUDFLARE_RETRY_SLEEP_MS: ${CLOUDFLARE_RETRY_SLEEP_MS}
-      APP_RUNTIME_USER: ${APP_RUNTIME_USER:-www-data}
-      APP_RUNTIME_GROUP: ${APP_RUNTIME_GROUP:-www-data}
     restart: unless-stopped
     working_dir: /var/www
     command: ["php-fpm"]
@@ -53,35 +35,11 @@ services:
     build:
       context: .
       dockerfile: DockerFile
+    env_file:
+      - .env
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: ${APP_URL}
-      TENANCY_CENTRAL_DOMAIN: ${TENANCY_CENTRAL_DOMAIN}
-      DB_CONNECTION: ${DB_CONNECTION}
-      DB_DATABASE: ${DB_DATABASE}
-      SESSION_DRIVER: ${SESSION_DRIVER}
-      DOMAIN_CHECK_TOKEN: ${DOMAIN_CHECK_TOKEN}
-      CENTRAL_SUPERADMIN_EMAIL: ${CENTRAL_SUPERADMIN_EMAIL}
-      CENTRAL_SUPERADMIN_NAME: ${CENTRAL_SUPERADMIN_NAME}
-      CENTRAL_SUPERADMIN_PASSWORD: ${CENTRAL_SUPERADMIN_PASSWORD}
-      DB_QUEUE: ${DB_QUEUE:-default}
-      QUEUE_WORKER_TRIES: ${QUEUE_WORKER_TRIES:-3}
-      QUEUE_WORKER_BACKOFF: ${QUEUE_WORKER_BACKOFF:-10}
-      QUEUE_WORKER_TIMEOUT: ${QUEUE_WORKER_TIMEOUT:-120}
-      QUEUE_WORKER_SLEEP: ${QUEUE_WORKER_SLEEP:-3}
-      QUEUE_WORKER_MAX_TIME: ${QUEUE_WORKER_MAX_TIME:-3600}
-      CLOUDFLARE_ENABLED: ${CLOUDFLARE_ENABLED}
-      CLOUDFLARE_API_BASE_URL: ${CLOUDFLARE_API_BASE_URL}
-      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
-      CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID}
-      CLOUDFLARE_FALLBACK_ORIGIN: ${CLOUDFLARE_FALLBACK_ORIGIN}
-      CLOUDFLARE_VALIDATION_METHOD: ${CLOUDFLARE_VALIDATION_METHOD}
-      CLOUDFLARE_TIMEOUT: ${CLOUDFLARE_TIMEOUT}
-      CLOUDFLARE_RETRY_TIMES: ${CLOUDFLARE_RETRY_TIMES}
-      CLOUDFLARE_RETRY_SLEEP_MS: ${CLOUDFLARE_RETRY_SLEEP_MS}
-      APP_RUNTIME_USER: ${APP_RUNTIME_USER:-www-data}
-      APP_RUNTIME_GROUP: ${APP_RUNTIME_GROUP:-www-data}
     restart: unless-stopped
     working_dir: /var/www
     command:
@@ -99,6 +57,24 @@ services:
       - ./:/var/www
     networks:
       - appnet
+
+    mysql:
+      image: mysql:8.0
+      restart: unless-stopped
+      environment:
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      volumes:
+        - db_data:/var/lib/mysql
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+        interval: 5s
+        timeout: 5s
+        retries: 20
+      networks:
+        - appnet
 
 networks:
   appnet:

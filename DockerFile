@@ -1,8 +1,7 @@
-FROM php:8.3-fpm
+FROM php:8.3-fpm AS base
 
 RUN apt-get update && apt-get install -y \
     git \
-    gosu \
     unzip \
     zip \
     libzip-dev \
@@ -11,25 +10,34 @@ RUN apt-get update && apt-get install -y \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
     libonig-dev \
-    libsqlite3-dev \
-    pkg-config \
+    default-mysql-client \
     nodejs \
     npm \
     && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j1 \
+    && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
-    pdo_sqlite \
     bcmath \
     intl \
     zip \
-    gd
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY docker/prod/entrypoint.sh /usr/local/bin/app-entrypoint
-
-RUN chmod +x /usr/local/bin/app-entrypoint
+    gds
 
 WORKDIR /var/www
-ENTRYPOINT ["/usr/local/bin/app-entrypoint"]
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+FROM base AS builder
+
+COPY . .
+
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN npm install && npm run build
+
+FROM base AS production
+
+COPY --from=builder /var/www /var/www
+
+RUN rm -rf node_modules .git .github tests
+
+CMD ["php-fpm"]
