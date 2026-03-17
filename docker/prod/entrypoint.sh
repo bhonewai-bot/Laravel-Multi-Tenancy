@@ -34,11 +34,10 @@ ensure_sqlite_writable() {
             touch "${DB_DATABASE}"
 
             if [ "$(id -u)" -eq 0 ]; then
-                chown "${APP_RUNTIME_USER}:${APP_RUNTIME_GROUP}" "${db_dir}" "${DB_DATABASE}"
+                chown -R "${APP_RUNTIME_USER}:${APP_RUNTIME_GROUP}" "${db_dir}"
             fi
 
-            chmod ug+rwx "${db_dir}"
-            chmod ug+rw "${DB_DATABASE}"
+            chmod -R ug+rwX "${db_dir}"
             ;;
     esac
 }
