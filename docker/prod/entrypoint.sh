@@ -3,6 +3,8 @@ set -eu
 
 APP_RUNTIME_USER="${APP_RUNTIME_USER:-www-data}"
 APP_RUNTIME_GROUP="${APP_RUNTIME_GROUP:-www-data}"
+DB_CONNECTION="${DB_CONNECTION:-}"
+DB_DATABASE="${DB_DATABASE:-}"
 
 ensure_writable_paths() {
     mkdir -p \
@@ -20,7 +22,29 @@ ensure_writable_paths() {
     chmod -R ug+rwX /var/www/storage /var/www/bootstrap/cache
 }
 
+ensure_sqlite_writable() {
+    if [ "${DB_CONNECTION}" != "sqlite" ] || [ -z "${DB_DATABASE}" ]; then
+        return
+    fi
+
+    case "${DB_DATABASE}" in
+        /var/www/*)
+            db_dir="$(dirname "${DB_DATABASE}")"
+            mkdir -p "${db_dir}"
+            touch "${DB_DATABASE}"
+
+            if [ "$(id -u)" -eq 0 ]; then
+                chown "${APP_RUNTIME_USER}:${APP_RUNTIME_GROUP}" "${db_dir}" "${DB_DATABASE}"
+            fi
+
+            chmod ug+rwx "${db_dir}"
+            chmod ug+rw "${DB_DATABASE}"
+            ;;
+    esac
+}
+
 ensure_writable_paths
+ensure_sqlite_writable
 
 if [ "$#" -eq 0 ]; then
     set -- php-fpm
