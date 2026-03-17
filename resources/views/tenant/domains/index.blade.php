@@ -5,6 +5,7 @@
                 'active' => ['label' => 'Active', 'badge' => 'bg-green-100 text-green-700'],
                 'pending_validation' => ['label' => 'Pending Validation', 'badge' => 'bg-amber-100 text-amber-700'],
                 'initializing' => ['label' => 'Initializing', 'badge' => 'bg-sky-100 text-sky-700'],
+                'pending' => ['label' => 'Pending', 'badge' => 'bg-stone-100 text-stone-700'],
                 default => ['label' => 'Pending', 'badge' => 'bg-gray-100 text-gray-700'],
             };
         };
@@ -40,6 +41,21 @@
                 @endif
             @endforeach
 
+            <!-- <div class="grid gap-4 md:grid-cols-3">
+                <div class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-100">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Domains</p>
+                    <p class="mt-2 text-2xl font-semibold text-gray-900">{{ $domains->count() }}</p>
+                </div>
+                <div class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-100">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Verified</p>
+                    <p class="mt-2 text-2xl font-semibold text-green-700">{{ $domains->filter(fn ($domain) => $domain->verified_at)->count() }}</p>
+                </div>
+                <div class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-100">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Needs Attention</p>
+                    <p class="mt-2 text-2xl font-semibold text-amber-700">{{ $domains->filter(fn ($domain) => ! $domain->verified_at || $domain->cf_error)->count() }}</p>
+                </div>
+            </div> -->
+
             <div class="bg-white overflow-visible shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     @if ($domains->isNotEmpty())
@@ -48,9 +64,10 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Domain</th>
+                                        <!-- <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">State</th> -->
                                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Hostname</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">SSL</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Added</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Last Check</th>
                                         <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
                                     </tr>
                                 </thead>
@@ -58,8 +75,12 @@
                                     @foreach ($domains as $domain)
                                         @php
                                             $isPrimary = $domainService->isPrimarySubDomain($tenant, $domain->domain);
-                                            $host = $statusMeta($domain->cf_hostname_status);
-                                            $ssl = $statusMeta($domain->cf_ssl_status);
+                                            $host = $isPrimary
+                                                ? ['label' => 'Trusted', 'badge' => 'bg-indigo-100 text-indigo-700']
+                                                : $statusMeta($domain->cf_hostname_status);
+                                            $ssl = $isPrimary
+                                                ? ['label' => 'Local TLS', 'badge' => 'bg-indigo-100 text-indigo-700']
+                                                : $statusMeta($domain->cf_ssl_status);
                                         @endphp
                                         <tr>
                                             <td class="px-6 py-4">
@@ -68,16 +89,39 @@
                                                     <div class="mt-1 text-xs text-indigo-700">Primary</div>
                                                 @elseif ($domain->verified_at)
                                                     <div class="mt-1 text-xs text-green-700">Live with SSL</div>
+                                                @elseif ($domain->cf_error)
+                                                    <div class="mt-1 text-xs text-red-700">Cloudflare needs attention</div>
+                                                @else
+                                                    <div class="mt-1 text-xs text-amber-700">Waiting for activation</div>
                                                 @endif
                                             </td>
+                                            <!-- <td class="px-6 py-4">
+                                                @if ($isPrimary)
+                                                    <div class="text-sm font-medium text-indigo-700">Trusted primary domain</div>
+                                                    <div class="mt-1 text-xs text-gray-500">No custom hostname setup required.</div>
+                                                @elseif ($domain->verified_at)
+                                                    <div class="text-sm font-medium text-green-700">Verified</div>
+                                                    <div class="mt-1 text-xs text-gray-500">Hostname and SSL are both active.</div>
+                                                @elseif ($domain->cf_error)
+                                                    <div class="text-sm font-medium text-red-700">Blocked</div>
+                                                    <div class="mt-1 max-w-xs truncate text-xs text-gray-500" title="{{ $domain->cf_error }}">{{ $domain->cf_error }}</div>
+                                                @else
+                                                    <div class="text-sm font-medium text-amber-700">Pending</div>
+                                                    <div class="mt-1 text-xs text-gray-500">Cloudflare is still validating this domain.</div>
+                                                @endif
+                                            </td> -->
                                             <td class="px-6 py-4">
                                                 <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $host['badge'] }}">{{ $host['label'] }}</span>
+                                                <!-- @if ($domain->cf_hostname_id)
+                                                    <div class="mt-1 font-mono text-[11px] text-gray-500">{{ $domain->cf_hostname_id }}</div>
+                                                @endif -->
                                             </td>
                                             <td class="px-6 py-4">
                                                 <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $ssl['badge'] }}">{{ $ssl['label'] }}</span>
                                             </td>
                                             <td class="px-6 py-4 text-gray-600">
-                                                {{ optional($domain->created_at)->format('M d, Y') ?? '-' }}
+                                                <div>{{ optional($domain->cf_last_checked_at)->format('M d, Y H:i') ?? '-' }}</div>
+                                                <div class="mt-1 text-xs text-gray-500">Added {{ optional($domain->created_at)->format('M d, Y') ?? '-' }}</div>
                                             </td>
                                             <td class="px-6 py-4 text-right">
                                                 <div class="inline-flex items-center gap-2">

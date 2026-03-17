@@ -8,6 +8,7 @@ use App\Services\CloudflareService;
 use App\Services\TenantDomainService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use Throwable;
@@ -104,25 +105,19 @@ class DomainController extends Controller
         }
 
         try {
-            $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
-
-            $cf = $cloudflare->createHostname($host);
-            $status = $cloudflare->mapStatuses($cf);
-
-            $domain->fill($status);
-            $domain->cf_last_checked_at = now();
-            $domain->verified_at = (
-                $domain->cf_hostname_status === 'active' &&
-                $domain->cf_ssl_status === 'active'
-            ) ? now() : null;
-            $domain->save();
+            $this->syncCloudflareForDomain($domain, createWhenMissing: true);
 
             return redirect()->route('tenant.domains.index')
-                ->with('success', "Domain {$host} added. Configure CNAME then check status.");
+                ->with('success', "Domain {$host} added. " . $this->statusMessage($domain));
         } catch (Throwable $e) {
             $domain->update([
                 'cf_error' => $e->getMessage(),
                 'cf_last_checked_at' => now(),
+            ]);
+
+            $this->logCloudflareSync('error', 'cloudflare.hostname.create_failed', $domain, [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
             ]);
 
             return redirect()->route('tenant.domains.index')
@@ -137,34 +132,22 @@ class DomainController extends Controller
         }
 
         try {
-            $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
-
-            $cf = $domain->cf_hostname_id
-                ? $cloudflare->getHostname($domain->cf_hostname_id)
-                : $cloudflare->createHostname($domain->domain);
-            $status = $cloudflare->mapStatuses($cf);
-
-            $domain->fill($status);
-            $domain->cf_last_checked_at = now();
-            $domain->verified_at = (
-                $domain->cf_hostname_status === 'active' &&
-                $domain->cf_ssl_status === 'active'
-            ) ? now() : null;
-            $domain->save();
+            $this->syncCloudflareForDomain($domain, createWhenMissing: true);
 
             if ($domain->verified_at) {
                 return back()->with('success', "Domain is active and SSL is live.");
             }
 
-            $message = $domain->cf_hostname_id
-                ? "Hostname: {$domain->cf_hostname_status}, SSL: {$domain->cf_ssl_status}."
-                : "Cloudflare hostname created. Hostname: {$domain->cf_hostname_status}, SSL: {$domain->cf_ssl_status}.";
-
-            return back()->with('warning', $message);
+            return back()->with('warning', $this->statusMessage($domain));
         } catch (Throwable $e) {
             $domain->update([
                 'cf_error' => $e->getMessage(),
                 'cf_last_checked_at' => now(),
+            ]);
+
+            $this->logCloudflareSync('error', 'cloudflare.hostname.status_check_failed', $domain, [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
             ]);
 
             return back()->with('error', "Status check failed: {$e->getMessage()}");
@@ -240,5 +223,70 @@ class DomainController extends Controller
         }
 
         return filter_var('http://' . $domain, FILTER_VALIDATE_URL) !== false;
+    }
+
+    private function syncCloudflareForDomain(Domain $domain, bool $createWhenMissing = false): void
+    {
+        $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
+        $action = $domain->cf_hostname_id ? 'refresh' : 'create';
+
+        $this->logCloudflareSync('info', 'cloudflare.hostname.sync_started', $domain, [
+            'action' => $action,
+            'create_when_missing' => $createWhenMissing,
+        ]);
+
+        $cf = $domain->cf_hostname_id
+            ? $cloudflare->getHostname($domain->cf_hostname_id)
+            : ($createWhenMissing
+                ? $cloudflare->createHostname($domain->domain)
+                : throw new \RuntimeException('Cloudflare hostname ID is missing.'));
+
+        $domain->fill($cloudflare->mapStatuses($cf));
+        $domain->cf_last_checked_at = now();
+        $domain->verified_at = $this->shouldMarkVerified($domain) ? now() : null;
+        $domain->save();
+
+        $this->logCloudflareSync('info', 'cloudflare.hostname.sync_completed', $domain, [
+            'action' => $action,
+            'verified_now' => $domain->verified_at !== null,
+        ]);
+    }
+
+    private function shouldMarkVerified(Domain $domain): bool
+    {
+        return $domain->cf_hostname_status === 'active'
+            && $domain->cf_ssl_status === 'active';
+    }
+
+    private function statusMessage(Domain $domain): string
+    {
+        $parts = [
+            'Hostname: ' . ($domain->cf_hostname_status ?? 'pending'),
+            'SSL: ' . ($domain->cf_ssl_status ?? 'pending'),
+        ];
+
+        if ($domain->verified_at) {
+            $parts[] = 'Verified and ready to serve traffic.';
+        } elseif ($domain->cf_error) {
+            $parts[] = 'Last Cloudflare error: ' . $domain->cf_error;
+        } else {
+            $parts[] = 'Still waiting for Cloudflare activation.';
+        }
+
+        return implode(' ', $parts);
+    }
+
+    private function logCloudflareSync(string $level, string $message, Domain $domain, array $context = []): void
+    {
+        Log::{$level}($message, array_merge([
+            'tenant_id' => $domain->tenant_id,
+            'domain' => $domain->domain,
+            'cf_hostname_id' => $domain->cf_hostname_id,
+            'cf_hostname_status' => $domain->cf_hostname_status,
+            'cf_ssl_status' => $domain->cf_ssl_status,
+            'verified_at' => optional($domain->verified_at)?->toIso8601String(),
+            'cf_last_checked_at' => optional($domain->cf_last_checked_at)?->toIso8601String(),
+            'cf_error' => $domain->cf_error,
+        ], $context));
     }
 }

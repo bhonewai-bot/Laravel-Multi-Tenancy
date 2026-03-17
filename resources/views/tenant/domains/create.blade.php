@@ -28,7 +28,7 @@
                 </div>
             @endif
 
-            <div class="grid gap-4 xl:grid-cols-[1.45fr_0.95fr]">
+            <div class="space-y-4">
                 <div class="rounded-lg bg-white p-6 pt-2 shadow-sm ring-1 ring-gray-100">
 
                     <form method="POST" action="{{ route('tenant.domains.store', absolute: false) }}" class="space-y-4">

@@ -10,6 +10,7 @@ use App\Services\TenantDomainService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Mockery;
 use Tests\TestCase;
 
@@ -187,6 +188,64 @@ class CloudflareDomainStatusSyncTest extends TestCase
         $this->assertNull(Domain::query()->whereKey($domainId)->value('verified_at'));
         $this->assertSame('pending', Domain::query()->whereKey($domainId)->value('cf_hostname_status'));
         $this->assertSame('active', Domain::query()->whereKey($domainId)->value('cf_ssl_status'));
+    }
+
+    public function test_check_status_logs_cloudflare_sync_context(): void
+    {
+        Log::spy();
+
+        $tenant = $this->insertTenant('t945');
+
+        $domainId = (int) DB::table('domains')->insertGetId([
+            'domain' => "logs.{$tenant->id}.example.test",
+            'tenant_id' => $tenant->id,
+            'cf_hostname_id' => 'cf-host-logs',
+            'cf_hostname_status' => 'pending_validation',
+            'cf_ssl_status' => 'initializing',
+            'verified_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        tenancy()->initialize($tenant);
+
+        $request = Request::create("http://{$tenant->id}.app.localhost/domains/{$domainId}/check-status", 'POST', [], [], [], [
+            'HTTP_REFERER' => "http://{$tenant->id}.app.localhost/domains/{$domainId}",
+        ]);
+        $this->app->instance('request', $request);
+
+        $cloudflare = Mockery::mock(CloudflareService::class);
+        $cloudflare->shouldReceive('getHostname')->once()->andReturn(['success' => true]);
+        $cloudflare->shouldReceive('mapStatuses')->once()->andReturn([
+            'cf_hostname_id' => 'cf-host-logs',
+            'cf_hostname_status' => 'pending_validation',
+            'cf_ssl_status' => 'initializing',
+            'cf_error' => null,
+            'cf_payload' => ['result' => ['id' => 'cf-host-logs']],
+        ]);
+
+        $controller = new DomainController(app(TenantDomainService::class), $cloudflare);
+        $controller->checkStatus(Domain::query()->findOrFail($domainId));
+
+        $domain = Domain::query()->findOrFail($domainId);
+        $this->assertSame('pending_validation', $domain->cf_hostname_status);
+        $this->assertSame('initializing', $domain->cf_ssl_status);
+
+        Log::shouldHaveReceived('info')->withArgs(function (string $message, array $context): bool {
+            return $message === 'cloudflare.hostname.sync_started'
+                && $context['tenant_id'] === 't945'
+                && $context['domain'] === 'logs.t945.example.test'
+                && $context['action'] === 'refresh';
+        })->once();
+
+        Log::shouldHaveReceived('info')->withArgs(function (string $message, array $context): bool {
+            return $message === 'cloudflare.hostname.sync_completed'
+                && $context['tenant_id'] === 't945'
+                && $context['domain'] === 'logs.t945.example.test'
+                && $context['cf_hostname_status'] === 'pending_validation'
+                && $context['cf_ssl_status'] === 'initializing'
+                && $context['verified_now'] === false;
+        })->once();
     }
 
     public function test_cloudflare_service_requires_token_and_zone_when_enabled(): void

@@ -5,6 +5,7 @@
                 'active' => ['label' => 'Active', 'badge' => 'bg-green-100 text-green-700', 'desc' => 'Cloudflare reports this as healthy.'],
                 'pending_validation' => ['label' => 'Pending Validation', 'badge' => 'bg-amber-100 text-amber-700', 'desc' => 'Waiting for DNS and certificate validation.'],
                 'initializing' => ['label' => 'Initializing', 'badge' => 'bg-sky-100 text-sky-700', 'desc' => 'Cloudflare is preparing this resource.'],
+                'pending' => ['label' => 'Pending', 'badge' => 'bg-stone-100 text-stone-700', 'desc' => 'Cloudflare has not activated this stage yet.'],
                 default => ['label' => 'Pending', 'badge' => 'bg-gray-100 text-gray-700', 'desc' => 'Status is still pending.'],
             };
 
@@ -20,6 +21,15 @@
         $isActive = $domain->verified_at !== null;
         $isPrimary = $domainService->isPrimarySubDomain($tenant, $domain->domain);
         $canCheckStatus = ! $isPrimary && ! empty($domain->cf_hostname_id);
+        $stateTone = $isActive
+            ? 'border-green-200 bg-green-50 text-green-800'
+            : ($domain->cf_error ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800');
+        $stateTitle = $isActive ? 'Ready to serve traffic' : ($domain->cf_error ? 'Cloudflare needs attention' : 'Activation still in progress');
+        $stateDescription = $isActive
+            ? 'Hostname routing and SSL are both active, so this domain is verified.'
+            : ($domain->cf_error
+                ? 'The last sync returned an error. Review the details below, fix the DNS or Cloudflare issue, then check status again.'
+                : 'This domain has been created, but Cloudflare has not finished validating it yet.');
     @endphp
 
     <x-slot name="header">
@@ -58,6 +68,11 @@
                 @endif
             @endforeach
 
+            <div class="rounded-md border p-4 text-sm {{ $stateTone }}">
+                <p class="font-semibold">{{ $stateTitle }}</p>
+                <p class="mt-1">{{ $stateDescription }}</p>
+            </div>
+
             <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-100">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">{{ $domain->domain }}</h3>
@@ -83,6 +98,24 @@
                             </div>
                             <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $ssl['badge'] }}">{{ $ssl['label'] }}</span>
                         </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Verification</p>
+                        <p class="mt-2 text-sm font-medium {{ $isActive ? 'text-green-700' : 'text-amber-700' }}">{{ $isActive ? 'Verified' : 'Not verified yet' }}</p>
+                        <p class="mt-1 text-xs text-gray-500">Verified at: {{ optional($domain->verified_at)->format('M d, Y H:i') ?? '-' }}</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Cloudflare Hostname ID</p>
+                        <p class="mt-2 break-all font-mono text-sm text-gray-800">{{ $domain->cf_hostname_id ?: '-' }}</p>
+                        <p class="mt-1 text-xs text-gray-500">Used to poll Cloudflare status for this domain.</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Last Sync</p>
+                        <p class="mt-2 text-sm font-medium text-gray-800">{{ optional($domain->cf_last_checked_at)->format('M d, Y H:i') ?? '-' }}</p>
+                        <p class="mt-1 text-xs text-gray-500">This updates whenever create or check-status runs.</p>
                     </div>
                 </div>
 
@@ -132,6 +165,40 @@
                             </button>
                         </form>
                     @endif
+                </div>
+            </div>
+
+            <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-100">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-500">Domain Diagnostics</h3>
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <th class="w-56 py-3 font-medium text-gray-500">Domain</th>
+                                <td class="py-3 text-gray-900">{{ $domain->domain }}</td>
+                            </tr>
+                            <tr>
+                                <th class="py-3 font-medium text-gray-500">Hostname status</th>
+                                <td class="py-3 text-gray-900">{{ $domain->cf_hostname_status ?? 'not available' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="py-3 font-medium text-gray-500">SSL status</th>
+                                <td class="py-3 text-gray-900">{{ $domain->cf_ssl_status ?? 'not available' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="py-3 font-medium text-gray-500">Verified</th>
+                                <td class="py-3 text-gray-900">{{ $isActive ? 'yes' : 'no' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="py-3 font-medium text-gray-500">Last checked</th>
+                                <td class="py-3 text-gray-900">{{ optional($domain->cf_last_checked_at)->format('M d, Y H:i') ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="py-3 font-medium text-gray-500">Cloudflare error</th>
+                                <td class="py-3 text-gray-900">{{ $domain->cf_error ?: 'none' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
