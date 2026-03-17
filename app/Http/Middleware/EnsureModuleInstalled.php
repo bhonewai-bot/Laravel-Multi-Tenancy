@@ -7,12 +7,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Blocks tenant routes that depend on a module the tenant has not installed.
+ */
 class EnsureModuleInstalled
 {
     /**
-     * Handle an incoming request.
+     * Ensure the requested module is present in the tenant's installed module list.
+     *
+     * This middleware relies on tenant context already being initialized. Without that,
+     * module access checks could read the wrong tenant metadata.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Request  $request
+     * @param  Closure  $next
+     * @param  string  $module
+     * @return Response
      */
     public function handle(Request $request, Closure $next, string $module): Response
     {
@@ -28,6 +38,7 @@ class EnsureModuleInstalled
             $installedModules = [];
         }
 
+        // The array is normalized before comparison so route parameters can stay case-insensitive.
         $installedModules = array_map(
             fn ($item) => $item,
             $installedModules

@@ -7,16 +7,27 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Prevents tenant traffic from being served on unverified custom domains.
+ */
 class EnsureVerifiedTenantDomain
 {
+    /**
+     * Create a new middleware instance.
+     *
+     * @param  TenantDomainService  $domainService
+     */
     public function __construct(
         private TenantDomainService $domainService
     ) {}
 
     /**
-     * Handle an incoming request.
+     * Ensure the current host is valid for the resolved tenant.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Request  $request
+     * @param  Closure  $next
+     * @return Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -28,6 +39,7 @@ class EnsureVerifiedTenantDomain
 
         $domain = $request->getHost();
 
+        // WARNING: This host check is the last guardrail against serving one tenant on another tenant's custom domain.
         if (!$this->domainService->canUseAsTenantDomain($tenant, $domain)) {
             abort(403, 'This domain is not verified.');
         }

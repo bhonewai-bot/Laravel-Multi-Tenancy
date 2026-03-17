@@ -10,10 +10,15 @@ use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
+/**
+ * Manages tenant-scoped roles and their permission assignments.
+ */
 class RoleController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return View
      */
     public function index(): View
     {
@@ -30,6 +35,8 @@ class RoleController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return View
      */
     public function create(): View
     {
@@ -42,6 +49,13 @@ class RoleController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * Side effects:
+     * - Writes to the tenant roles table.
+     * - Syncs permissions in the tenant database.
+     *
+     * @param  RoleStoreRequest  $request
+     * @return RedirectResponse
      */
     public function store(RoleStoreRequest $request): RedirectResponse
     {
@@ -60,6 +74,9 @@ class RoleController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @param  Role  $role
+     * @return View
      */
     public function show(Role $role): View
     {
@@ -72,6 +89,9 @@ class RoleController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  Role  $role
+     * @return View
      */
     public function edit(Role $role): View
     {
@@ -85,6 +105,14 @@ class RoleController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * Side effects:
+     * - Writes to the tenant roles table.
+     * - Syncs permissions in the tenant database.
+     *
+     * @param  RoleUpdateRequest  $request
+     * @param  Role  $role
+     * @return RedirectResponse
      */
     public function update(RoleUpdateRequest $request, Role $role): RedirectResponse
     {
@@ -103,6 +131,12 @@ class RoleController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * Side effects:
+     * - Deletes a tenant role when business rules allow it.
+     *
+     * @param  Role  $role
+     * @return RedirectResponse
      */
     public function destroy(Role $role): RedirectResponse
     {
@@ -112,6 +146,7 @@ class RoleController extends Controller
             return back()->with('error', 'Cannot delete role assigned to users.');
         }
 
+        // System roles define baseline tenant authorization and are intentionally protected from deletion.
         if (in_array(strtolower($role->name), ['admin', 'staff'], true)) {
             return back()->with('error', 'System roles cannot be deleted.');
         }

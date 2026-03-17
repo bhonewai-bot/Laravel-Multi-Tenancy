@@ -13,8 +13,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
+/**
+ * Handles tenant-side module requests and asynchronous install/uninstall watch state.
+ *
+ * The controller stores operation state on the central tenant record so the tenant UI
+ * can observe background work without querying tenant databases directly.
+ */
 class ModuleRequestController extends Controller
 {
+    /**
+     * Display available modules together with request and operation state for the tenant.
+     *
+     * @param  Request  $request
+     * @param  TenantModuleRegistry  $registry
+     * @return View
+     */
     public function index(Request $request, TenantModuleRegistry $registry): View
     {
         $this->authorize('viewAny', ModuleRequest::class);
@@ -48,6 +61,16 @@ class ModuleRequestController extends Controller
         ));
     }
 
+    /**
+     * Create or refresh a module request for the current tenant.
+     *
+     * Side effects:
+     * - Writes to the central module_requests table.
+     *
+     * @param  Request  $request
+     * @param  TenantModuleRegistry  $registry
+     * @return RedirectResponse
+     */
     public function request(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
         $this->authorize('request', ModuleRequest::class);
@@ -87,6 +110,17 @@ class ModuleRequestController extends Controller
         return back()->with('success', 'Module request sent.');
     }
 
+    /**
+     * Queue an approved module installation for the current tenant.
+     *
+     * Side effects:
+     * - Writes queued state to the central tenant record.
+     * - Dispatches a queued install job.
+     *
+     * @param  Request  $request
+     * @param  TenantModuleRegistry  $registry
+     * @return RedirectResponse
+     */
     public function install(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
         $this->authorize('install', ModuleRequest::class);
@@ -117,6 +151,17 @@ class ModuleRequestController extends Controller
         return $this->redirectToWatch($module, TenantModuleRegistry::ACTION_INSTALL);
     }
 
+    /**
+     * Queue a module uninstall for the current tenant.
+     *
+     * Side effects:
+     * - Writes queued state to the central tenant record.
+     * - Dispatches a queued uninstall job.
+     *
+     * @param  Request  $request
+     * @param  TenantModuleRegistry  $registry
+     * @return RedirectResponse
+     */
     public function uninstall(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
         $this->authorize('uninstall', ModuleRequest::class);
@@ -138,6 +183,13 @@ class ModuleRequestController extends Controller
         return $this->redirectToWatch($module, TenantModuleRegistry::ACTION_UNINSTALL);
     }
 
+    /**
+     * Redirect to the module list with watch parameters so the UI can poll job progress.
+     *
+     * @param  Module  $module
+     * @param  string  $action
+     * @return RedirectResponse
+     */
     private function redirectToWatch(Module $module, string $action): RedirectResponse
     {
         return redirect()->route('tenant.modules.index', [
@@ -147,6 +199,16 @@ class ModuleRequestController extends Controller
         ]);
     }
 
+    /**
+     * Resolve the current watch state from query parameters and persisted operation metadata.
+     *
+     * @param  Request  $request
+     * @param  TenantModuleRegistry  $registry
+     * @param  mixed  $tenant
+     * @param  Collection  $modules
+     * @param  array  $moduleOperations
+     * @return array
+     */
     private function resolveWatchState(
         Request $request,
         TenantModuleRegistry $registry,
@@ -164,6 +226,7 @@ class ModuleRequestController extends Controller
             return [false, false, null, $moduleOperations];
         }
 
+        // A missing module should stop the watch loop immediately so the page does not poll forever.
         $watchedModule = $modules->firstWhere('id', $watchModuleId);
         if (! $watchedModule) {
             return [true, true, ['type' => 'error', 'message' => 'Module not found.'], $moduleOperations];
@@ -190,6 +253,16 @@ class ModuleRequestController extends Controller
         return [true, true, $alert, $moduleOperations];
     }
 
+    /**
+     * Build the per-module view model consumed by the tenant modules page.
+     *
+     * @param  Collection  $modules
+     * @param  Collection  $requestModules
+     * @param  array  $installedModules
+     * @param  array  $moduleOperations
+     * @param  TenantModuleRegistry  $registry
+     * @return Collection
+     */
     private function buildModuleRows(
         Collection $modules,
         Collection $requestModules,

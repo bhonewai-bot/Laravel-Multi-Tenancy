@@ -9,10 +9,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
+/**
+ * Manages profile updates for authenticated users in both central and tenant contexts.
+ */
 class ProfileController extends Controller
 {
     /**
      * Display the user's profile form.
+     *
+     * @param  Request  $request
+     * @return View
      */
     public function edit(Request $request): View
     {
@@ -23,11 +29,18 @@ class ProfileController extends Controller
 
     /**
      * Update the user's profile information.
+     *
+     * Side effects:
+     * - Writes to the authenticated user's record.
+     *
+     * @param  ProfileUpdateRequest  $request
+     * @return RedirectResponse
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $request->user()->fill($request->validated());
 
+        // Email changes require re-verification so the new address is not trusted automatically.
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
         }
@@ -41,6 +54,13 @@ class ProfileController extends Controller
 
     /**
      * Delete the user's account.
+     *
+     * Side effects:
+     * - Deletes the authenticated user record.
+     * - Invalidates the active session.
+     *
+     * @param  Request  $request
+     * @return RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse
     {

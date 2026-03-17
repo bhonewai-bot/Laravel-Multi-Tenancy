@@ -10,10 +10,15 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
+/**
+ * Manages tenant-scoped users inside the active tenant database context.
+ */
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return View
      */
     public function index(): View
     {
@@ -26,6 +31,8 @@ class UserController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return View
      */
     public function create(): View
     {
@@ -38,6 +45,12 @@ class UserController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * Side effects:
+     * - Writes a user record to the tenant database.
+     *
+     * @param  UserStoreRequest  $request
+     * @return RedirectResponse
      */
     public function store(UserStoreRequest $request): RedirectResponse
     {
@@ -57,6 +70,9 @@ class UserController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @param  User  $user
+     * @return View
      */
     public function show(User $user): View
     {
@@ -69,6 +85,9 @@ class UserController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  User  $user
+     * @return View
      */
     public function edit(User $user): View
     {
@@ -82,6 +101,13 @@ class UserController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * Side effects:
+     * - Writes to the tenant users table.
+     *
+     * @param  UserUpdateRequest  $request
+     * @param  User  $user
+     * @return RedirectResponse
      */
     public function update(UserUpdateRequest $request, User $user): RedirectResponse
     {
@@ -98,6 +124,7 @@ class UserController extends Controller
         $isAdminUser = strtolower((string) $user->role?->name) === 'admin';
         $isRoleChanging = (int) ($validated['role_id'] ?? 0) !== (int) ($user->role_id ?? 0);
 
+        // Preventing demotion of the last admin preserves tenant recoverability.
         if ($isAdminUser && $isRoleChanging) {
             $adminRoleId = Role::query()->where('name', 'admin')->value('id');
 
@@ -121,6 +148,12 @@ class UserController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * Side effects:
+     * - Deletes a user from the tenant database.
+     *
+     * @param  User  $user
+     * @return RedirectResponse
      */
     public function destroy(User $user): RedirectResponse
     {
@@ -132,6 +165,7 @@ class UserController extends Controller
 
         $isDeletingAdmin = strtolower((string) $user->role?->name) === 'admin';
 
+        // The tenant must always retain at least one admin to avoid operational lockout.
         if ($isDeletingAdmin) {
             $adminRoleId = Role::query()->where('name', 'admin')->value('id');
 

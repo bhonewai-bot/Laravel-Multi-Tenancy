@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use Throwable;
 
+/**
+ * Manages tenant-owned domains inside the active tenant request context.
+ *
+ * Tenant isolation is enforced by checking the active tenant against each central
+ * domain record before any data is displayed or modified.
+ */
 class DomainController extends Controller
 {
     public function __construct(
@@ -20,10 +26,16 @@ class DomainController extends Controller
         private ?CloudflareService $cloudflareService = null
     ) {}
 
+    /**
+     * Display domains belonging to the current tenant.
+     *
+     * @return View
+     */
     public function index(): View
     {
         $tenant = tenant();
 
+        // The tenant_id predicate is the main safeguard against cross-tenant domain leakage.
         $domains = Domain::query()
             ->where('tenant_id', $tenant->id)
             ->orderBy('domain')
@@ -36,15 +48,27 @@ class DomainController extends Controller
         ]);
     }
 
+    /**
+     * Show the create-domain form for the current tenant.
+     *
+     * @return View
+     */
     public function create(): View
     {
         return view('tenant.domains.create');
     }
 
+    /**
+     * Display a single tenant domain and its DNS guidance.
+     *
+     * @param  Domain  $domain
+     * @return View
+     */
     public function show(Domain $domain): View
     {
         $tenant = tenant();
 
+        // WARNING: Route model binding resolves centrally, so ownership must be verified explicitly.
         if ($domain->tenant_id !== $tenant->id) {
             abort(404);
         }
@@ -63,6 +87,16 @@ class DomainController extends Controller
         ]);
     }
 
+    /**
+     * Persist a new custom domain for the current tenant.
+     *
+     * Side effects:
+     * - Writes to the central domains table.
+     * - May call Cloudflare to create a custom hostname.
+     *
+     * @param  Request  $request
+     * @return RedirectResponse
+     */
     public function store(Request $request): RedirectResponse
     {
         $tenant = tenant();
@@ -74,6 +108,7 @@ class DomainController extends Controller
         ]);
 
         $validator->after(function ($validator) use ($tenant, $request) {
+            // These rules prevent malformed domains and central-domain collisions before persistence.
             $domain = $this->domainService->normalize($request->input('domain', ''));
 
             if (! $this->isValidDomain($domain)) {
@@ -125,6 +160,16 @@ class DomainController extends Controller
         }
     }
 
+    /**
+     * Refresh Cloudflare activation state for a tenant domain.
+     *
+     * Side effects:
+     * - May call Cloudflare.
+     * - Writes Cloudflare status fields to the central domains table.
+     *
+     * @param  Domain  $domain
+     * @return RedirectResponse
+     */
     public function checkStatus(Domain $domain): RedirectResponse
     {
         if ($domain->tenant_id !== tenant()->id) {
@@ -154,6 +199,16 @@ class DomainController extends Controller
         }
     }
 
+    /**
+     * Verify the domain using either Cloudflare polling or legacy TXT records.
+     *
+     * Side effects:
+     * - May call Cloudflare or perform DNS lookups.
+     * - Writes verification metadata to the central domains table.
+     *
+     * @param  Domain  $domain
+     * @return RedirectResponse
+     */
     public function verify(Domain $domain): RedirectResponse
     {
         // Backward-compatible behavior:
@@ -173,6 +228,7 @@ class DomainController extends Controller
             return back()->with('success', 'Primary tenant subdomain is trusted automatically.');
         }
 
+        // Generate the TXT token lazily so retries use a stable expected DNS record.
         if (! $domain->verification_code) {
             $domain->verification_code = $this->domainService->makeVerificationCode();
             $domain->verified_at = null;
@@ -193,6 +249,15 @@ class DomainController extends Controller
         return back()->with('success', "Domain {$domain->domain} verified successfully.");
     }
 
+    /**
+     * Delete a tenant custom domain.
+     *
+     * Side effects:
+     * - Deletes from the central domains table.
+     *
+     * @param  Domain  $domain
+     * @return RedirectResponse
+     */
     public function destroy(Domain $domain): RedirectResponse
     {
         $tenant = tenant();
@@ -212,6 +277,12 @@ class DomainController extends Controller
             ->with('success', 'Custom domain deleted successfully.');
     }
 
+    /**
+     * Validate that the submitted value is a hostname rather than a URL.
+     *
+     * @param  string  $domain
+     * @return bool
+     */
     private function isValidDomain(string $domain): bool
     {
         if ($domain == '') {
@@ -225,6 +296,17 @@ class DomainController extends Controller
         return filter_var('http://' . $domain, FILTER_VALIDATE_URL) !== false;
     }
 
+    /**
+     * Create or refresh the Cloudflare hostname backing a tenant domain.
+     *
+     * Side effects:
+     * - Calls Cloudflare.
+     * - Writes Cloudflare status fields to the central domains table.
+     *
+     * @param  Domain  $domain
+     * @param  bool  $createWhenMissing
+     * @return void
+     */
     private function syncCloudflareForDomain(Domain $domain, bool $createWhenMissing = false): void
     {
         $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
@@ -235,6 +317,7 @@ class DomainController extends Controller
             'create_when_missing' => $createWhenMissing,
         ]);
 
+        // Missing hostname ids are only acceptable during the initial create call.
         $cf = $domain->cf_hostname_id
             ? $cloudflare->getHostname($domain->cf_hostname_id)
             : ($createWhenMissing
@@ -252,12 +335,24 @@ class DomainController extends Controller
         ]);
     }
 
+    /**
+     * Determine whether the current Cloudflare state is strong enough to trust the domain.
+     *
+     * @param  Domain  $domain
+     * @return bool
+     */
     private function shouldMarkVerified(Domain $domain): bool
     {
         return $domain->cf_hostname_status === 'active'
             && $domain->cf_ssl_status === 'active';
     }
 
+    /**
+     * Build a human-readable status summary for the tenant UI.
+     *
+     * @param  Domain  $domain
+     * @return string
+     */
     private function statusMessage(Domain $domain): string
     {
         $parts = [
@@ -276,6 +371,15 @@ class DomainController extends Controller
         return implode(' ', $parts);
     }
 
+    /**
+     * Emit structured Cloudflare sync logs for operational debugging.
+     *
+     * @param  string  $level
+     * @param  string  $message
+     * @param  Domain  $domain
+     * @param  array  $context
+     * @return void
+     */
     private function logCloudflareSync(string $level, string $message, Domain $domain, array $context = []): void
     {
         Log::{$level}($message, array_merge([

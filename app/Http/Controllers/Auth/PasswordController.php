@@ -8,10 +8,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * Handles authenticated password changes.
+ */
 class PasswordController extends Controller
 {
     /**
      * Update the user's password.
+     *
+     * Side effects:
+     * - Writes a new password hash to the authenticated user's record.
+     *
+     * @param  Request  $request
+     * @return RedirectResponse
      */
     public function update(Request $request): RedirectResponse
     {

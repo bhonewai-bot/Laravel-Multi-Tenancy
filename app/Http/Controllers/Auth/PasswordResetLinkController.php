@@ -8,10 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
 
+/**
+ * Starts the password reset workflow by sending reset links.
+ */
 class PasswordResetLinkController extends Controller
 {
     /**
      * Display the password reset link request view.
+     *
+     * @return View
      */
     public function create(): View
     {
@@ -22,6 +27,12 @@ class PasswordResetLinkController extends Controller
      * Handle an incoming password reset link request.
      *
      * @throws \Illuminate\Validation\ValidationException
+     *
+     * Side effects:
+     * - Dispatches a password reset notification when the broker accepts the request.
+     *
+     * @param  Request  $request
+     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
@@ -29,9 +40,6 @@ class PasswordResetLinkController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
         $status = Password::sendResetLink(
             $request->only('email')
         );

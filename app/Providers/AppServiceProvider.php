@@ -12,10 +12,15 @@ use App\Services\CentralAdminService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Registers application-wide policies and bootstraps central-only startup services.
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * Register container bindings for the application.
+     *
+     * @return void
      */
     public function register(): void
     {
@@ -23,7 +28,13 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Bootstrap any application services.
+     * Bootstrap policies and ensure the configured central admin exists.
+     *
+     * Side effects:
+     * - Registers authorization policies.
+     * - May write to the central users table through CentralAdminService.
+     *
+     * @return void
      */
     public function boot(): void
     {
@@ -31,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
 
+        // This runs after policy registration so the admin bootstrap can access guarded routes immediately.
         app(CentralAdminService::class)->ensureConfiguredSuperAdminExists();
     }
 }

@@ -8,19 +8,41 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * Manages the central module catalog that tenants can request and install.
+ */
 class ModuleController extends Controller
 {
+    /**
+     * Display the paginated module catalog.
+     *
+     * @return View
+     */
     public function index(): View
     {
         $modules = Module::latest()->paginate(15);
         return view('modules.index', compact('modules'));
     }
 
+    /**
+     * Show the module creation form.
+     *
+     * @return View
+     */
     public function create(): View
     {
         return view('modules.create');
     }
 
+    /**
+     * Persist a new module definition in the central database.
+     *
+     * Side effects:
+     * - Writes to the modules table.
+     *
+     * @param  Request  $request
+     * @return RedirectResponse
+     */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -41,6 +63,15 @@ class ModuleController extends Controller
         return redirect()->route('modules.index')->with('success', 'Module created successfully.');
     }
 
+    /**
+     * Toggle whether a module is available to tenants.
+     *
+     * Side effects:
+     * - Writes to the modules table.
+     *
+     * @param  Module  $module
+     * @return RedirectResponse
+     */
     public function toggleStatus(Module $module): RedirectResponse
     {
         $module->is_active = !$module->is_active;

@@ -6,8 +6,20 @@ use Illuminate\Log\Logger;
 use Illuminate\Support\Facades\App;
 use Monolog\LogRecord;
 
+/**
+ * Adds tenant-aware context to every log record.
+ *
+ * This makes central and tenant events easier to separate during production debugging
+ * and reduces the risk of misattributing cross-tenant incidents.
+ */
 class AddTenantContext
 {
+    /**
+     * Register a Monolog processor that appends tenant, host, request, and job context.
+     *
+     * @param  Logger  $logger
+     * @return void
+     */
     public function __invoke(Logger $logger): void
     {
         $logger->getLogger()->pushProcessor(function (array|LogRecord $record) {
@@ -18,6 +30,7 @@ class AddTenantContext
                     $tenant = tenant();
                     $tenantId = $tenant?->getTenantKey() ?? $tenant?->id ?? null;
                 } catch (\Throwable $th) {
+                    // Logging must never fail because tenancy resolution is unavailable.
                     $tenantId = null;
                 }
             }

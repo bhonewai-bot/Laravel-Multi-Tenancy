@@ -13,17 +13,33 @@ use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
 
+/**
+ * Wires Stancl Tenancy events, routes, and middleware ordering into the application lifecycle.
+ *
+ * This provider is responsible for tenant database provisioning and for ensuring tenancy
+ * initialization happens early enough to prevent central and tenant data from mixing.
+ */
 class TenancyServiceProvider extends ServiceProvider
 {
     // By default, no namespace is used to support the callable array syntax.
     public static string $controllerNamespace = '';
 
+    /**
+     * Define the tenancy event map used during tenant lifecycle transitions.
+     *
+     * Side effects:
+     * - Can create, migrate, seed, and delete tenant databases.
+     * - Registers listeners that switch application state into and out of tenant context.
+     *
+     * @return array
+     */
     public function events()
     {
         return [
             // Tenant events
             Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
+                // Database provisioning is grouped into a pipeline so tenant creation remains ordered and observable.
                 JobPipeline::make([
                     Jobs\CreateDatabase::class,
                     Jobs\MigrateDatabase::class,
@@ -92,11 +108,21 @@ class TenancyServiceProvider extends ServiceProvider
         ];
     }
 
+    /**
+     * Register tenancy-specific bindings.
+     *
+     * @return void
+     */
     public function register()
     {
         //
     }
 
+    /**
+     * Boot tenancy listeners, tenant route mapping, and middleware priority.
+     *
+     * @return void
+     */
     public function boot()
     {
         $this->bootEvents();
@@ -105,6 +131,11 @@ class TenancyServiceProvider extends ServiceProvider
         $this->makeTenancyMiddlewareHighestPriority();
     }
 
+    /**
+     * Attach configured tenancy listeners to Laravel's event dispatcher.
+     *
+     * @return void
+     */
     protected function bootEvents()
     {
         foreach ($this->events() as $event => $listeners) {
@@ -118,6 +149,11 @@ class TenancyServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Register tenant routes after the application has fully booted.
+     *
+     * @return void
+     */
     protected function mapRoutes()
     {
         $this->app->booted(function () {
@@ -128,6 +164,14 @@ class TenancyServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Ensure tenancy initialization middleware runs before downstream route logic.
+     *
+     * WARNING: Incorrect ordering here can leak central data into tenant requests or
+     * resolve tenant-scoped bindings before the tenant context exists.
+     *
+     * @return void
+     */
     protected function makeTenancyMiddlewareHighestPriority()
     {
         $tenancyMiddleware = [

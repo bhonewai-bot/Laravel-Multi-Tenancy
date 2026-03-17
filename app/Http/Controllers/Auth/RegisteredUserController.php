@@ -12,10 +12,15 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
+/**
+ * Handles self-service registration when central registration is enabled.
+ */
 class RegisteredUserController extends Controller
 {
     /**
      * Display the registration view.
+     *
+     * @return View
      */
     public function create(): View
     {
@@ -28,9 +33,18 @@ class RegisteredUserController extends Controller
      * Handle an incoming registration request.
      *
      * @throws \Illuminate\Validation\ValidationException
+     *
+     * Side effects:
+     * - Creates a user record.
+     * - Dispatches the Registered event.
+     * - Authenticates the newly created user.
+     *
+     * @param  Request  $request
+     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
+        // Registration can be disabled so production access relies on the configured central admin instead.
         abort_unless(config('auth.allow_registration'), 404);
 
         $request->validate([

@@ -5,12 +5,28 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
+/**
+ * Encapsulates Cloudflare Custom Hostnames API calls used by tenant domain onboarding.
+ *
+ * Keeping the integration behind a service centralizes configuration validation, retry
+ * behavior, and response mapping so controllers can focus on tenant business rules.
+ */
 class CloudflareService
 {
+    /**
+     * Create a Cloudflare custom hostname for a tenant domain.
+     *
+     * Side effects:
+     * - Performs an outbound HTTP request to Cloudflare.
+     *
+     * @param  string  $hostname
+     * @return array
+     */
     public function createHostname(string $hostname): array
     {
         $this->ensureConfigured();
 
+        // Retry is intentionally bounded because repeated hostname creation attempts can produce duplicate operational noise.
         $response = Http::timeout((int) config('cloudflare.api.timeout', 15))
             ->retry(
                 (int) config('cloudflare.api.retry_times', 2),
@@ -34,6 +50,15 @@ class CloudflareService
         return $json;
     }
 
+    /**
+     * Fetch the latest Cloudflare status for an existing custom hostname.
+     *
+     * Side effects:
+     * - Performs an outbound HTTP request to Cloudflare.
+     *
+     * @param  string  $cloudflareId
+     * @return array
+     */
     public function getHostname(string $cloudflareId): array
     {
         $this->ensureConfigured();
@@ -55,11 +80,18 @@ class CloudflareService
         return $json;
     }
 
+    /**
+     * Normalize Cloudflare's response into the fields persisted on the domain model.
+     *
+     * @param  array  $result
+     * @return array
+     */
     public function mapStatuses(array $result): array
     {
         $hostnameStatus = data_get($result, 'result.status');
         $sslStatus = data_get($result, 'result.ssl.status');
 
+        // Validation errors are flattened so the UI and logs surface the actionable Cloudflare reason.
         $errors = collect(data_get($result, 'result.ssl.validation_errors', []))
             ->pluck('message')
             ->filter()
@@ -74,12 +106,22 @@ class CloudflareService
         ];
     }
 
-    // Backward-compatible alias while controller/tests are being migrated.
+    /**
+     * Backward-compatible alias while call sites are migrated to the pluralized method name.
+     *
+     * @param  array  $result
+     * @return array
+     */
     public function mapStatus(array $result): array
     {
         return $this->mapStatuses($result);
     }
 
+    /**
+     * Fail fast when Cloudflare integration is enabled but incomplete.
+     *
+     * @return void
+     */
     private function ensureConfigured(): void
     {
         if (! config('cloudflare.enabled')) {
@@ -103,6 +145,12 @@ class CloudflareService
         }
     }
 
+    /**
+     * Build a zone-scoped Cloudflare API endpoint.
+     *
+     * @param  string  $path
+     * @return string
+     */
     private function endpoint(string $path): string
     {
         $baseUrl = rtrim((string) config('cloudflare.api.base_url'), '/');
@@ -111,6 +159,13 @@ class CloudflareService
         return "{$baseUrl}/zones/{$zoneId}{$path}";
     }
 
+    /**
+     * Collapse Cloudflare's error payload into a single message suitable for logs and UI flashes.
+     *
+     * @param  array  $json
+     * @param  string  $fallback
+     * @return string
+     */
     private function extractError(array $json, string $fallback): string
     {
         $msg = collect($json['errors'] ?? [])->pluck('message')->implode(' | ');

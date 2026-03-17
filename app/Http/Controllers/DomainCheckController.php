@@ -7,10 +7,22 @@ use App\Services\TenantDomainService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+/**
+ * Validates whether a domain is permitted to route traffic to this application.
+ *
+ * This endpoint is used for lightweight domain checks without booting the full tenant UI.
+ */
 class DomainCheckController extends Controller
 {
     /**
-     * Handle the incoming request.
+     * Validate the shared token and confirm the requested domain is allowed.
+     *
+     * Side effects:
+     * - Reads the central domains table.
+     *
+     * @param  Request  $request
+     * @param  TenantDomainService  $domainService
+     * @return Response
      */
     public function __invoke(Request $request, TenantDomainService $domainService): Response
     {
@@ -31,6 +43,7 @@ class DomainCheckController extends Controller
 
         $domain = $domainService->normalize($data['domain']);
 
+        // Central domains are trusted by configuration and do not require a verified domain record.
         if ($domainService->isCentralDomain($domain)) {
             return response('OK', 200);
         }

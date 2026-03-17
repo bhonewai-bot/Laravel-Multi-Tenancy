@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Throwable;
 
+/**
+ * Manages tenant provisioning from the central administration surface.
+ *
+ * Tenant records are stored centrally and then used by the tenancy layer to isolate
+ * database, filesystem, and request state per tenant.
+ */
 class TenantController extends Controller
 {
     public function __construct(
@@ -22,6 +28,8 @@ class TenantController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
+     * @return View
      */
     public function index(): View
     {
@@ -32,6 +40,8 @@ class TenantController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return View
      */
     public function create(): View
     {
@@ -40,11 +50,19 @@ class TenantController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * Side effects:
+     * - Writes tenant and domain records to the central database.
+     * - May call Cloudflare to provision domain state.
+     *
+     * @param  TenantStoreRequest  $request
+     * @return RedirectResponse
      */
     public function store(TenantStoreRequest $request): RedirectResponse
     {
         $domain = $this->domainService->normalize((string) $request->input('domain'));
 
+        // Tenant creation starts in the central database; tenant-specific resources are provisioned elsewhere.
         $tenant = Tenant::create([
             'id' => $request->tenant_id,
             'name' => $request->name,
@@ -71,6 +89,9 @@ class TenantController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @param  Tenant  $tenant
+     * @return View
      */
     public function show(Tenant $tenant): View
     {
@@ -81,6 +102,9 @@ class TenantController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  Tenant  $tenant
+     * @return View
      */
     public function edit(Tenant $tenant): View
     {
@@ -91,6 +115,14 @@ class TenantController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * Side effects:
+     * - Writes tenant and domain changes to the central database.
+     * - May call Cloudflare to refresh hostname state.
+     *
+     * @param  TenantUpdateRequest  $request
+     * @param  Tenant  $tenant
+     * @return RedirectResponse
      */
     public function update(TenantUpdateRequest $request, Tenant $tenant)
     {
@@ -98,6 +130,7 @@ class TenantController extends Controller
         $domainModel = null;
 
         DB::transaction(function () use ($request, $tenant) {
+            // The core tenant update is transactional so the central record is not left partially updated.
             $tenant->update([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -120,6 +153,13 @@ class TenantController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * Side effects:
+     * - Deletes the central tenant record.
+     * - Triggers downstream tenancy cleanup listeners.
+     *
+     * @param  Tenant  $tenant
+     * @return RedirectResponse
      */
     public function destroy(Tenant $tenant): RedirectResponse
     {
@@ -128,12 +168,24 @@ class TenantController extends Controller
         return redirect()->route('tenants.index')->with('success', 'Tenant deleted successfully.');
     }
 
+    /**
+     * Synchronize central domain metadata with Cloudflare hostname state.
+     *
+     * Side effects:
+     * - May call Cloudflare.
+     * - Writes Cloudflare status fields to the central domains table.
+     *
+     * @param  Tenant  $tenant
+     * @param  Domain  $domain
+     * @return void
+     */
     private function syncCloudflareForDomain(Tenant $tenant, Domain $domain): void
     {
         if (
             ! config('cloudflare.enabled') ||
             $this->domainService->isPrimarySubDomain($tenant, $domain->domain)
         ) {
+            // Platform-managed subdomains are trusted by convention and do not need custom-hostname status.
             $domain->forceFill([
                 'cf_hostname_id' => null,
                 'cf_hostname_status' => null,
@@ -160,6 +212,7 @@ class TenantController extends Controller
             ) ? now() : null;
             $domain->save();
         } catch (Throwable $e) {
+            // Domain failures are kept as recoverable metadata so operators can retry without recreating the tenant.
             $domain->forceFill([
                 'cf_last_checked_at' => now(),
                 'cf_error' => $e->getMessage(),
