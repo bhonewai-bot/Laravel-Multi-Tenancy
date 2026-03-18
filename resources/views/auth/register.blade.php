@@ -1,3 +1,5 @@
+@php($errors = $errors ?? new \Illuminate\Support\ViewErrorBag)
+
 <x-guest-layout>
     <form method="POST" action="{{ route('register', absolute: false) }}">
         @csrf
