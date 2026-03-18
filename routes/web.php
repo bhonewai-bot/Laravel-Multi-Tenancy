@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\CloudflareHostnameChallengeController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ModuleRequestController;
 use App\Http\Controllers\ProfileController;
@@ -10,11 +9,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return redirect()->route('tenants.index');
 });
-
-Route::get(
-    '/.well-known/cf-custom-hostname-challenge/{hostnameId}',
-    CloudflareHostnameChallengeController::class
-)->name('cloudflare.hostname-challenge');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

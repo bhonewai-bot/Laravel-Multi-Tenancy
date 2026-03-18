@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureModuleInstalled;
 use App\Http\Middleware\EnsureTenantPermission;
 use App\Http\Middleware\EnsureTenantRole;
+use App\Http\Controllers\CloudflareHostnameChallengeController;
 use App\Http\Controllers\DomainCheckController;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
             // Must be host-agnostic because Caddy calls via docker service host (e.g. nginx).
             Route::get('/internal/domain-check', DomainCheckController::class)
                 ->middleware('throttle:120,1');
+
+            // Cloudflare validates pending custom hostnames before tenancy can trust the domain,
+            // so this endpoint must stay host-agnostic instead of being limited to central domains.
+            Route::middleware('web')->get(
+                '/.well-known/cf-custom-hostname-challenge/{hostnameId}',
+                CloudflareHostnameChallengeController::class
+            )->name('cloudflare.hostname-challenge');
 
             foreach ($centralDomains as $domain) {
                 Route::domain($domain)->group(function () {
