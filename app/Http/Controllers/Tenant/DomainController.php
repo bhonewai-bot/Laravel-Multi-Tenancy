@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncPendingCloudflareDomain;
 use App\Models\Domain;
-use App\Services\CloudflareService;
+use App\Services\DomainCloudflareSyncService;
 use App\Services\TenantDomainService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use Throwable;
@@ -23,7 +23,7 @@ class DomainController extends Controller
 {
     public function __construct(
         private TenantDomainService $domainService,
-        private ?CloudflareService $cloudflareService = null
+        private DomainCloudflareSyncService $domainSyncService
     ) {}
 
     /**
@@ -140,7 +140,11 @@ class DomainController extends Controller
         }
 
         try {
-            $this->syncCloudflareForDomain($domain, createWhenMissing: true);
+            $this->domainSyncService->sync($domain, createWhenMissing: true);
+
+            if ($this->domainSyncService->shouldRetry($domain)) {
+                SyncPendingCloudflareDomain::dispatch($domain->id);
+            }
 
             return redirect()->route('tenant.domains.index')
                 ->with('success', "Domain {$host} added. " . $this->statusMessage($domain));
@@ -177,7 +181,11 @@ class DomainController extends Controller
         }
 
         try {
-            $this->syncCloudflareForDomain($domain, createWhenMissing: true);
+            $this->domainSyncService->sync($domain, createWhenMissing: true);
+
+            if ($this->domainSyncService->shouldRetry($domain)) {
+                SyncPendingCloudflareDomain::dispatch($domain->id);
+            }
 
             if ($domain->verified_at) {
                 return back()->with('success', "Domain is active and SSL is live.");
@@ -297,57 +305,6 @@ class DomainController extends Controller
     }
 
     /**
-     * Create or refresh the Cloudflare hostname backing a tenant domain.
-     *
-     * Side effects:
-     * - Calls Cloudflare.
-     * - Writes Cloudflare status fields to the central domains table.
-     *
-     * @param  Domain  $domain
-     * @param  bool  $createWhenMissing
-     * @return void
-     */
-    private function syncCloudflareForDomain(Domain $domain, bool $createWhenMissing = false): void
-    {
-        $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
-        $action = $domain->cf_hostname_id ? 'refresh' : 'create';
-
-        $this->logCloudflareSync('info', 'cloudflare.hostname.sync_started', $domain, [
-            'action' => $action,
-            'create_when_missing' => $createWhenMissing,
-        ]);
-
-        // Missing hostname ids are only acceptable during the initial create call.
-        $cf = $domain->cf_hostname_id
-            ? $cloudflare->getHostname($domain->cf_hostname_id)
-            : ($createWhenMissing
-                ? $cloudflare->createHostname($domain->domain)
-                : throw new \RuntimeException('Cloudflare hostname ID is missing.'));
-
-        $domain->fill($cloudflare->mapStatuses($cf));
-        $domain->cf_last_checked_at = now();
-        $domain->verified_at = $this->shouldMarkVerified($domain) ? now() : null;
-        $domain->save();
-
-        $this->logCloudflareSync('info', 'cloudflare.hostname.sync_completed', $domain, [
-            'action' => $action,
-            'verified_now' => $domain->verified_at !== null,
-        ]);
-    }
-
-    /**
-     * Determine whether the current Cloudflare state is strong enough to trust the domain.
-     *
-     * @param  Domain  $domain
-     * @return bool
-     */
-    private function shouldMarkVerified(Domain $domain): bool
-    {
-        return $domain->cf_hostname_status === 'active'
-            && $domain->cf_ssl_status === 'active';
-    }
-
-    /**
      * Build a human-readable status summary for the tenant UI.
      *
      * @param  Domain  $domain
@@ -369,28 +326,5 @@ class DomainController extends Controller
         }
 
         return implode(' ', $parts);
-    }
-
-    /**
-     * Emit structured Cloudflare sync logs for operational debugging.
-     *
-     * @param  string  $level
-     * @param  string  $message
-     * @param  Domain  $domain
-     * @param  array  $context
-     * @return void
-     */
-    private function logCloudflareSync(string $level, string $message, Domain $domain, array $context = []): void
-    {
-        Log::{$level}($message, array_merge([
-            'tenant_id' => $domain->tenant_id,
-            'domain' => $domain->domain,
-            'cf_hostname_id' => $domain->cf_hostname_id,
-            'cf_hostname_status' => $domain->cf_hostname_status,
-            'cf_ssl_status' => $domain->cf_ssl_status,
-            'verified_at' => optional($domain->verified_at)?->toIso8601String(),
-            'cf_last_checked_at' => optional($domain->cf_last_checked_at)?->toIso8601String(),
-            'cf_error' => $domain->cf_error,
-        ], $context));
     }
 }
