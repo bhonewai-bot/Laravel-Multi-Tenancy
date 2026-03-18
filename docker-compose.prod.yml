@@ -13,6 +13,9 @@ services:
     command: ["php-fpm"]
     volumes:
       - ./:/var/www
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
       - appnet
 
@@ -55,6 +58,9 @@ services:
         --max-time="${QUEUE_WORKER_MAX_TIME:-3600}"
     volumes:
       - ./:/var/www
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
       - appnet
 
