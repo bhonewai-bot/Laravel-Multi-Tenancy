@@ -21,7 +21,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     bcmath \
     intl \
     zip \
-    gds
+    gd
 
 WORKDIR /var/www
 
