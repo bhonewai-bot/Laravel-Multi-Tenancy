@@ -1,5 +1,73 @@
 # Progress Log
 
+## 2026-03-18
+
+### Done
+- Stabilized the EC2 + Cloudflare production path enough for end-to-end manual verification.
+  - Central domain `https://proxy-fallback.bhonewai.cc.cd` is serving the app through Cloudflare.
+  - Production stack is running on EC2 with:
+    - `app`
+    - `nginx`
+    - `queue`
+    - `mysql`
+- Reworked Cloudflare custom-hostname activation so HTTP validation can complete against the real origin.
+  - Added a dedicated HTTP challenge controller:
+    - `app/Http/Controllers/CloudflareHostnameChallengeController.php`
+  - Exposed the challenge route outside central-domain-only routing in:
+    - `bootstrap/app.php`
+  - Updated production nginx handling so the HTTP challenge path is reachable without the usual HTTP -> HTTPS redirect getting in the way.
+- Extracted Cloudflare domain status sync into a reusable service and added delayed polling support.
+  - Added:
+    - `app/Services/DomainCloudflareSyncService.php`
+    - `app/Jobs/SyncPendingCloudflareDomain.php`
+  - Updated:
+    - `app/Http/Controllers/Tenant/DomainController.php`
+- Verified the full production-like CRUD path in browser:
+  - central tenant CRUD works
+  - central module CRUD works
+  - central module request flow works
+  - tenant module install/uninstall works
+  - tenant user CRUD works
+  - tenant role CRUD works
+  - tenant domain flow works
+- Verified custom tenant domains serve traffic after status refresh:
+  - `sale.bhonewai.cc.cd`
+  - `tenant.bhonewai.cc.cd`
+  - `staff.bhonewai.cc.cd`
+- Confirmed the current user-facing recovery path:
+  - tenant admins can use the domain `Check Status` UI flow
+  - once Cloudflare reports `Active` / `Active`, the domain becomes verified and starts serving traffic
+  - no terminal command is needed for the normal operator flow
+- Added production-focused comments/docs across app services/controllers related to tenancy and domain sync.
+
+### Commands Run
+- `docker compose -f docker-compose.prod.yml exec -T app php artisan tinker --execute="...DomainCloudflareSyncService::class)->sync(...)"` on EC2 for direct production diagnosis/recovery
+- `docker compose -f docker-compose.prod.yml exec -T app php artisan optimize:clear`
+- `docker compose -f docker-compose.prod.yml up -d --force-recreate app queue mysql nginx`
+- `php -l` against edited PHP files during the Cloudflare/domain work
+
+### Result
+- The production critical path is now working end-to-end through Cloudflare and EC2.
+- The app-side verification model is correct:
+  - Cloudflare hostname challenge is served successfully
+  - verified domains are allowed through tenant middleware
+  - active tenant custom domains render tenant routes correctly
+- The most reliable current operator workflow is:
+  - create tenant/domain
+  - add DNS record in Cloudflare
+  - use tenant domain `Check Status`
+  - visit tenant custom domain once it shows active
+
+### Next
+1. Properly harden DB-backed queue/cache/session support for production MySQL so background automation can be trusted again.
+2. Make Telescope production-safe without relying on provider removal/manual workarounds.
+3. Add more production-like tests for Cloudflare activation and status-sync flow.
+4. Optionally expose `Check Status` more directly from the domain list page to reduce clicks.
+
+### Blockers
+- Automatic background polling for pending Cloudflare domains is not yet the production path to rely on.
+- Queue/cache schema and runtime expectations still need cleanup before switching back from the temporary simpler runtime settings.
+
 ## 2026-03-08
 
 ### Done

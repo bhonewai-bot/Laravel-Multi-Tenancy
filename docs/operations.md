@@ -4,6 +4,17 @@ This runbook covers queue operations, failed job handling, tenant-aware logging,
 
 ## 1) Queue Worker Operations
 
+Current production note:
+- The app is presently stabilized with simpler runtime choices on EC2:
+  - `CACHE_STORE=file`
+  - `SESSION_DRIVER=file`
+  - background queue-driven Cloudflare polling should not be treated as the main operator path
+- For tenant custom domains, the supported operator flow is:
+  1. create/add domain
+  2. add Cloudflare DNS/custom-hostname record
+  3. use the tenant domain `Check Status` action
+  4. visit the custom domain once it shows active
+
 ### Start services
 ```bash
 docker compose up -d
@@ -22,13 +33,18 @@ docker compose restart queue
 ```
 
 ### Runtime policy
-- Queue driver: `database`
+- Queue driver is environment-dependent right now.
+- Local/full async expectation: `database`
+- Current stabilized EC2 production fallback may use: `sync`
 - Worker command is defined in `docker-compose.yml` under `queue` service.
 - Retry policy for risky module jobs:
   - `tries=3`
   - `backoff=[10,30,60]`
   - `timeout=120`
 - Module install/uninstall is async and depends on this worker.
+
+Production caveat:
+- If the production environment is intentionally running with `QUEUE_CONNECTION=sync` during stabilization, the async/domain polling notes below do not apply until queue-backed runtime is restored.
 
 ## 2) Failed Job Operations
 
@@ -92,6 +108,34 @@ If queue service had startup race with MySQL:
 ```bash
 docker compose restart queue
 ```
+
+## 3.2) Tenant Custom Domain Status Refresh
+
+Primary production operator path:
+
+1. Open tenant app
+2. Go to `Custom Domains`
+3. Click `Setup` for the pending domain
+4. Click `Check Status`
+
+Expected outcomes:
+- if Cloudflare still reports pending state, the page keeps showing waiting status
+- if Cloudflare reports hostname + SSL active, the domain becomes verified and starts serving traffic
+
+Useful verification:
+- visit `https://<tenant-domain>/login`
+- confirm the domain detail page shows:
+  - `Hostname Routing: Active`
+  - `SSL Certificate: Active`
+  - `Verification: Verified`
+
+Emergency/manual recovery for a stuck domain:
+
+```bash
+docker compose exec app php artisan tinker --execute="\$d=\App\Models\Domain::where('domain','example.your-zone.com')->first(); app(\App\Services\DomainCloudflareSyncService::class)->sync(\$d); dump(\$d->fresh()->only(['domain','cf_hostname_status','cf_ssl_status','verified_at','cf_last_checked_at','cf_error']));"
+```
+
+Use this only when the UI path is insufficient or when diagnosing production state drift.
 
 ## 4) Database Backup
 

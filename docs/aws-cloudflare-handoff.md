@@ -1,15 +1,17 @@
 # AWS + Cloudflare Custom Domain Handoff
 
-Last updated: 2026-03-12 (Asia/Yangon)
+Last updated: 2026-03-18 (Asia/Yangon)
 
 This file is the restart document for continuing the Laravel multi-tenancy deployment thread in a new chat.
+
+This document now reflects the latest production state after the EC2 + Cloudflare + tenant-domain activation work was pushed through to a usable end-to-end flow.
 
 ## 1) Repo and Goal
 
 - Working repo: `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy`
 - Main goal: make Cloudflare Custom Hostnames work against a real public origin for the Laravel app
-- Local implementation status: app-side custom-domain lifecycle is mostly done
-- Current blocker: tenant-domain activation/verification and production repo cleanup, not AWS reachability
+- Local implementation status: app-side custom-domain lifecycle is done enough for production usage
+- Current focus is production cleanup/hardening, not origin reachability
 
 ## 2) Current App Status
 
@@ -45,10 +47,12 @@ Completed in this AWS thread:
 Current behavior:
 
 - Central login page loads successfully through Cloudflare
+- Verified tenant custom domains load successfully through Cloudflare
 - Earlier origin errors improved:
   - `525` -> fixed by moving to AWS and proper origin cert
   - `521` -> fixed by getting nginx/app running on EC2
-- Current remaining issue is tenant-domain state, not origin reachability
+  - custom-hostname HTTP validation failures -> fixed by serving the Cloudflare challenge route on pending custom domains
+- Tenant-domain activation is now working through the in-app `Check Status` flow
 
 Earlier handoff:
 
@@ -159,40 +163,38 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ## 7) Production Gap Still To Decide
 
-`docker-compose.prod.yml` currently has:
+`docker-compose.prod.yml` now includes:
 
 - `app`
 - `nginx`
 - `queue`
-
-It does **not** currently include:
-
 - `mysql`
 
-So production needs one of these choices:
+So the current production shape is:
 
-1. Use `RDS MySQL`
-2. Add a MySQL container for a cheaper single-server setup
+- EC2 + app/nginx/queue + MySQL container on the same box
 
-Fastest path:
+The architecture decision still left for later is:
 
-- start with EC2 + app/nginx/queue + MySQL container on the same box
+1. Keep MySQL container on EC2 for the near term
+2. Move to `RDS MySQL` for a cleaner long-term setup
 
-Cleaner path:
+What happened after the temporary sqlite phase:
 
-- EC2 + app/nginx/queue
-- RDS MySQL
+- Production was moved toward MySQL-backed runtime on EC2
+- During this migration, queue/cache/session database-backed settings caused instability while the central schema/runtime were being cleaned up
+- The app was stabilized with temporary simpler runtime choices for production operations:
+  - `CACHE_STORE=file`
+  - `SESSION_DRIVER=file`
+  - queue/database-backed background polling should not currently be treated as the source of truth for domain activation
 
-What was actually done temporarily on EC2:
+Important current operating note:
 
-- To get the central app up quickly, EC2 was configured to use `sqlite`
-- This required temporary runtime/build fixes on the EC2 clone
-- This is a deployment workaround, not yet a cleaned-up committed production design
-
-Important warning:
-
-- The EC2 clone has manual changes that are **not yet committed back to the repo**
-- If the server is rebuilt from the current repo state, the same issues will come back unless those fixes are committed
+- The trusted production activation flow is now:
+  1. create tenant/domain in the app
+  2. add or confirm Cloudflare DNS/custom-hostname setup
+  3. use the tenant-side `Check Status` action
+  4. once hostname + SSL show active, the domain becomes verified and starts serving traffic
 
 ## 8) Domain / DNS Model
 
@@ -209,6 +211,10 @@ Current Cloudflare state:
 
 - `proxy-fallback.bhonewai.cc.cd` -> `16.176.238.35` and proxied
 - Fallback Origin status in Cloudflare Custom Hostnames: `Active`
+- Verified custom hostnames observed working:
+  - `sale.bhonewai.cc.cd`
+  - `tenant.bhonewai.cc.cd`
+  - `staff.bhonewai.cc.cd`
 - DNS should be managed in Cloudflare, not DNSHE
 - DNSHE is effectively just the registrar / nameserver delegation point now
 
@@ -251,11 +257,19 @@ Relevant current env shape on EC2:
 - `APP_DEBUG=false`
 - `APP_URL=https://proxy-fallback.bhonewai.cc.cd`
 - `TENANCY_CENTRAL_DOMAIN=proxy-fallback.bhonewai.cc.cd`
-- `DB_CONNECTION=sqlite`
-- `DB_DATABASE=/var/www/database/database.sqlite`
+- `DB_CONNECTION=mysql`
+- `DB_HOST=mysql`
+- `DB_PORT=3306`
+- `DB_DATABASE=central`
 - `CLOUDFLARE_ENABLED=true`
 - `CLOUDFLARE_FALLBACK_ORIGIN=proxy-fallback.bhonewai.cc.cd`
-- `SESSION_DRIVER=file` was switched during debugging to avoid session-table issues
+- `SESSION_DRIVER=file`
+- `CACHE_STORE=file`
+
+Reason for the current `file` choices:
+
+- DB-backed cache/session/queue assumptions were causing queue/runtime instability while production schema state was being repaired
+- The current production-safe path is to keep the user-facing app stable first, then return later to DB-backed hardening
 
 Observed running containers:
 
@@ -263,20 +277,25 @@ Observed running containers:
 - `laravel-multi-tenancy-nginx-1`
 - `laravel-multi-tenancy-queue-1`
 
-## 11) Important Manual EC2-Only Fixes Not Yet Committed
+## 11) Important Repo Changes That Now Matter In Production
 
-These were made directly on the EC2 clone to get the app up:
+These repo-side changes are important to the current working tenant-domain flow:
 
-1. `DockerFile`
-   - added `libsqlite3-dev`
-   - added `pkg-config`
-   - changed extension install concurrency from `-j$(nproc)` to `-j1`
-   - added `pdo_sqlite`
-   - removed the attempted `sqlite3` extension install after it broke the build
-2. `bootstrap/providers.php`
-   - removed `App\Providers\TelescopeServiceProvider::class` for production because `composer install --no-dev` does not install Telescope
+1. Cloudflare HTTP hostname challenge support
+   - `app/Http/Controllers/CloudflareHostnameChallengeController.php`
+   - host-agnostic route registration in `bootstrap/app.php`
+2. Cloudflare sync extraction / reuse
+   - `app/Services/DomainCloudflareSyncService.php`
+3. Pending-domain polling support
+   - `app/Jobs/SyncPendingCloudflareDomain.php`
+   - controller dispatch/update logic in `app/Http/Controllers/Tenant/DomainController.php`
+4. Production nginx behavior for challenge handling
+   - `docker/nginx/conf.d/prod/app.conf`
 
-This means the repo should be updated to persist these fixes.
+Important nuance:
+
+- The queue-backed delayed polling path exists in code
+- but production should currently rely on the in-app `Check Status` flow rather than the background queue path
 
 ## 12) Current App-Level Findings
 
@@ -298,27 +317,17 @@ Seeding details:
 
 Tenant-domain state:
 
-- Current `domains` table state observed on EC2:
-
-```php
-[
-  [
-    "id" => 1,
-    "tenant_id" => "t001",
-    "domain" => "delivery.bhonewai.cc.cd",
-    "verified_at" => null,
-    "cf_hostname_status" => null,
-    "cf_ssl_status" => null,
-  ],
-]
-```
-
-Meaning:
-
-- Only one tenant domain record exists right now: `delivery.bhonewai.cc.cd`
-- It is **not verified**
-- Cloudflare sync fields are still null
-- So tenant routing is not active yet for that domain
+- Tenant custom domains are now verified through the app/UI flow once Cloudflare is active
+- Confirmed working examples during validation:
+  - `sale.bhonewai.cc.cd`
+  - `tenant.bhonewai.cc.cd`
+  - `staff.bhonewai.cc.cd`
+- The domain detail/setup page shows:
+  - hostname routing status
+  - SSL status
+  - verification status
+  - Cloudflare hostname ID
+  - a `Check Status` action for pending domains
 
 Important clarification:
 
@@ -328,42 +337,27 @@ Important clarification:
 
 ## 13) Current Remaining Problem
 
-The remaining blocker is no longer AWS origin reachability.
+The remaining blocker is no longer tenant-domain activation itself.
 
-The current blocker is:
+The current cleanup/hardening backlog is:
 
-1. tenant domains are not active / verified in the application
-2. repo production configuration changes made on EC2 are not yet committed back
-3. production DB strategy is still temporary (`sqlite`)
-
-Observed tenancy error from logs:
-
-- `Tenant could not be identified on domain www.tutoroo.co`
-
-Interpretation:
-
-- that request reached Laravel successfully
-- but there is no matching active domain record for `www.tutoroo.co`
-- so this is now an application/domain-data issue, not an origin problem
+1. DB-backed queue/cache/session support still needs proper production hardening
+2. Telescope should be made production-safe without manual/provider hacks
+3. Background polling for pending Cloudflare domains should be revisited only after queue/runtime hardening is stable
+4. More production-like tests are still needed for activation/sync behavior
 
 ## 14) Immediate Next Steps In A New Thread
 
 Do this next:
 
-1. Commit the EC2-only fixes back into the repo:
-   - `DockerFile`
-   - `bootstrap/providers.php`
-2. Decide whether to keep temporary sqlite for now or move to MySQL/RDS immediately
-3. Inspect tenant/domain provisioning flow on the deployed server:
-   - why `cf_hostname_status`, `cf_ssl_status`, and `verified_at` remain null
-4. Verify EC2 `.env` has valid Cloudflare API values:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ZONE_ID`
-   - `CLOUDFLARE_ENABLED=true`
-5. Re-test domain creation / `check-status` from the deployed central app
-6. Confirm whether `delivery.bhonewai.cc.cd` should become the first working tenant domain
-7. If needed, run seeding explicitly and normalize central admin credentials
-8. Clean up Telescope so production and local/dev are separated properly instead of requiring manual provider removal
+1. Properly harden the MySQL-backed production runtime:
+   - queue
+   - cache
+   - session
+2. Decide whether to keep MySQL-on-EC2 for the near term or move to RDS next
+3. Clean up Telescope so production and local/dev are separated properly
+4. Add stronger production-like test coverage for Cloudflare activation and sync
+5. Optionally improve the tenant domain list page so `Check Status` is one click more obvious
 
 ## 15) Suggested Prompt For New Thread
 
@@ -377,20 +371,16 @@ Continue from:
 Current deployed state:
 - AWS EC2 origin is live behind Cloudflare
 - proxy-fallback.bhonewai.cc.cd works as the central domain and fallback origin
-- central login page is reachable in production
-- nginx/app/queue are running on EC2
-- remaining issue is tenant-domain activation, not AWS reachability
+- central flows work
+- tenant CRUD/module/role/user/domain flows work
+- verified tenant custom domains work
+- tenant admins can use the in-app `Check Status` flow to make pending custom domains ready
 
-Important:
-- the EC2 clone has manual fixes not yet committed back to the repo
-- DockerFile was changed for sqlite support / lower-memory build
-- bootstrap/providers.php was changed to remove Telescope provider in production
-
-Please help me:
-1. turn the EC2-only fixes into proper repo changes
-2. verify Cloudflare custom-domain status sync on the deployed server
-3. make delivery.bhonewai.cc.cd become an active verified tenant domain
-4. decide whether to stay on temporary sqlite or move to MySQL/RDS next
+Remaining work:
+1. clean up production queue/cache/session hardening on MySQL
+2. make Telescope production-safe
+3. add production-like tests for Cloudflare activation/sync
+4. decide whether to keep MySQL container on EC2 or move to RDS next
 ```
 ## 16) Files Most Relevant For The Next Thread
 
@@ -402,6 +392,9 @@ Please help me:
 - `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/config/tenancy.php`
 - `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/app/Services/CloudflareService.php`
 - `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/app/Http/Controllers/Tenant/DomainController.php`
+- `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/app/Http/Controllers/CloudflareHostnameChallengeController.php`
+- `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/app/Services/DomainCloudflareSyncService.php`
+- `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/app/Jobs/SyncPendingCloudflareDomain.php`
 - `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/database/seeders/DatabaseSeeder.php`
 - `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/database/seeders/SuperAdminSeeder.php`
 - `/Users/appleclub/Documents/Professional Product Lab/Laravel-Multi-Tenancy/docs/cloudflare-handoff-backup.md`

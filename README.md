@@ -69,11 +69,17 @@ docker compose exec app npm run build
 
 - Keep `caddy` for local only (`docker-compose.yml`).
 - Use `docker-compose.prod.yml` for production (Cloudflare -> nginx origin).
+- Current production shape on EC2 uses:
+  - `app`
+  - `nginx`
+  - `queue`
+  - `mysql`
 - Production nginx terminates TLS on `443` using origin cert files:
   - `docker/nginx/ssl/origin.crt`
   - `docker/nginx/ssl/origin.key`
 - Create these as Cloudflare Origin Certificate files for your zone.
 - If missing/invalid, Cloudflare can show `525 SSL handshake failed`.
+- Tenant custom-domain activation is currently expected to finish through the in-app `Check Status` flow after Cloudflare DNS/custom-hostname setup is in place.
 
 ## Tenancy workflow
 
@@ -96,6 +102,10 @@ docker compose logs -f queue
 ```
 
 If queue is down, module status can stay at `Installing...`/`Uninstalling...`.
+
+Production note:
+- tenant custom domains can still be made ready through the tenant UI `Check Status` flow
+- do not treat queue-backed background domain polling as the primary production activation path until queue/cache hardening is finished
 
 ## Testing and CI parity
 
@@ -122,4 +132,8 @@ These support single-tenant recovery without impacting other tenants.
 ## Current milestone status
 
 - Step 11-17 completed (onboarding, tenant bootstrap seed, RBAC, custom domain lifecycle, module hardening, E2E tests, operations baseline).
-- Next focus: Step 18 release cut (final packaging/tag and handoff polish).
+- Current production-like verification is complete for:
+  - central tenant/module flows
+  - tenant user/role/module/domain flows
+  - verified tenant custom domains served through Cloudflare
+- Next focus: production hardening cleanup (queue/cache/session hardening, Telescope production-safe setup, and follow-up test coverage).
