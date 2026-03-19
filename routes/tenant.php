@@ -7,7 +7,7 @@ use App\Http\Controllers\Tenant\DomainController;
 use App\Http\Controllers\Tenant\ModuleRequestController;
 use App\Http\Controllers\Tenant\RoleController;
 use App\Http\Controllers\Tenant\UserController;
-use App\Http\Middleware\EnsureVerifiedTenantDomain;
+use App\Http\Middleware\RejectInvalidTenantHost;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -26,9 +26,9 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     'web',
+    RejectInvalidTenantHost::class,
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-    EnsureVerifiedTenantDomain::class
 ])->group(function () {
     Route::get('/', function () {
         return redirect('dashboard');

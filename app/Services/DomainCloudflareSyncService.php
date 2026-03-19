@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Log;
  * Centralizes Cloudflare custom-hostname synchronization for tenant domains.
  *
  * The service owns the rules for creating or refreshing Cloudflare hostnames,
- * persisting the latest activation snapshot, and deciding when a domain is
- * trusted enough to serve tenant traffic.
+ * and persisting the latest activation snapshot onto the local domains table.
+ *
+ * Request-serving code must not call Cloudflare directly. Middleware and route
+ * host checks should only read the persisted domain state written by this service.
  */
 class DomainCloudflareSyncService
 {

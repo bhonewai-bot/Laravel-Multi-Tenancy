@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'enabled' => (bool) env('CLOUDFLARE_ENABLED', false),
+    'async_polling' => (bool) env('CLOUDFLARE_ASYNC_POLLING', false),
 
     'api' => [
         'base_url' => env('CLOUDFLARE_API_BASE_URL', 'https://api.cloudflare.com/client/v4'),

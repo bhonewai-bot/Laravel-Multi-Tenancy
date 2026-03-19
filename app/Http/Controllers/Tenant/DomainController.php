@@ -27,6 +27,16 @@ class DomainController extends Controller
     ) {}
 
     /**
+     * Background polling is a convenience feature, not a requirement for the
+     * domain flow to function. Core web behavior should remain stable even when
+     * the queue worker is stopped.
+     */
+    private function shouldUseAsyncPolling(): bool
+    {
+        return (bool) config('cloudflare.async_polling', false);
+    }
+
+    /**
      * Display domains belonging to the current tenant.
      *
      * @return View
@@ -142,7 +152,7 @@ class DomainController extends Controller
         try {
             $this->domainSyncService->sync($domain, createWhenMissing: true);
 
-            if ($this->domainSyncService->shouldRetry($domain)) {
+            if ($this->shouldUseAsyncPolling() && $this->domainSyncService->shouldRetry($domain)) {
                 SyncPendingCloudflareDomain::dispatch($domain->id);
             }
 
@@ -183,7 +193,7 @@ class DomainController extends Controller
         try {
             $this->domainSyncService->sync($domain, createWhenMissing: true);
 
-            if ($this->domainSyncService->shouldRetry($domain)) {
+            if ($this->shouldUseAsyncPolling() && $this->domainSyncService->shouldRetry($domain)) {
                 SyncPendingCloudflareDomain::dispatch($domain->id);
             }
 
