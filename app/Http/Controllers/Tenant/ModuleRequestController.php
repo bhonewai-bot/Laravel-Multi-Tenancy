@@ -11,6 +11,7 @@ use App\Services\TenantModuleRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 /**
@@ -283,6 +284,7 @@ class ModuleRequestController extends Controller
                 'is_processing' => $isProcessing,
                 'is_queued_install' => $isProcessing && $operationAction === TenantModuleRegistry::ACTION_INSTALL,
                 'is_queued_uninstall' => $isProcessing && $operationAction === TenantModuleRegistry::ACTION_UNINSTALL,
+                'open_route_name' => Route::has($module->slug . '.index') ? $module->slug . '.index' : null,
             ];
         });
     }

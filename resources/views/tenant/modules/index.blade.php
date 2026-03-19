@@ -81,14 +81,22 @@
                                                     Processing...
                                                 </button>
                                             @elseif ($row['is_installed'])
-                                                <form method="POST" action="{{ route('tenant.modules.uninstall') }}">
-                                                    @csrf
-                                                    <input type="hidden" name="module_id" value="{{ $module->id }}">
-                                                    <button type="submit"
-                                                        class="inline-flex items-center rounded-md border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500">
-                                                        Uninstall
-                                                    </button>
-                                                </form>
+                                                <div class="flex items-center gap-2">
+                                                    @if ($row['open_route_name'])
+                                                        <a href="{{ route($row['open_route_name'], absolute: false) }}"
+                                                            class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-indigo-500">
+                                                            Open
+                                                        </a>
+                                                    @endif
+                                                    <form method="POST" action="{{ route('tenant.modules.uninstall') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="module_id" value="{{ $module->id }}">
+                                                        <button type="submit"
+                                                            class="inline-flex items-center rounded-md border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500">
+                                                            Uninstall
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             @elseif ($row['request_status'] === 'approved')
                                                 <form method="POST" action="{{ route('tenant.modules.install') }}">
                                                     @csrf

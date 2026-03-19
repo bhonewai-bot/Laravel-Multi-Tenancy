@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Module;
 use App\Models\ModuleRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -58,29 +55,24 @@ class ModuleRequestController extends Controller
     }
 
     /**
-     * Reject a pending module request and optionally store a review note.
+     * Reject a pending module request.
      *
      * Side effects:
      * - Writes review state to the central module_requests table.
      *
-     * @param  Request  $request
      * @param  ModuleRequest  $moduleRequest
      * @return RedirectResponse
      */
-    public function reject(Request $request,ModuleRequest $moduleRequest) 
+    public function reject(ModuleRequest $moduleRequest): RedirectResponse
     {
         if ($moduleRequest->status !== 'pending') {
             return back()->with('error', 'Request is not pending');
         }
 
-        $data = $request->validate([
-            'review_note' => ['nullable', 'string', 'max:1000']
-        ]);
-
         $moduleRequest->update([
             'status' => 'rejected',
             'reviewed_at' => now(),
-            'review_note' => $data['review_note'] ?? null,
+            'review_note' => null,
         ]);
 
         return back()->with('success', 'Module request rejected.');

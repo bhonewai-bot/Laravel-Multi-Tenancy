@@ -21,13 +21,11 @@
                         <table class="w-full table-fixed divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="w-[10%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
-                                    <th class="w-[14%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Module</th>
-                                    <th class="w-[12%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="w-[13%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested</th>
-                                    <th class="w-[13%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reviewed</th>
-                                    <th class="w-[24%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Review Note</th>
-                                    <th class="w-[14%] px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                    <th class="w-[14%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+                                    <th class="w-[18%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Module</th>
+                                    <th class="w-[18%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested</th>
+                                    <th class="w-[30%] px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -37,29 +35,24 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $request->module->name ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if ($request->status === 'approved')
-                                                <span class="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-                                                    <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                                <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
                                                     Approved
                                                 </span>
                                             @elseif ($request->status === 'rejected')
-                                                <span class="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
-                                                    <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                                                <span class="inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
                                                     Rejected
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-800">
-                                                    <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
+                                                <span class="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
                                                     Pending
                                                 </span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ optional($request->created_at)->format('Y-m-d H:i') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ optional($request->reviewed_at)->format('Y-m-d H:i') ?: '-' }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-500 break-words">{{ $request->review_note ?: '-' }}</td>
                                         <td class="px-6 py-4 text-sm">
                                             @if ($request->status === 'pending')
-                                                <div class="ms-auto w-full max-w-[240px] space-y-2">
-                                                    <form method="POST" action="{{ route('module-requests.approve', $request) }}">
+                                                <div class="ms-auto flex w-full max-w-[360px] items-center justify-end gap-2">
+                                                    <form method="POST" action="{{ route('module-requests.approve', $request) }}" class="inline-flex">
                                                         @csrf
                                                         <button type="submit"
                                                             class="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-green-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-green-500">
@@ -67,9 +60,8 @@
                                                         </button>
                                                     </form>
 
-                                                    <form method="POST" action="{{ route('module-requests.reject', $request) }}" class="space-y-2">
+                                                    <form method="POST" action="{{ route('module-requests.reject', $request) }}" class="inline-flex">
                                                         @csrf
-                                                        <x-text-input type="text" name="review_note" class="w-full" placeholder="Reason (optional)" />
                                                         <button type="submit"
                                                             class="inline-flex w-full items-center justify-center rounded-md border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500">
                                                             Reject
@@ -83,7 +75,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-6 py-4 text-sm text-gray-500">No requests found.</td>
+                                        <td colspan="5" class="px-6 py-4 text-sm text-gray-500">No requests found.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
