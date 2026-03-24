@@ -1,92 +1,123 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Create Module</h2>
+        <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Upload Module</h2>
+        </div>
     </x-slot>
 
     <div class="py-8">
-        <div class="w-full px-4 sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    @if ($errors->any())
-                        <div class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700 border border-red-200">
-                            <p class="font-semibold">Please fix the following errors:</p>
-                            <ul class="mt-2 list-disc list-inside space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+        <div class="mx-auto w-full px-4 sm:px-6 lg:px-8">
+            @if (session('error'))
+                <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {{ session('error') }}
+                </div>
+            @endif
 
-                    <form method="POST" action="{{ route('modules.store') }}" class="space-y-6">
+            <div class="overflow-hidden rounded-lg bg-white shadow-sm">
+                <div class="p-6 text-gray-900">
+                    <form method="POST" action="{{ route('modules.store') }}" enctype="multipart/form-data" class="space-y-6">
                         @csrf
 
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div>
-                                <x-input-label for="name" :value="__('Name')" />
-                                <x-text-input id="name" class="mt-1 block w-full" type="text" name="name"
-                                    :value="old('name')" required />
-                                <x-input-error class="mt-2" :messages="$errors->get('name')" />
+                        <div class="mb-6">
+                            <x-input-label for="module_file" :value="__('Module ZIP File')" />
+                            <div class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5 transition-colors hover:border-blue-400">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path
+                                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                        />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="module_file" class="relative cursor-pointer rounded-md bg-white font-medium text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:text-blue-500">
+                                            <span>Upload a file</span>
+                                            <input
+                                                id="module_file"
+                                                name="module_file"
+                                                type="file"
+                                                accept=".zip"
+                                                required
+                                                class="sr-only"
+                                            />
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">ZIP files up to 50MB</p>
+                                </div>
                             </div>
-
-                            <div>
-                                <x-input-label for="slug" :value="__('Slug')" />
-                                <x-text-input id="slug" class="mt-1 block w-full" type="text" name="slug"
-                                    :value="old('slug')" required />
-                                <x-input-error class="mt-2" :messages="$errors->get('slug')" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="version" :value="__('Version')" />
-                                <x-text-input id="version" class="mt-1 block w-full" type="text" name="version"
-                                    :value="old('version', '1.0.0')" required />
-                                <x-input-error class="mt-2" :messages="$errors->get('version')" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="icon_path" :value="__('Icon Path')" />
-                                <x-text-input id="icon_path" class="mt-1 block w-full" type="text" name="icon_path"
-                                    :value="old('icon_path')" />
-                                <x-input-error class="mt-2" :messages="$errors->get('icon_path')" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="price" :value="__('Price')" />
-                                <x-text-input id="price" class="mt-1 block w-full" type="number" name="price"
-                                    step="0.01" min="0" :value="old('price', '0')" />
-                                <x-input-error class="mt-2" :messages="$errors->get('price')" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="is_active" :value="__('Active')" />
-                                <select id="is_active" name="is_active"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="1" {{ old('is_active', '1') === '1' ? 'selected' : '' }}>Yes</option>
-                                    <option value="0" {{ old('is_active') === '0' ? 'selected' : '' }}>No</option>
-                                </select>
-                                <x-input-error class="mt-2" :messages="$errors->get('is_active')" />
-                            </div>
+                            <x-input-error :messages="$errors->get('module_file')" class="mt-2" />
                         </div>
 
-                        <div>
-                            <x-input-label for="description" :value="__('Description')" />
-                            <textarea id="description" name="description" rows="4"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description') }}</textarea>
-                            <x-input-error class="mt-2" :messages="$errors->get('description')" />
+                        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                            <h3 class="mb-2 font-semibold text-yellow-900">Security Note</h3>
+                            <p class="text-sm text-yellow-800">
+                                Only upload modules from trusted sources. Uploaded packages become part of the app codebase after validation.
+                            </p>
                         </div>
 
                         <div class="flex items-center justify-end gap-3">
                             <a href="{{ route('modules.index') }}"
-                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm hover:bg-gray-50">
+                               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm hover:bg-gray-50">
                                 Cancel
                             </a>
-                            <x-primary-button>
-                                Save Module
-                            </x-primary-button>
+                            <x-primary-button>Upload Module</x-primary-button>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <div class="mt-6 overflow-hidden rounded-lg bg-white shadow-sm">
+                <div class="p-6 text-gray-900">
+                    <h3 class="mb-4 text-lg font-semibold">Expected Module Structure</h3>
+                    <div class="rounded-lg bg-gray-50 p-4 font-mono text-sm">
+<pre class="overflow-x-auto text-gray-800">ModuleName/
+├── module.json          (Required)
+├── config/
+│   └── config.php
+├── database/
+│   ├── migrations/      (Required for Phase 1)
+│   └── seeders/
+├── app/
+│   └── Providers/
+├── resources/
+│   └── views/
+└── routes/
+    └── web.php</pre>
+                    </div>
+
+                    <div class="mt-4 rounded-lg bg-gray-50 p-4">
+                        <h4 class="mb-2 font-semibold">Sample `module.json`</h4>
+<pre class="overflow-x-auto text-sm text-gray-800"><code>{
+  "name": "Product",
+  "alias": "product",
+  "version": "1.0.0",
+  "description": "Product management module",
+  "price": 0.00,
+  "icon": null
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        const fileInput = document.getElementById('module_file');
+
+        fileInput?.addEventListener('change', function (event) {
+            const fileName = event.target.files[0]?.name;
+
+            if (! fileName) {
+                return;
+            }
+
+            const label = document.querySelector('label[for="module_file"] span');
+
+            if (label) {
+                label.textContent = fileName;
+            }
+        });
+    </script>
 </x-app-layout>

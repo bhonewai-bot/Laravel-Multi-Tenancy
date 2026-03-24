@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Module;
+use App\Services\ModuleZipInspector;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -43,24 +44,38 @@ class ModuleController extends Controller
      * @param  Request  $request
      * @return RedirectResponse
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ModuleZipInspector $inspector): RedirectResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:modules,name'],
-            'slug' => ['required', 'string', 'max:255', 'unique:modules,slug'],
-            'version' => ['required', 'string', 'max:50'],
-            'description' => ['nullable', 'string'],
-            'icon_path' => ['nullable', 'string'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'is_active' => ['required', 'boolean'],
+        $request->validate([
+            'module_file' => ['required', 'file', 'mimes:zip']
         ]);
 
-        $data['price'] = $data['price'] ?? 0;
-        $data['is_active'] = $data['is_active'] ?? true;
+        try {
+            $inspection = $inspector->inspect($request->file('module_file'));
+            $moduleInfo = $inspection['module_info'];
 
-        Module::create($data);
+            // Only create the catalog row after the package has been safely extracted into Modules/.
+            $inspector->extract(
+                $request->file('module_file'),
+                $inspection['module_root_in_zip'],
+                $inspection['module_name']
+            );
 
-        return redirect()->route('modules.index')->with('success', 'Module created successfully.');
+            Module::create([
+                'name' => $moduleInfo['name'] ?? $inspection['module_name'],
+                'slug' => Str::slug($moduleInfo['alias'] ?? $inspection['module_name']),
+                'version' => $moduleInfo['version'] ?? '1.0.0',
+                'description' => $moduleInfo['description'] ?? null,
+                'icon_path' => $moduleInfo['icon'] ?? $moduleInfo['icon_path'] ?? null,
+                'price' => $moduleInfo['price'] ?? 0,
+                'is_active' => false,
+            ]);
+
+            return redirect()->route('modules.index')->with('success', "Module '{$inspection['module_name']}' uploaded successfully.");
+
+        } catch (\Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     /**
