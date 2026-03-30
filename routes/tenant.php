@@ -8,6 +8,8 @@ use App\Http\Controllers\Tenant\ModuleRequestController;
 use App\Http\Controllers\Tenant\RoleController;
 use App\Http\Controllers\Tenant\UserController;
 use App\Http\Middleware\RejectInvalidTenantHost;
+use App\Livewire\TenantCounter;
+use App\Livewire\TenantSearch;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -83,6 +85,9 @@ Route::middleware([
         Route::delete('/domains/{domain}', [DomainController::class, 'destroy'])
             ->middleware('permission:domain.delete')
             ->name('tenant.domains.destroy');
+
+        Route::get('/livewire-test', TenantCounter::class)->name('tenant.livewire.test');
+        Route::get('/livewire-test2', TenantSearch::class)->name('tenant.livewire.test2');
     });
 
     require __DIR__.'/auth.php';

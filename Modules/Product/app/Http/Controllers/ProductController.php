@@ -17,9 +17,19 @@ class ProductController extends Controller
      */
     public function index(): View
     {
-        $products = Product::query()->paginate(15);
-        
-        return view('product::index', compact('products'));
+        $stats = [
+            'totalProducts' => Product::query()->count(),
+            'inventoryCount' => (int) Product::query()->sum('quantity'),
+            'lowInventoryCount' => Product::query()
+                ->where('quantity', '>', 0)
+                ->where('quantity', '<=', 10)
+                ->count(),
+            'catalogValue' => (float) Product::query()
+                ->selectRaw('COALESCE(SUM(price * quantity), 0) as total')
+                ->value('total'),
+        ];
+
+        return view('product::index', compact('stats'));
     }
 
     /**
@@ -28,22 +38,6 @@ class ProductController extends Controller
     public function create(): View
     {
         return view('product::create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(ProductStoreRequest $request): RedirectResponse
-    {
-        $validated = $request->validated();
-
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
-        }
-
-        Product::query()->create($validated);
-
-        return redirect()->route('product.index')->with('success', 'Product created successfully.');
     }
 
     /**
@@ -60,26 +54,6 @@ class ProductController extends Controller
     public function edit(Product $product): View
     {
         return view('product::edit', compact('product'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(ProductUpdateRequest $request, Product $product): RedirectResponse
-    {
-        $validated = $request->validated();
-
-        if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-
-            $validated['image'] = $request->file('image')->store('products', 'public');
-        }
-
-        $product->update($validated);
-
-        return redirect()->route('product.index')->with('success', 'Product updated successfully.');
     }
 
     /**

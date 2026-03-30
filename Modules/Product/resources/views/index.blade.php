@@ -1,114 +1,45 @@
 <x-product::layouts.master title="Product Inventory" subtitle="Manage your catalog, stock levels, and product images.">
-    @php
-        $inventoryCount = (int) $products->sum('quantity');
-        $catalogValue = $products->sum(fn ($product) => (float) $product->price * (int) $product->quantity);
-        $lowInventoryCount = (int) $products->filter(fn ($product) => (int) $product->quantity > 0 && (int) $product->quantity <= 10)->count();
-    @endphp
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Total Products</p>
+            <p class="mt-4 text-3xl font-semibold tracking-tight text-slate-900">{{ number_format($stats['totalProducts']) }}</p>
+        </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-card__label">Total Products</div>
-            <div class="stat-card__value">{{ $products->total() }}</div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">In Stock</p>
+            <p class="mt-4 text-3xl font-semibold tracking-tight text-slate-900">{{ number_format($stats['inventoryCount']) }}</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-card__label">In Stock</div>
-            <div class="stat-card__value">{{ number_format($inventoryCount) }}</div>
+
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Low Inventory</p>
+            <p class="mt-4 text-3xl font-semibold tracking-tight {{ $stats['lowInventoryCount'] > 0 ? 'text-rose-600' : 'text-slate-900' }}">
+                {{ number_format($stats['lowInventoryCount']) }}
+            </p>
         </div>
-        <div class="stat-card">
-            <div class="stat-card__label">Low Inventory</div>
-            <div class="stat-card__value" style="color: {{ $lowInventoryCount > 0 ? 'var(--danger)' : 'var(--text)' }};">
-                {{ $lowInventoryCount }}
-            </div>
-        </div>
-        <div class="stat-card stat-card--primary">
-            <div class="stat-card__label">Inventory Value</div>
-            <div class="stat-card__value">${{ number_format($catalogValue, 2) }}</div>
+
+        <div class="rounded-3xl bg-blue-600 p-6 text-white shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">Inventory Value</p>
+            <p class="mt-4 text-3xl font-semibold tracking-tight">${{ number_format($stats['catalogValue'], 2) }}</p>
         </div>
     </div>
 
-    <div class="card">
-        <div class="catalog-header">
+    <section class="mt-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h2 class="catalog-title">Catalog Management</h2>
-                <p class="catalog-subtitle">Review, update, and maintain your tenant products.</p>
+                <h2 class="text-xl font-semibold text-slate-900">Catalog Management</h2>
+                <p class="mt-1 text-sm text-slate-600">Search, sort, and review products for this tenant workspace.</p>
             </div>
 
-            <div class="actions">
-                <a href="{{ route('product.create') }}" class="btn">New Product</a>
-            </div>
+            <a
+                href="{{ route('product.create') }}"
+                class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+            >
+                New Product
+            </a>
         </div>
 
-        <div class="card-body table-wrap" style="padding: 0;">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th class="center">Image</th>
-                        <th class="center">Name</th>
-                        <th class="center">SKU</th>
-                        <th class="center">Price</th>
-                        <th class="center">Quantity</th>
-                        <th class="center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($products as $product)
-                        @php
-                            $imageUrl = $product->image ? tenant_asset($product->image) : null;
-                        @endphp
-                        <tr>
-                            <td class="center">
-                                @if ($imageUrl)
-                                    <img
-                                        src="{{ $imageUrl }}"
-                                        alt="{{ $product->name }}"
-                                        class="thumb"
-                                        style="margin: 0 auto;"
-                                    >
-                                @else
-                                    <div class="thumb-placeholder" style="margin: 0 auto;">No image</div>
-                                @endif
-                            </td>
-                            <td class="center">
-                                <p class="item-title">{{ $product->name }}</p>
-                            </td>
-                            <td class="center">
-                                <span class="sku-badge">{{ $product->sku }}</span>
-                            </td>
-                            <td class="center">${{ number_format((float) $product->price, 2) }}</td>
-                            <td class="center" style="color: {{ (int) $product->quantity <= 10 ? 'var(--danger)' : 'var(--text)' }}; font-weight: 600;">
-                                {{ number_format((int) $product->quantity) }}
-                            </td>
-                            <td class="center">
-                                <div class="actions" style="justify-content: center;">
-                                    <a href="{{ route('product.show', $product) }}" class="btn-secondary">View</a>
-                                    <a href="{{ route('product.edit', $product) }}" class="btn-secondary">Edit</a>
-                                    <form action="{{ route('product.destroy', $product) }}" method="POST" onsubmit="return confirm('Delete this product?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6">
-                                <div style="padding: 24px 18px; text-align: center;">
-                                    <p class="item-title">No products found</p>
-                                    <p class="item-text">Create your first product to start building the catalog.</p>
-                                    <div class="actions" style="margin-top: 16px; justify-content: center;">
-                                        <a href="{{ route('product.create') }}" class="btn">Create Product</a>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <div class="p-6">
+            @livewire(\Modules\Product\Livewire\ProductTable::class)
         </div>
-    </div>
-
-    <div class="pagination">
-        {{ $products->links() }}
-    </div>
+    </section>
 </x-product::layouts.master>
