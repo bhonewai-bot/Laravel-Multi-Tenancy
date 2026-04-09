@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TenantStoreRequest extends FormRequest
 {
@@ -22,11 +23,11 @@ class TenantStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tenant_id' => 'required|string|max:100|unique:tenants,id',
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'domain' => 'required|string|max:255|unique:domains,domain',
-            'description' => 'nullable|string|max:1000',
+            'tenant_id' => ['required', 'string', 'max:100', Rule::unique('tenants', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'domain' => ['required', 'string', 'max:255', Rule::unique('domains', 'domain')],
+            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
     

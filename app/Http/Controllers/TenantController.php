@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Tenants\CreateTenantAction;
+use App\Actions\Tenants\UpdateTenantAction;
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
-use App\Models\Domain;
 use App\Models\Tenant;
-use App\Services\CloudflareService;
-use App\Services\TenantDomainService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use Throwable;
 
 /**
  * Manages tenant provisioning from the central administration surface.
@@ -22,8 +19,8 @@ use Throwable;
 class TenantController extends Controller
 {
     public function __construct(
-        private TenantDomainService $domainService,
-        private ?CloudflareService $cloudflareService = null
+        private CreateTenantAction $createTenant,
+        private UpdateTenantAction $updateTenant,
     ) {}
 
     /**
@@ -60,31 +57,11 @@ class TenantController extends Controller
      */
     public function store(TenantStoreRequest $request): RedirectResponse
     {
-        $domain = $this->domainService->normalize((string) $request->input('domain'));
-
-        // Tenant creation starts in the central database; tenant-specific resources are provisioned elsewhere.
-        $tenant = Tenant::create([
-            'id' => $request->tenant_id,
-            'name' => $request->name,
-            'email' => $request->email,
-            'description' => $request->description,
-        ]);
-
-        $domainModel = $tenant->domains()->create([
-            'domain' => $domain,
-        ]);
-
-        $this->syncCloudflareForDomain($tenant, $domainModel);
+        $tenant = $this->createTenant->execute($request->validated());
 
         return redirect()
             ->route('tenants.index')
             ->with('success', 'Tenant created successfully.');
-            /* ->with('onboarding_credentials', [
-                'tenant_id' => $tenant->id,
-                'domain' => $request->domain,
-                'admin_email' => "admin@{$tenant->id}.local",
-                'password_source' => 'TENANT_DEFAULT_ADMIN_PASSWORD',
-            ]); */
     }
 
     /**
@@ -124,31 +101,13 @@ class TenantController extends Controller
      * @param  Tenant  $tenant
      * @return RedirectResponse
      */
-    public function update(TenantUpdateRequest $request, Tenant $tenant)
+    public function update(TenantUpdateRequest $request, Tenant $tenant): RedirectResponse
     {
-        $domain = $this->domainService->normalize((string) $request->input('domain'));
-        $domainModel = null;
+        $tenant = $this->updateTenant->execute($request->validated(), $tenant);
 
-        DB::transaction(function () use ($request, $tenant) {
-            // The core tenant update is transactional so the central record is not left partially updated.
-            $tenant->update([
-                'name' => $request->name,
-                'email' => $request->email,
-                'description' => $request->description,
-            ]);
-        });
-
-        $domainModel = $tenant->domains()->first();
-
-        if ($domainModel) {
-            $domainModel->update(['domain' => $domain]);
-        } else {
-            $domainModel = $tenant->domains()->create(['domain' => $domain]);
-        }
-
-        $this->syncCloudflareForDomain($tenant, $domainModel);
-
-        return redirect()->route('tenants.index')->with('success', 'Tenant updated successfully.');
+        return redirect()
+            ->route('tenants.index')
+            ->with('success', 'Tenant updated successfully.');
     }
 
     /**
@@ -166,58 +125,5 @@ class TenantController extends Controller
         $tenant->delete();
 
         return redirect()->route('tenants.index')->with('success', 'Tenant deleted successfully.');
-    }
-
-    /**
-     * Synchronize central domain metadata with Cloudflare hostname state.
-     *
-     * Side effects:
-     * - May call Cloudflare.
-     * - Writes Cloudflare status fields to the central domains table.
-     *
-     * @param  Tenant  $tenant
-     * @param  Domain  $domain
-     * @return void
-     */
-    private function syncCloudflareForDomain(Tenant $tenant, Domain $domain): void
-    {
-        if (
-            ! config('cloudflare.enabled') ||
-            $this->domainService->isPrimarySubDomain($tenant, $domain->domain)
-        ) {
-            // Platform-managed subdomains are trusted by convention and do not need custom-hostname status.
-            $domain->forceFill([
-                'cf_hostname_id' => null,
-                'cf_hostname_status' => null,
-                'cf_ssl_status' => null,
-                'cf_last_checked_at' => null,
-                'cf_error' => null,
-                'cf_payload' => null,
-                'verified_at' => null,
-            ])->save();
-
-            return;
-        }
-
-        try {
-            $cloudflare = $this->cloudflareService ?? app(CloudflareService::class);
-            $cf = $cloudflare->createHostname($domain->domain);
-            $status = $cloudflare->mapStatuses($cf);
-
-            $domain->fill($status);
-            $domain->cf_last_checked_at = now();
-            $domain->verified_at = (
-                $domain->cf_hostname_status === 'active' &&
-                $domain->cf_ssl_status === 'active'
-            ) ? now() : null;
-            $domain->save();
-        } catch (Throwable $e) {
-            // Domain failures are kept as recoverable metadata so operators can retry without recreating the tenant.
-            $domain->forceFill([
-                'cf_last_checked_at' => now(),
-                'cf_error' => $e->getMessage(),
-                'verified_at' => null,
-            ])->save();
-        }
     }
 }

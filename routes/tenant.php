@@ -85,9 +85,6 @@ Route::middleware([
         Route::delete('/domains/{domain}', [DomainController::class, 'destroy'])
             ->middleware('permission:domain.delete')
             ->name('tenant.domains.destroy');
-
-        Route::get('/livewire-test', TenantCounter::class)->name('tenant.livewire.test');
-        Route::get('/livewire-test2', TenantSearch::class)->name('tenant.livewire.test2');
     });
 
     require __DIR__.'/auth.php';
