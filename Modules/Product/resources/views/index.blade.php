@@ -30,12 +30,16 @@
                 <p class="mt-1 text-sm text-slate-600">Search, sort, and review products for this tenant workspace.</p>
             </div>
 
-            <a
-                href="{{ route('product.create') }}"
-                class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
-            >
-                New Product
-            </a>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <a
+                        href="{{ route('product.create') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+                    >
+                        New Product
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="p-6">

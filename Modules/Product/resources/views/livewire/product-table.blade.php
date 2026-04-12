@@ -1,14 +1,24 @@
 <div wire:key="product-table-component" class="space-y-4">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="w-full max-w-md">
-            <label for="product-search" class="sr-only">Search products</label>
-            <input
-                id="product-search"
-                type="text"
-                wire:model.live="search"
-                placeholder="Search by product name or SKU..."
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            />
+        <div class="flex w-full flex-col gap-3 sm:max-w-2xl sm:flex-row sm:items-center">
+            <div class="w-full max-w-md">
+                <label for="product-search" class="sr-only">Search products</label>
+                <input
+                    id="product-search"
+                    type="text"
+                    wire:model.live="search"
+                    placeholder="Search by product name or SKU..."
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                />
+            </div>
+
+            <button
+                type="button"
+                wire:click="$set('showImportModal', true)"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+            >
+                Import
+            </button>
         </div>
         <p class="text-sm text-slate-500">
             {{ $products->total() }} {{ \Illuminate\Support\Str::plural('product', $products->total()) }}
@@ -133,35 +143,71 @@
         {{ $products->links() }}
     </div>
 
-    @if ($confirmingDeleteId) 
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-            <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-                <h3 class="text-lg font-semibold text-slate-900">Delete Product</h3>
+    <x-product::ui.modal :show="$showImportModal" maxWidth="lg">
+        <form wire:submit.prevent="import" class="space-y-4 p-6">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">Import Product</h3>
+                <p class="mt-1 text-sm text-slate-600">Paste a product URL to start the import.</p>
+            </div>
 
-                <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Are you sure you want to delete
-                    <span class="font-semibold text-slate-900">{{ $confirmingDeleteName }}</span>?
-                    This action cannot be undone.
-                </p>
+            <div>
+                <label for="product-import-url" class="sr-only">Product URL</label>
+                <input
+                    id="product-import-url"
+                    type="url"
+                    wire:model="url"
+                    placeholder="https://example.com/product"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                >
+                @error('url') <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p> @enderror
+            </div>
 
-                <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                    <button
-                        type="button"
-                        wire:click="cancelDelete"
-                        class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-                    >
-                        Cancel
-                    </button>
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                    type="button"
+                    wire:click="$set('showImportModal', false)"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    Cancel
+                </button>
 
-                    <button
-                        type="button"
-                        wire:click="deleteProduct"
-                        class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-rose-700"
-                    >
-                        Delete Product
-                    </button>
-                </div>
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+                >
+                    Import
+                </button>
+            </div>
+        </form>
+    </x-product::ui.modal>
+
+    <x-product::ui.modal :show="(bool) $confirmingDeleteId" maxWidth="md">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-slate-900">Delete Product</h3>
+
+            <p class="mt-3 text-sm leading-6 text-slate-600">
+                Are you sure you want to delete
+                <span class="font-semibold text-slate-900">{{ $confirmingDeleteName }}</span>?
+                This action cannot be undone.
+            </p>
+
+            <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                    type="button"
+                    wire:click="cancelDelete"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="deleteProduct"
+                    class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-rose-700"
+                >
+                    Delete Product
+                </button>
             </div>
         </div>
-    @endif
+    </x-product::ui.modal>
 </div>
