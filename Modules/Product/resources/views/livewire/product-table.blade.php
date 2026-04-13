@@ -1,4 +1,4 @@
-<div wire:key="product-table-component" class="space-y-4">
+<div wire:key="product-table-component" wire:poll.5s class="space-y-4">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex w-full flex-col gap-3 sm:max-w-2xl sm:flex-row sm:items-center">
             <div class="w-full max-w-md">
@@ -156,6 +156,8 @@
                     id="product-import-url"
                     type="url"
                     wire:model="url"
+                    wire:loading.attr="disabled"
+                    wire:target="import"
                     placeholder="https://example.com/product"
                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 >
@@ -173,9 +175,12 @@
 
                 <button
                     type="submit"
+                    wire:loading.attr="disabled"
+                    wire:target="import"
                     class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
                 >
-                    Import
+                    <span wire:loading.remove wire:target="import">Import</span>
+                    <span wire:loading wire:target="import">Importing...</span>
                 </button>
             </div>
         </form>

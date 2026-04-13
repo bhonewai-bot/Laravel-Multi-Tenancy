@@ -2,13 +2,11 @@
 
 namespace Modules\Product\Livewire;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Modules\Product\Jobs\ImportProductFromUrl;
 use Modules\Product\Models\Product;
-use Symfony\Component\DomCrawler\Crawler;
 
 class ProductTable extends Component
 {
@@ -25,61 +23,17 @@ class ProductTable extends Component
 
     public function import(): void
     {
-        
-
         $this->validate([
             'url' => ['required', 'url']
         ]);
 
-        $response = Http::withHeaders([
-            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        ])->get($this->url);
+        ImportProductFromUrl::dispatch(tenant()->id, $this->url);
 
-        if ($response->successful()) {
-            $html = $response->body();
+        $this->reset('url');
 
-            $crawler = new Crawler($html);
+        $this->showImportModal = false;
 
-            $jsonLdTag = $crawler->filter('script[type="application/ld+json"]');
-            
-            if ($jsonLdTag->count() > 0) {
-                $jsonContent = $jsonLdTag->first()->text();
-
-                $data = json_decode($jsonContent, true);
-
-                $imagePath = null;
-                $imageUrl = $data['image'][0] ?? null;
-
-                if (str_starts_with($imageUrl, '//')) {
-                    $imageUrl = 'https:' . $imageUrl;
-                }
-
-                if (is_string($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-                    $imageResponse = Http::timeout(20)->get($imageUrl);
-                }
-
-                if ($imageResponse->successful()) {
-                    $extension = pathinfo(parse_url($imageUrl, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION);
-                    $extension = $extension ?: 'jpg';
-
-                    $filename = 'products/' . Str::uuid() . '.' . strtolower($extension);
-
-                    Storage::disk('public')->put($filename, $imageResponse->body());
-
-                    $imagePath = $filename;
-                }
-            
-                Product::create([
-                    'name' => $data['name'] ?? '',
-                    'sku' => $data['sku'] ?? '',
-                    'price' => $data['price'] ?? 1,
-                    'quantity' => $data['quantity'] ?? 1,
-                    'description' => $data['description'] ?? '',
-                    'image' => $imagePath
-                ]);
-            }
-
-        }
+        session()->flash('success', 'Import started. The product will appear shortly.');
     }
 
     public function updatedSearch(): void
