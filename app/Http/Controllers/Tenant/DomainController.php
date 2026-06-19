@@ -38,8 +38,6 @@ class DomainController extends Controller
 
     /**
      * Display domains belonging to the current tenant.
-     *
-     * @return View
      */
     public function index(): View
     {
@@ -60,8 +58,6 @@ class DomainController extends Controller
 
     /**
      * Show the create-domain form for the current tenant.
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -70,9 +66,6 @@ class DomainController extends Controller
 
     /**
      * Display a single tenant domain and its DNS guidance.
-     *
-     * @param  Domain  $domain
-     * @return View
      */
     public function show(Domain $domain): View
     {
@@ -84,7 +77,7 @@ class DomainController extends Controller
         }
 
         $fallbackOrigin = (string) config('cloudflare.fallback_origin');
-        $cnameName = str_ends_with($domain->domain, '.' . $fallbackOrigin)
+        $cnameName = str_ends_with($domain->domain, '.'.$fallbackOrigin)
             ? '@'
             : explode('.', $domain->domain)[0];
 
@@ -103,9 +96,6 @@ class DomainController extends Controller
      * Side effects:
      * - Writes to the central domains table.
      * - May call Cloudflare to create a custom hostname.
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
@@ -144,7 +134,7 @@ class DomainController extends Controller
             'verified_at' => null,
         ]);
 
-        if (!config('cloudflare.enabled')) {
+        if (! config('cloudflare.enabled')) {
             return redirect()->route('tenant.domains.index')
                 ->with('warning', "Domain {$host} saved, but Cloudflare integration is disabled.");
         }
@@ -157,14 +147,17 @@ class DomainController extends Controller
             }
 
             return redirect()->route('tenant.domains.index')
-                ->with('success', "Domain {$host} added. " . $this->statusMessage($domain));
+                ->with('success', "Domain {$host} added. ".$this->statusMessage($domain));
         } catch (Throwable $e) {
             $domain->update([
                 'cf_error' => $e->getMessage(),
                 'cf_last_checked_at' => now(),
             ]);
 
-            $this->logCloudflareSync('error', 'cloudflare.hostname.create_failed', $domain, [
+            logger()->error('cloudflare.hostname.create_failed', [
+                'tenant_id' => $domain->tenant_id,
+                'domain' => $domain->domain,
+                'cf_hostname_id' => $domain->cf_hostname_id,
                 'exception' => $e::class,
                 'message' => $e->getMessage(),
             ]);
@@ -180,9 +173,6 @@ class DomainController extends Controller
      * Side effects:
      * - May call Cloudflare.
      * - Writes Cloudflare status fields to the central domains table.
-     *
-     * @param  Domain  $domain
-     * @return RedirectResponse
      */
     public function checkStatus(Domain $domain): RedirectResponse
     {
@@ -198,7 +188,7 @@ class DomainController extends Controller
             }
 
             if ($domain->verified_at) {
-                return back()->with('success', "Domain is active and SSL is live.");
+                return back()->with('success', 'Domain is active and SSL is live.');
             }
 
             return back()->with('warning', $this->statusMessage($domain));
@@ -208,7 +198,10 @@ class DomainController extends Controller
                 'cf_last_checked_at' => now(),
             ]);
 
-            $this->logCloudflareSync('error', 'cloudflare.hostname.status_check_failed', $domain, [
+            logger()->error('cloudflare.hostname.status_check_failed', [
+                'tenant_id' => $domain->tenant_id,
+                'domain' => $domain->domain,
+                'cf_hostname_id' => $domain->cf_hostname_id,
                 'exception' => $e::class,
                 'message' => $e->getMessage(),
             ]);
@@ -223,9 +216,6 @@ class DomainController extends Controller
      * Side effects:
      * - May call Cloudflare or perform DNS lookups.
      * - Writes verification metadata to the central domains table.
-     *
-     * @param  Domain  $domain
-     * @return RedirectResponse
      */
     public function verify(Domain $domain): RedirectResponse
     {
@@ -272,9 +262,6 @@ class DomainController extends Controller
      *
      * Side effects:
      * - Deletes from the central domains table.
-     *
-     * @param  Domain  $domain
-     * @return RedirectResponse
      */
     public function destroy(Domain $domain): RedirectResponse
     {
@@ -297,9 +284,6 @@ class DomainController extends Controller
 
     /**
      * Validate that the submitted value is a hostname rather than a URL.
-     *
-     * @param  string  $domain
-     * @return bool
      */
     private function isValidDomain(string $domain): bool
     {
@@ -311,26 +295,23 @@ class DomainController extends Controller
             return false;
         }
 
-        return filter_var('http://' . $domain, FILTER_VALIDATE_URL) !== false;
+        return filter_var('http://'.$domain, FILTER_VALIDATE_URL) !== false;
     }
 
     /**
      * Build a human-readable status summary for the tenant UI.
-     *
-     * @param  Domain  $domain
-     * @return string
      */
     private function statusMessage(Domain $domain): string
     {
         $parts = [
-            'Hostname: ' . ($domain->cf_hostname_status ?? 'pending'),
-            'SSL: ' . ($domain->cf_ssl_status ?? 'pending'),
+            'Hostname: '.($domain->cf_hostname_status ?? 'pending'),
+            'SSL: '.($domain->cf_ssl_status ?? 'pending'),
         ];
 
         if ($domain->verified_at) {
             $parts[] = 'Verified and ready to serve traffic.';
         } elseif ($domain->cf_error) {
-            $parts[] = 'Last Cloudflare error: ' . $domain->cf_error;
+            $parts[] = 'Last Cloudflare error: '.$domain->cf_error;
         } else {
             $parts[] = 'Still waiting for Cloudflare activation.';
         }
