@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'scrapingbee' => [
+        'api_key' => env('SCRAPINGBEE_API_KEY'),
+        'base_url' => env('SCRAPINGBEE_BASE_URL', 'https://api.scrapingbee.com/api/v1'),
+    ],
 
 ];

@@ -5,6 +5,7 @@ namespace Modules\Product\Services\Imports;
 use InvalidArgumentException;
 use Modules\Product\Services\Imports\Importers\LazadaProductImporter;
 use Modules\Product\Services\Imports\Importers\ShopeeProductImporter;
+use Modules\Product\Services\Imports\Interfaces\IProductImporter;
 
 class ProductImporterResolver
 {
@@ -13,7 +14,7 @@ class ProductImporterResolver
         private ShopeeProductImporter $shopee,
     ) {}
 
-    public function resolve(string $url)
+    public function resolve(string $url): IProductImporter
     {
         if ($this->lazada->supports($url)) {
             return $this->lazada;

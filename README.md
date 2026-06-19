@@ -8,12 +8,13 @@ Production-style multi-tenant SaaS skeleton built with Laravel + `stancl/tenancy
 - Isolation: database-per-tenant (`tenant{tenant_id}`) + central shared DB (`central`).
 - Tenant resolution: by domain/host.
 - Core lifecycle supported:
-  - central tenant onboarding (`tenant + primary domain + DB provision/migrate/seed`)
-  - tenant module request/approve/install/uninstall
-  - custom domain add + DNS TXT verify + verified-host enforcement
-  - tenant RBAC (roles/features/permissions, policy-driven guards)
+    - central tenant onboarding (`tenant + primary domain + DB provision/migrate/seed`)
+    - tenant module request/approve/install/uninstall
+    - custom domain add + DNS TXT verify + verified-host enforcement
+    - tenant RBAC (roles/features/permissions, policy-driven guards)
 
 For diagrams and deeper architecture notes, see:
+
 - `docs/architecture.md`
 - `docs/decisions.md`
 
@@ -70,13 +71,13 @@ docker compose exec app npm run build
 - Keep `caddy` for local only (`docker-compose.yml`).
 - Use `docker-compose.prod.yml` for production (Cloudflare -> nginx origin).
 - Current production shape on EC2 uses:
-  - `app`
-  - `nginx`
-  - `queue`
-  - `mysql`
+    - `app`
+    - `nginx`
+    - `queue`
+    - `mysql`
 - Production nginx terminates TLS on `443` using origin cert files:
-  - `docker/nginx/ssl/origin.crt`
-  - `docker/nginx/ssl/origin.key`
+    - `docker/nginx/ssl/origin.crt`
+    - `docker/nginx/ssl/origin.key`
 - Create these as Cloudflare Origin Certificate files for your zone.
 - If missing/invalid, Cloudflare can show `525 SSL handshake failed`.
 - Tenant custom-domain activation is currently expected to finish through the in-app `Check Status` flow after Cloudflare DNS/custom-hostname setup is in place.
@@ -86,12 +87,12 @@ docker compose exec app npm run build
 1. Create tenant from central UI (`/tenants/create`).
 2. System creates tenant + domain in central DB.
 3. Tenancy event pipeline provisions tenant DB:
-   - create database
-   - run tenant migrations
-   - run tenant bootstrap seed
+    - create database
+    - run tenant migrations
+    - run tenant bootstrap seed
 4. Login to tenant domain using seeded admin credentials:
-   - email: `admin@{tenant_id}.local`
-   - password: `TENANT_DEFAULT_ADMIN_PASSWORD` from `.env`
+    - email: `admin@{tenant_id}.local`
+    - password: `TENANT_DEFAULT_ADMIN_PASSWORD` from `.env`
 
 ## Queue requirement (important)
 
@@ -104,6 +105,7 @@ docker compose logs -f queue
 If queue is down, module status can stay at `Installing...`/`Uninstalling...`.
 
 Production note:
+
 - tenant custom domains can still be made ready through the tenant UI `Check Status` flow
 - do not treat queue-backed background domain polling as the primary production activation path until queue/cache hardening is finished
 
@@ -133,7 +135,7 @@ These support single-tenant recovery without impacting other tenants.
 
 - Step 11-17 completed (onboarding, tenant bootstrap seed, RBAC, custom domain lifecycle, module hardening, E2E tests, operations baseline).
 - Current production-like verification is complete for:
-  - central tenant/module flows
-  - tenant user/role/module/domain flows
-  - verified tenant custom domains served through Cloudflare
+    - central tenant/module flows
+    - tenant user/role/module/domain flows
+    - verified tenant custom domains served through Cloudflare
 - Next focus: production hardening cleanup (queue/cache/session hardening, Telescope production-safe setup, and follow-up test coverage).
