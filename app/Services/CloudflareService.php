@@ -18,29 +18,32 @@ class CloudflareService
      *
      * Side effects:
      * - Performs an outbound HTTP request to Cloudflare.
-     *
-     * @param  string  $hostname
-     * @return array
      */
     public function createHostname(string $hostname): array
     {
         $this->ensureConfigured();
 
         // Retry is intentionally bounded because repeated hostname creation attempts can produce duplicate operational noise.
-        $response = Http::timeout((int) config('cloudflare.api.timeout', 15))
-            ->retry(
-                (int) config('cloudflare.api.retry_times', 2),
-                (int) config('cloudflare.api.retry_sleep_ms', 200)
-            )
-            ->withToken((string) config('cloudflare.api.token'))
-            ->post($this->endpoint('/custom_hostnames'), [
-                'hostname' => $hostname,
-                'ssl' => [
-                    'method' => (string) config('cloudflare.validation_method', 'http'),
-                    'type' => 'dv',
-                    'settings' => ['min_tls_version' => '1.2'],
-                ]
-            ]);
+        try {
+            $response = Http::timeout((int) config('cloudflare.api.timeout', 15))
+                ->retry(
+                    (int) config('cloudflare.api.retry_times', 2),
+                    (int) config('cloudflare.api.retry_sleep_ms', 200)
+                )
+                ->withToken((string) config('cloudflare.api.token'))
+                ->post($this->endpoint('/custom_hostnames'), [
+                    'hostname' => $hostname,
+                    'ssl' => [
+                        'method' => (string) config('cloudflare.validation_method', 'http'),
+                        'type' => 'dv',
+                        'settings' => ['min_tls_version' => '1.2'],
+                    ],
+                ]);
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            $json = $e->response->json() ?? [];
+
+            throw new RuntimeException($this->extractError($json, $e->getMessage()));
+        }
 
         $json = $response->json() ?? [];
         if (! $response->successful() || ! ($json['success'] ?? false)) {
@@ -55,9 +58,6 @@ class CloudflareService
      *
      * Side effects:
      * - Performs an outbound HTTP request to Cloudflare.
-     *
-     * @param  string  $cloudflareId
-     * @return array
      */
     public function getHostname(string $cloudflareId): array
     {
@@ -69,7 +69,7 @@ class CloudflareService
                 (int) config('cloudflare.api.retry_sleep_ms', 200)
             )
             ->withToken((string) config('cloudflare.api.token'))
-            ->get($this->endpoint('/custom_hostnames/' . $cloudflareId));
+            ->get($this->endpoint('/custom_hostnames/'.$cloudflareId));
 
         $json = $response->json() ?? [];
 
@@ -82,9 +82,6 @@ class CloudflareService
 
     /**
      * Normalize Cloudflare's response into the fields persisted on the domain model.
-     *
-     * @param  array  $result
-     * @return array
      */
     public function mapStatuses(array $result): array
     {
@@ -102,15 +99,12 @@ class CloudflareService
             'cf_hostname_status' => $hostnameStatus,
             'cf_ssl_status' => $sslStatus,
             'cf_error' => $errors !== '' ? $errors : null,
-            'cf_payload' => $result
+            'cf_payload' => $result,
         ];
     }
 
     /**
      * Backward-compatible alias while call sites are migrated to the pluralized method name.
-     *
-     * @param  array  $result
-     * @return array
      */
     public function mapStatus(array $result): array
     {
@@ -119,8 +113,6 @@ class CloudflareService
 
     /**
      * Fail fast when Cloudflare integration is enabled but incomplete.
-     *
-     * @return void
      */
     private function ensureConfigured(): void
     {
@@ -140,16 +132,13 @@ class CloudflareService
 
         if ($missing !== []) {
             throw new RuntimeException(
-                'Cloudflare is enabled but missing configuration: ' . implode(', ', $missing) . '.'
+                'Cloudflare is enabled but missing configuration: '.implode(', ', $missing).'.'
             );
         }
     }
 
     /**
      * Build a zone-scoped Cloudflare API endpoint.
-     *
-     * @param  string  $path
-     * @return string
      */
     private function endpoint(string $path): string
     {
@@ -161,14 +150,11 @@ class CloudflareService
 
     /**
      * Collapse Cloudflare's error payload into a single message suitable for logs and UI flashes.
-     *
-     * @param  array  $json
-     * @param  string  $fallback
-     * @return string
      */
     private function extractError(array $json, string $fallback): string
     {
         $msg = collect($json['errors'] ?? [])->pluck('message')->implode(' | ');
+
         return $msg ?: $fallback;
     }
 }

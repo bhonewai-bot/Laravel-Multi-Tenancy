@@ -10,6 +10,7 @@ use App\Services\TenantDomainService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Tests\TestCase;
@@ -256,7 +257,7 @@ class CloudflareDomainStatusSyncTest extends TestCase
             'cloudflare.api.zone_id' => '',
         ]);
 
-        $service = new CloudflareService();
+        $service = new CloudflareService;
 
         $this->expectExceptionObject(
             new \RuntimeException(
@@ -305,11 +306,90 @@ class CloudflareDomainStatusSyncTest extends TestCase
         $this->assertNotNull($domain->verified_at);
     }
 
+    public function test_create_hostname_propagates_cloudflare_api_errors(): void
+    {
+        config([
+            'cloudflare.enabled' => true,
+            'cloudflare.api.token' => 'valid-token',
+            'cloudflare.api.zone_id' => 'zone-abc',
+        ]);
+
+        Http::fake([
+            'api.cloudflare.com/*' => Http::response([
+                'success' => false,
+                'errors' => [
+                    ['message' => 'Custom hostnames ending in example.com are not supported for this zone.'],
+                ],
+            ], 400),
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Custom hostnames ending in example.com are not supported for this zone.');
+
+        $service = new CloudflareService;
+        $service->createHostname('shop.example.com');
+    }
+
+    public function test_create_hostname_sends_any_valid_domain_to_cloudflare(): void
+    {
+        config([
+            'cloudflare.enabled' => true,
+            'cloudflare.api.token' => 'valid-token',
+            'cloudflare.api.zone_id' => 'zone-abc',
+        ]);
+
+        Http::fake([
+            'api.cloudflare.com/*' => Http::response([
+                'success' => true,
+                'result' => [
+                    'id' => 'cf-host-external',
+                    'status' => 'pending',
+                    'ssl' => ['status' => 'pending'],
+                ],
+            ]),
+        ]);
+
+        $service = new CloudflareService;
+
+        // A domain completely unrelated to the zone should still be sent to Cloudflare.
+        // SSL for SaaS is designed for tenants to bring their own domains.
+        $result = $service->createHostname('shop.acmecorp.com');
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('cf-host-external', $result['result']['id']);
+    }
+
+    public function test_create_hostname_allows_exact_zone_domain(): void
+    {
+        config([
+            'cloudflare.enabled' => true,
+            'cloudflare.api.token' => 'valid-token',
+            'cloudflare.api.zone_id' => 'zone-abc',
+        ]);
+
+        Http::fake([
+            'api.cloudflare.com/*' => Http::response([
+                'success' => true,
+                'result' => [
+                    'id' => 'cf-host-exact',
+                    'status' => 'pending',
+                    'ssl' => ['status' => 'pending'],
+                ],
+            ]),
+        ]);
+
+        $service = new CloudflareService;
+        $result = $service->createHostname('bhonewai.cc.cd');
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('cf-host-exact', $result['result']['id']);
+    }
+
     private function insertTenant(string $tenantId): Tenant
     {
         DB::table('tenants')->insert([
             'id' => $tenantId,
-            'data' => json_encode(['name' => 'Tenant ' . $tenantId]),
+            'data' => json_encode(['name' => 'Tenant '.$tenantId]),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
