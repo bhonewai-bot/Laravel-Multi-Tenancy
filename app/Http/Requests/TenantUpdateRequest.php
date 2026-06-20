@@ -26,23 +26,21 @@ class TenantUpdateRequest extends FormRequest
         $currentDomainId = $tenant->domains()->first()?->id;
 
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
             'domain' => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('domains', 'domain')->ignore($currentDomainId),
             ],
-            'description' => 'nullable|string|max:1000',
+            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'tenant_id.required' => 'Tenant ID is required.',
-            'tenant_id.unique' => 'Tenant ID is already taken.',
             'name.required' => 'Tenant name is required.',
             'email.required' => 'Tenant email is required.',
             'email.email' => 'Please enter a valid email address.',
