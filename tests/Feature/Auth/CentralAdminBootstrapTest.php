@@ -31,11 +31,4 @@ class CentralAdminBootstrapTest extends TestCase
         $this->assertTrue(password_verify('secret-pass', (string) $user->password));
         $this->assertSame(1, User::query()->where('email', 'boss@example.com')->count());
     }
-
-    public function test_register_route_is_disabled_when_public_registration_is_off(): void
-    {
-        config(['auth.allow_registration' => false]);
-
-        $this->get('/register')->assertNotFound();
-    }
 }

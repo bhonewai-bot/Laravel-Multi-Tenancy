@@ -1,80 +1,81 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data x-init="$store.theme.init()">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'TenantSmith') }}</title>
 
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased bg-gray-100 dark:bg-[#0a0a0f] text-gray-900 dark:text-gray-100">
         @php
             $isTenant = (bool) tenant();
-            $profileUrl = $isTenant ? route('tenant.profile.edit', absolute: false) : route('profile.edit', absolute: false);
         @endphp
 
-        <div class="min-h-screen bg-gray-100">
-            <div class="flex min-h-screen">
-                <x-sidebar />
+        <div class="flex min-h-screen">
+            <x-sidebar />
 
-                <div class="flex min-w-0 flex-1 flex-col">
-                    <header class="sticky top-0 z-30 border-b border-gray-200 bg-white">
-                        <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-                            <div class="text-sm font-semibold text-gray-700">
-                                <!-- {{ $isTenant ? 'Tenant Workspace' : 'Central Workspace' }} -->
-                                Bhone Lab
-                            </div>
+            <div class="flex min-w-0 flex-1 flex-col">
+                {{-- Sticky Header --}}
+                <header class="sticky top-0 z-30 border-b border-gray-200 dark:border-[#2a2a38] bg-white/80 dark:bg-[#14141c]/80 backdrop-blur-xl">
+                    <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
 
-                            <x-dropdown align="right" width="48">
-                                <x-slot name="trigger">
-                                    <button class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none">
-                                        <div>{{ Auth::user()->name }}</div>
-                                        <div class="ms-1">
-                                            <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    </button>
-                                </x-slot>
+                        {{-- Left: Mobile sidebar toggle + Breadcrumbs --}}
+                        <div class="flex items-center gap-3">
+                            {{-- Mobile sidebar toggle --}}
+                            <button
+                                x-data
+                                @click="$dispatch('toggle-mobile-sidebar')"
+                                class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1e1e28] transition-colors md:hidden"
+                            >
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                </svg>
+                            </button>
 
-                                <x-slot name="content">
-                                    <x-dropdown-link :href="$profileUrl">
-                                        {{ __('Profile') }}
-                                    </x-dropdown-link>
-
-                                    <form method="POST" action="{{ route('logout', absolute: false) }}">
-                                        @csrf
-
-                                        <x-dropdown-link :href="route('logout', absolute: false)"
-                                            onclick="event.preventDefault(); this.closest('form').submit();">
-                                            {{ __('Log Out') }}
-                                        </x-dropdown-link>
-                                    </form>
-                                </x-slot>
-                            </x-dropdown>
+                            @if (isset($breadcrumbs))
+                                {{ $breadcrumbs }}
+                            @endif
                         </div>
-                    </header>
 
-                    @isset($header)
-                        <header class="border-b border-gray-200 bg-white">
-                            <div class="px-4 py-4 sm:px-6 lg:px-8">
-                                {{ $header }}
-                            </div>
-                        </header>
-                    @endisset
+                        {{-- Right: Tenant badge + Theme toggle + User menu --}}
+                        <div class="flex items-center gap-2">
+                            @if ($isTenant)
+                                <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                                    {{ tenant()->id }}
+                                </span>
+                            @endif
 
-                    <main class="flex-1">
-                        {{ $slot }}
-                    </main>
-                </div>
+                            <x-theme-toggle />
+
+                            <x-user-menu />
+                        </div>
+                    </div>
+                </header>
+
+                {{-- Page Header Slot --}}
+                @isset($header)
+                    <div class="bg-white dark:bg-[#14141c] border-b border-gray-200 dark:border-[#2a2a38]">
+                        <div class="px-4 sm:px-6 lg:px-8 py-5">
+                            {{ $header }}
+                        </div>
+                    </div>
+                @endisset
+
+                {{-- Main Content --}}
+                <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                    {{ $slot }}
+                </main>
             </div>
         </div>
+
         @livewireScripts
     </body>
 </html>

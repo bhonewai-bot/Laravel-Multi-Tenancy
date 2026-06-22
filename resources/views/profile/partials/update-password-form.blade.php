@@ -1,15 +1,10 @@
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Update Password') }}
-        </h2>
+<x-card>
+    <x-slot name="header">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Update Password</h3>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Ensure your account is using a long, random password to stay secure.</p>
+    </x-slot>
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __('Ensure your account is using a long, random password to stay secure.') }}
-        </p>
-    </header>
-
-    <form method="post" action="{{ route('password.update', absolute: false) }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('password.update', absolute: false) }}" class="space-y-5">
         @csrf
         @method('put')
 
@@ -40,9 +35,9 @@
                     x-show="show"
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
+                    class="text-sm text-green-600 dark:text-green-400"
                 >{{ __('Saved.') }}</p>
             @endif
         </div>
     </form>
-</section>
+</x-card>

@@ -2,160 +2,124 @@
     @php
         $statusMeta = function (?string $status): array {
             return match ($status) {
-                'active' => ['label' => 'Active', 'badge' => 'bg-green-100 text-green-700'],
-                'pending_validation' => ['label' => 'Pending Validation', 'badge' => 'bg-amber-100 text-amber-700'],
-                'initializing' => ['label' => 'Initializing', 'badge' => 'bg-sky-100 text-sky-700'],
-                'pending' => ['label' => 'Pending', 'badge' => 'bg-stone-100 text-stone-700'],
-                default => ['label' => 'Pending', 'badge' => 'bg-gray-100 text-gray-700'],
+                'active' => ['label' => 'Active', 'variant' => 'success'],
+                'pending_validation' => ['label' => 'Pending Validation', 'variant' => 'warning'],
+                'initializing' => ['label' => 'Initializing', 'variant' => 'info'],
+                'pending' => ['label' => 'Pending', 'variant' => 'neutral'],
+                default => ['label' => 'Pending', 'variant' => 'neutral'],
             };
         };
 
         $primaryDomain = $domains->first(fn ($domain) => $domainService->isPrimarySubDomain($tenant, $domain->domain));
     @endphp
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Custom Domains</h2>
-            <a href="{{ route('tenant.domains.create', absolute: false) }}"
-                class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-indigo-700">
-                Add Domain
-            </a>
-        </div>
-    </x-slot>
-
     <div class="py-8">
         <div class="w-full space-y-4 px-4 sm:px-6 lg:px-8">
+            <x-page-header title="Custom Domains" description="Manage custom domains for your application.">
+                <x-slot name="actions">
+                    <a href="{{ route('tenant.domains.create', absolute: false) }}">
+                        <x-primary-button>Add Domain</x-primary-button>
+                    </a>
+                </x-slot>
+            </x-page-header>
+
             @foreach (['success', 'error', 'warning', 'info'] as $msg)
                 @if (session($msg))
                     @php
-                        $style = match ($msg) {
-                            'success' => 'border-green-200 bg-green-50 text-green-700',
-                            'error' => 'border-red-200 bg-red-50 text-red-700',
-                            'warning' => 'border-amber-200 bg-amber-50 text-amber-800',
-                            default => 'border-sky-200 bg-sky-50 text-sky-700',
+                        $variant = match ($msg) {
+                            'success' => 'success',
+                            'error' => 'danger',
+                            'warning' => 'warning',
+                            default => 'info',
                         };
                     @endphp
-                    <div class="rounded-md border p-4 text-sm {{ $style }}">
+                    <div class="rounded-lg border p-4 text-sm {{ $variant === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' : ($variant === 'danger' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800' : ($variant === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800')) }}">
                         {{ session($msg) }}
                     </div>
                 @endif
             @endforeach
 
-            <!-- <div class="grid gap-4 md:grid-cols-3">
-                <div class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-100">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Domains</p>
-                    <p class="mt-2 text-2xl font-semibold text-gray-900">{{ $domains->count() }}</p>
-                </div>
-                <div class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-100">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Verified</p>
-                    <p class="mt-2 text-2xl font-semibold text-green-700">{{ $domains->filter(fn ($domain) => $domain->verified_at)->count() }}</p>
-                </div>
-                <div class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-100">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Needs Attention</p>
-                    <p class="mt-2 text-2xl font-semibold text-amber-700">{{ $domains->filter(fn ($domain) => ! $domain->verified_at || $domain->cf_error)->count() }}</p>
-                </div>
-            </div> -->
+            <x-card>
+                @if ($domains->isNotEmpty())
+                    <div class="overflow-x-auto">
+                        <table class="w-full divide-y divide-gray-200 dark:divide-[#2a2a38] text-sm">
+                            <thead class="bg-gray-50 dark:bg-[#0e0e15]">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Domain</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Hostname</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">SSL</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Check</th>
+                                    <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-[#14141c] divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                                @foreach ($domains as $domain)
+                                    @php
+                                        $isPrimary = $domainService->isPrimarySubDomain($tenant, $domain->domain);
+                                        $host = $isPrimary
+                                            ? ['label' => 'Trusted', 'variant' => 'brand']
+                                            : $statusMeta($domain->cf_hostname_status);
+                                        $ssl = $isPrimary
+                                            ? ['label' => 'Local TLS', 'variant' => 'brand']
+                                            : $statusMeta($domain->cf_ssl_status);
+                                    @endphp
+                                    <tr class="border-t border-gray-200 dark:border-[#2a2a38] hover:bg-gray-50 dark:hover:bg-[#1e1e28]">
+                                        <td class="px-6 py-4">
+                                            <div class="font-medium text-gray-900 dark:text-gray-100">{{ $domain->domain }}</div>
+                                            @if ($isPrimary)
+                                                <div class="mt-1"><x-badge variant="brand">Primary</x-badge></div>
+                                            @elseif ($domain->verified_at)
+                                                <div class="mt-1"><x-badge variant="success">Live with SSL</x-badge></div>
+                                            @elseif ($domain->cf_error)
+                                                <div class="mt-1"><x-badge variant="danger">Needs attention</x-badge></div>
+                                            @else
+                                                <div class="mt-1"><x-badge variant="warning">Waiting for activation</x-badge></div>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <x-badge :variant="$host['variant']">{{ $host['label'] }}</x-badge>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <x-badge :variant="$ssl['variant']">{{ $ssl['label'] }}</x-badge>
+                                        </td>
+                                        <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+                                            <div>{{ optional($domain->cf_last_checked_at)->format('M d, Y H:i') ?? '-' }}</div>
+                                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-500">Added {{ optional($domain->created_at)->format('M d, Y') ?? '-' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="inline-flex items-center gap-2">
+                                                <a href="{{ route('tenant.domains.show', $domain, absolute: false) }}">
+                                                    <x-secondary-button>{{ $domain->verified_at ? 'View' : 'Setup' }}</x-secondary-button>
+                                                </a>
 
-            <div class="bg-white overflow-visible shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    @if ($domains->isNotEmpty())
-                        <div class="overflow-visible">
-                            <table class="w-full divide-y divide-gray-200 text-sm">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Domain</th>
-                                        <!-- <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">State</th> -->
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Hostname</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">SSL</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Last Check</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                                                @if (! $isPrimary)
+                                                    <form method="POST" action="{{ route('tenant.domains.destroy', $domain, absolute: false) }}"
+                                                        onsubmit="return confirm('Remove this custom domain?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="inline-flex items-center rounded-lg border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-red-500 transition">
+                                                            Remove
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach ($domains as $domain)
-                                        @php
-                                            $isPrimary = $domainService->isPrimarySubDomain($tenant, $domain->domain);
-                                            $host = $isPrimary
-                                                ? ['label' => 'Trusted', 'badge' => 'bg-indigo-100 text-indigo-700']
-                                                : $statusMeta($domain->cf_hostname_status);
-                                            $ssl = $isPrimary
-                                                ? ['label' => 'Local TLS', 'badge' => 'bg-indigo-100 text-indigo-700']
-                                                : $statusMeta($domain->cf_ssl_status);
-                                        @endphp
-                                        <tr>
-                                            <td class="px-6 py-4">
-                                                <div class="font-medium text-gray-900">{{ $domain->domain }}</div>
-                                                @if ($isPrimary)
-                                                    <div class="mt-1 text-xs text-indigo-700">Primary</div>
-                                                @elseif ($domain->verified_at)
-                                                    <div class="mt-1 text-xs text-green-700">Live with SSL</div>
-                                                @elseif ($domain->cf_error)
-                                                    <div class="mt-1 text-xs text-red-700">Cloudflare needs attention</div>
-                                                @else
-                                                    <div class="mt-1 text-xs text-amber-700">Waiting for activation</div>
-                                                @endif
-                                            </td>
-                                            <!-- <td class="px-6 py-4">
-                                                @if ($isPrimary)
-                                                    <div class="text-sm font-medium text-indigo-700">Trusted primary domain</div>
-                                                    <div class="mt-1 text-xs text-gray-500">No custom hostname setup required.</div>
-                                                @elseif ($domain->verified_at)
-                                                    <div class="text-sm font-medium text-green-700">Verified</div>
-                                                    <div class="mt-1 text-xs text-gray-500">Hostname and SSL are both active.</div>
-                                                @elseif ($domain->cf_error)
-                                                    <div class="text-sm font-medium text-red-700">Blocked</div>
-                                                    <div class="mt-1 max-w-xs truncate text-xs text-gray-500" title="{{ $domain->cf_error }}">{{ $domain->cf_error }}</div>
-                                                @else
-                                                    <div class="text-sm font-medium text-amber-700">Pending</div>
-                                                    <div class="mt-1 text-xs text-gray-500">Cloudflare is still validating this domain.</div>
-                                                @endif
-                                            </td> -->
-                                            <td class="px-6 py-4">
-                                                <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $host['badge'] }}">{{ $host['label'] }}</span>
-                                                <!-- @if ($domain->cf_hostname_id)
-                                                    <div class="mt-1 font-mono text-[11px] text-gray-500">{{ $domain->cf_hostname_id }}</div>
-                                                @endif -->
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $ssl['badge'] }}">{{ $ssl['label'] }}</span>
-                                            </td>
-                                            <td class="px-6 py-4 text-gray-600">
-                                                <div>{{ optional($domain->cf_last_checked_at)->format('M d, Y H:i') ?? '-' }}</div>
-                                                <div class="mt-1 text-xs text-gray-500">Added {{ optional($domain->created_at)->format('M d, Y') ?? '-' }}</div>
-                                            </td>
-                                            <td class="px-6 py-4 text-right">
-                                                <div class="inline-flex items-center gap-2">
-                                                    <a href="{{ route('tenant.domains.show', $domain, absolute: false) }}"
-                                                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">
-                                                        {{ $domain->verified_at ? 'View' : 'Setup' }}
-                                                    </a>
-
-                                                    @if (! $isPrimary)
-                                                        <form method="POST" action="{{ route('tenant.domains.destroy', $domain, absolute: false) }}"
-                                                            onsubmit="return confirm('Remove this custom domain?');">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit"
-                                                                class="inline-flex items-center rounded-md border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-red-500">
-                                                                Remove
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="py-10 text-center">
-                            <h3 class="text-sm font-medium text-gray-900">No custom domains yet</h3>
-                            <p class="mt-1 text-sm text-gray-500">Add your first custom domain to start setup.</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <x-empty-state title="No custom domains yet" description="Add your first custom domain to start setup.">
+                        <x-slot name="action">
+                            <a href="{{ route('tenant.domains.create', absolute: false) }}">
+                                <x-primary-button>Add Domain</x-primary-button>
+                            </a>
+                        </x-slot>
+                    </x-empty-state>
+                @endif
+            </x-card>
         </div>
     </div>
 </x-app-layout>

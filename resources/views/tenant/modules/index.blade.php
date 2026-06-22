@@ -1,19 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Available Modules</h2>
+        <x-page-header title="Available Modules" />
     </x-slot>
 
     <div class="py-8">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if (session('success'))
-                <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700 border border-green-200">{{ session('success') }}</div>
+                <div class="mb-4 rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">{{ session('success') }}</div>
             @endif
             @if (session('error'))
-                <div class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 border border-red-200">{{ session('error') }}</div>
+                <div class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">{{ session('error') }}</div>
             @endif
 
             @if (!empty($operationAlert))
-                <div class="mb-4 rounded-md border p-4 text-sm {{ $operationAlert['type'] === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700' }}">
+                <div class="mb-4 rounded-lg border p-4 text-sm {{ $operationAlert['type'] === 'success' ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400' : 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400' }}">
                     {{ $operationAlert['message'] }}
                 </div>
             @endif
@@ -39,52 +39,54 @@
                 </script>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+            <x-card>
+                <div class="overflow-x-auto">
+                    @if ($moduleRows->isEmpty())
+                        <x-empty-state title="No modules available" description="There are no modules available at this time." />
+                    @else
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                            <thead>
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Version</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse ($moduleRows as $row)
+                            <tbody class="divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                                @foreach ($moduleRows as $row)
                                     @php($module = $row['module'])
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $module->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $module->version }}</td>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-[#1e1e28] transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $module->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ $module->version }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if ($row['is_queued_install'])
-                                                <span class="inline-flex rounded-full bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">Installing...</span>
+                                                <x-badge variant="brand" label="Installing..." />
                                             @elseif ($row['is_queued_uninstall'])
-                                                <span class="inline-flex rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">Uninstalling...</span>
+                                                <x-badge variant="warning" label="Uninstalling..." />
                                             @elseif ($row['is_installed'])
-                                                <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Installed</span>
+                                                <x-badge variant="success" label="Installed" />
                                             @elseif ($row['request_status'] === 'pending')
-                                                <span class="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">Pending</span>
+                                                <x-badge variant="warning" label="Pending" />
                                             @elseif ($row['request_status'] === 'approved')
-                                                <span class="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">Approved</span>
+                                                <x-badge variant="info" label="Approved" />
                                             @elseif ($row['request_status'] === 'rejected')
-                                                <span class="inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">Rejected</span>
+                                                <x-badge variant="danger" label="Rejected" />
                                             @else
-                                                <span class="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">Not requested</span>
+                                                <x-badge variant="neutral" label="Not requested" />
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if ($row['is_processing'])
                                                 <button type="button" disabled
-                                                    class="inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm cursor-not-allowed">
+                                                    class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#2a2a38] bg-gray-100 dark:bg-[#1e1e28] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 shadow-sm cursor-not-allowed">
                                                     Processing...
                                                 </button>
                                             @elseif ($row['is_installed'])
                                                 <div class="flex items-center gap-2">
                                                     @if ($row['open_route_name'])
                                                         <a href="{{ route($row['open_route_name'], absolute: false) }}"
-                                                            class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-indigo-500">
+                                                            class="inline-flex items-center rounded-lg border border-transparent bg-indigo-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-indigo-500 transition-colors">
                                                             Open
                                                         </a>
                                                     @endif
@@ -92,7 +94,7 @@
                                                         @csrf
                                                         <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                         <button type="submit"
-                                                            class="inline-flex items-center rounded-md border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500">
+                                                            class="inline-flex items-center rounded-lg border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500 transition-colors">
                                                             Uninstall
                                                         </button>
                                                     </form>
@@ -102,18 +104,18 @@
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                     <button type="submit"
-                                                        class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-indigo-500">
+                                                        class="inline-flex items-center rounded-lg border border-transparent bg-indigo-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-indigo-500 transition-colors">
                                                         Install
                                                     </button>
                                                 </form>
                                             @elseif ($row['request_status'] === 'pending')
-                                                <span class="text-sm text-gray-500">Waiting for approval</span>
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">Waiting for approval</span>
                                             @elseif ($row['request_status'] === 'rejected')
                                                 <form method="POST" action="{{ route('tenant.modules.request') }}">
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                     <button type="submit"
-                                                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm hover:bg-gray-50">
+                                                        class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#2a2a38] bg-white dark:bg-[#1e1e28] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-[#2a2a38] transition-colors">
                                                         Request Again
                                                     </button>
                                                 </form>
@@ -122,23 +124,19 @@
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                     <button type="submit"
-                                                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm hover:bg-gray-50">
+                                                        class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#2a2a38] bg-white dark:bg-[#1e1e28] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-[#2a2a38] transition-colors">
                                                         Request Module
                                                     </button>
                                                 </form>
                                             @endif
                                         </td>
                                     </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="px-6 py-4 text-sm text-gray-500">No modules available.</td>
-                                    </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
-                    </div>
+                    @endif
                 </div>
-            </div>
+            </x-card>
         </div>
     </div>
 </x-app-layout>

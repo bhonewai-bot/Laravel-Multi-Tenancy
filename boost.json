@@ -1,5 +1,7 @@
 {
-    "agents": ["claude_code", "cursor", "opencode", "antigravity"],
+    "agents": [
+        "claude_code"
+    ],
     "cloud": true,
     "guidelines": true,
     "mcp": true,
@@ -7,6 +9,7 @@
     "sail": false,
     "skills": [
         "laravel-best-practices",
+        "mcp-development",
         "livewire-development",
         "tailwindcss-development",
         "deploying-laravel-cloud"

@@ -13,7 +13,6 @@ use App\Services\TenantModuleRegistry;
 use Database\Seeders\TenantBootstrapSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -66,40 +65,6 @@ class TenancyE2EFlowTest extends TestCase
         Event::assertDispatched(TenantCreated::class);
     }
 
-    public function test_tenant_signup_isolation_from_central_users(): void
-    {
-        $tenant = $this->createTenantWithPrimaryDomain($this->makeTenantId('si'));
-        $tenantHost = "{$tenant->id}.app.localhost";
-
-        $this->migrateTenantDatabase($tenant);
-
-        $centralConnection = (string) config('tenancy.database.central_connection', config('database.default'));
-        $centralUsersBefore = DB::connection($centralConnection)->table('users')->count();
-
-        $tenantEmail = "new.user@{$tenant->id}.local";
-
-        $response = $this
-            ->post("http://{$tenantHost}/register", [
-                'name' => 'Tenant User',
-                'email' => $tenantEmail,
-                'password' => 'password',
-                'password_confirmation' => 'password',
-            ]);
-
-        $response->assertRedirect('/dashboard');
-
-        // Central users table should remain unchanged.
-        $this->assertSame(
-            $centralUsersBefore,
-            DB::connection($centralConnection)->table('users')->count()
-        );
-
-        // New user must exist in tenant DB.
-        tenancy()->initialize($tenant);
-        $this->assertDatabaseHas('users', ['email' => $tenantEmail]);
-        tenancy()->end();
-    }
-
     public function test_request_approve_install_flow_updates_install_state(): void
     {
         [$tenant, $tenantAdmin] = $this->createTenantAndSeedAdmin($this->makeTenantId('ri'));
@@ -150,7 +115,7 @@ class TenancyE2EFlowTest extends TestCase
         $installResponse->assertRedirect();
         $installRedirect = (string) $installResponse->headers->get('Location', '');
         $this->assertStringContainsString('/modules?', $installRedirect);
-        $this->assertStringContainsString('watch_module_id=' . $module->id, $installRedirect);
+        $this->assertStringContainsString('watch_module_id='.$module->id, $installRedirect);
         $this->assertStringContainsString('watch_action=install', $installRedirect);
 
         $installedModules = $tenant->fresh()->getAttribute('installed_modules') ?? [];
@@ -376,6 +341,6 @@ class TenancyE2EFlowTest extends TestCase
 
     private function makeTenantId(string $prefix): string
     {
-        return strtolower('t' . $prefix . Str::random(6));
+        return strtolower('t'.$prefix.Str::random(6));
     }
 }

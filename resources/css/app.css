@@ -1,3 +1,83 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --color-bg-page: 243 244 246;
+        --color-bg-surface: 255 255 255;
+        --color-bg-elevated: 249 250 251;
+        --color-text-primary: 17 24 39;
+        --color-text-secondary: 107 114 128;
+        --color-text-muted: 156 163 175;
+        --color-border: 229 231 235;
+        --color-border-strong: 209 213 219;
+    }
+
+    html.dark {
+        --color-bg-page: 10 10 15;
+        --color-bg-surface: 20 20 28;
+        --color-bg-elevated: 30 30 40;
+        --color-text-primary: 243 244 246;
+        --color-text-secondary: 156 163 175;
+        --color-text-muted: 107 114 128;
+        --color-border: 55 65 81;
+        --color-border-strong: 75 85 99;
+    }
+}
+
+@layer utilities {
+    @keyframes fade-up {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .animate-fade-up {
+        animation: fade-up 0.4s ease-out both;
+    }
+
+    .animate-fade-up-delay-1 {
+        animation: fade-up 0.4s ease-out 0.1s both;
+    }
+
+    .animate-fade-up-delay-2 {
+        animation: fade-up 0.4s ease-out 0.2s both;
+    }
+
+    .animate-fade-up-delay-3 {
+        animation: fade-up 0.4s ease-out 0.3s both;
+    }
+
+    .animate-shake {
+        animation: shake 0.4s ease-in-out;
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animate-float-delayed {
+        animation: float 6s ease-in-out 2s infinite;
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}
