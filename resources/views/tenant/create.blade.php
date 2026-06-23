@@ -64,13 +64,14 @@
 
                 <x-slot name="footer">
                     <div class="flex items-center justify-end gap-3">
-                        <a href="{{ route('tenants.index') }}"
-                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#101016] border border-gray-300 dark:border-[#262632] rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] hover:shadow-card-hover transition-all duration-200">
-                            Cancel
+                        <a href="{{ route('tenants.index') }}">
+                            <x-secondary-button type="button">
+                                Cancel
+                            </x-secondary-button>
                         </a>
                         <button
                             type="submit"
-                            class="group relative inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 active:from-brand-600 active:to-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                            class="group relative inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 active:from-brand-600 active:to-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                             :disabled="submitting"
                         >
                             <span x-show="!submitting">Create Tenant</span>

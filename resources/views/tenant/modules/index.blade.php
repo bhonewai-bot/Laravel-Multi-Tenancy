@@ -79,14 +79,14 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if ($row['is_processing'])
                                                 <button type="button" disabled
-                                                    class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-gray-100 dark:bg-[#181820] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 shadow-card cursor-not-allowed">
+                                                    class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-gray-100 dark:bg-[#101016] px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 shadow-card cursor-not-allowed">
                                                     Processing...
                                                 </button>
                                             @elseif ($row['is_installed'])
                                                 <div class="flex items-center gap-2">
                                                     @if ($row['open_route_name'])
                                                         <a href="{{ route($row['open_route_name'], absolute: false) }}"
-                                                            class="inline-flex items-center rounded-lg border border-transparent bg-brand-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-card hover:bg-brand-500 transition-colors">
+                                                            class="inline-flex items-center rounded-lg border border-transparent bg-brand-600 px-3 py-2 text-xs font-semibold text-white shadow-card hover:bg-brand-500 transition-colors">
                                                             Open
                                                         </a>
                                                     @endif
@@ -94,7 +94,7 @@
                                                         @csrf
                                                         <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                         <button type="submit"
-                                                            class="inline-flex items-center rounded-lg border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-card hover:bg-red-500 transition-colors">
+                                                            class="inline-flex items-center rounded-lg border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold text-white shadow-card hover:bg-red-500 transition-colors">
                                                             Uninstall
                                                         </button>
                                                     </form>
@@ -104,7 +104,7 @@
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                     <button type="submit"
-                                                        class="inline-flex items-center rounded-lg border border-transparent bg-brand-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-card hover:bg-brand-500 transition-colors">
+                                                        class="inline-flex items-center rounded-lg border border-transparent bg-brand-600 px-3 py-2 text-xs font-semibold text-white shadow-card hover:bg-brand-500 transition-colors">
                                                         Install
                                                     </button>
                                                 </form>
@@ -115,7 +115,7 @@
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                     <button type="submit"
-                                                        class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#181820] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#262632] transition-colors">
+                                                        class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#101016] px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#262632] transition-colors">
                                                         Request Again
                                                     </button>
                                                 </form>
@@ -124,7 +124,7 @@
                                                     @csrf
                                                     <input type="hidden" name="module_id" value="{{ $module->id }}">
                                                     <button type="submit"
-                                                        class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#181820] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#262632] transition-colors">
+                                                        class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#101016] px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#262632] transition-colors">
                                                         Request Module
                                                     </button>
                                                 </form>

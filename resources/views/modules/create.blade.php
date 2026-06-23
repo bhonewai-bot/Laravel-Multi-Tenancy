@@ -1,15 +1,26 @@
 <x-app-layout>
-    <x-slot name="header">
-        <x-page-header title="Upload Module" />
-    </x-slot>
+    <div class="animate-fade-up">
 
-    <div class="py-8">
-        <div class="mx-auto w-full px-4 sm:px-6 lg:px-8">
-            @if (session('error'))
-                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
-                    {{ session('error') }}
-                </div>
-            @endif
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Upload Module</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add a new module to the platform</p>
+            </div>
+            <a href="{{ route('modules.index') }}">
+                <x-secondary-button type="button">
+                    <x-heroicon-o-arrow-left class="w-4 h-4" />
+                    Back to Modules
+                </x-secondary-button>
+            </a>
+        </div>
+
+        {{-- Flash Messages --}}
+        @if (session('error'))
+            <div class="mb-6">
+                <x-alert variant="error">{{ session('error') }}</x-alert>
+            </div>
+        @endif
 
             <x-card>
                 <form method="POST" action="{{ route('modules.store') }}" enctype="multipart/form-data" class="space-y-6">
@@ -55,11 +66,14 @@
                     </div>
 
                     <div class="flex items-center justify-end gap-3">
-                        <a href="{{ route('modules.index') }}"
-                           class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#181820] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#262632] transition-colors">
-                            Cancel
+                        <a href="{{ route('modules.index') }}">
+                            <x-secondary-button type="button">
+                                Cancel
+                            </x-secondary-button>
                         </a>
-                        <x-primary-button>Upload Module</x-primary-button>
+                        <x-primary-button>
+                            Upload Module
+                        </x-primary-button>
                     </div>
                 </form>
             </x-card>

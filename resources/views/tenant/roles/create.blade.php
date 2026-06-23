@@ -2,7 +2,7 @@
     <x-page-header title="Add Role">
         <x-slot:actions>
             <a href="{{ route('tenant.roles.index', absolute: false) }}"
-                class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#101016] border border-gray-300 dark:border-[#262632] rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] transition">
+                class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#101016] border border-gray-300 dark:border-[#262632] rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] transition">
                 Back to Roles
             </a>
         </x-slot:actions>
@@ -121,7 +121,7 @@
 
                 <div class="flex justify-end gap-3 pt-2">
                     <a href="{{ route('tenant.roles.index', absolute: false) }}"
-                        class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#101016] border border-gray-300 dark:border-[#262632] rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] transition">
+                        class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#101016] border border-gray-300 dark:border-[#262632] rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] transition">
                         Cancel
                     </a>
                     <x-primary-button>

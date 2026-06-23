@@ -8,29 +8,21 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $tenants->total() }} tenant organizations</p>
             </div>
             <a href="{{ route('tenants.create') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:bg-brand-700 active:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] transition-all duration-200">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out">
+                <x-heroicon-o-plus class="w-4 h-4" />
                 New Tenant
             </a>
         </div>
 
         {{-- Flash Messages --}}
         @if (session('success'))
-            <div class="mb-6 flex items-center gap-3 rounded-lg bg-green-50 dark:bg-green-900/20 p-4 text-sm text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ session('success') }}
+            <div class="mb-6">
+                <x-alert variant="success">{{ session('success') }}</x-alert>
             </div>
         @endif
         @if (session('error'))
-            <div class="mb-6 flex items-center gap-3 rounded-lg bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                </svg>
-                {{ session('error') }}
+            <div class="mb-6">
+                <x-alert variant="error">{{ session('error') }}</x-alert>
             </div>
         @endif
 
@@ -43,12 +35,11 @@
                 </div>
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">No tenants yet</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Create your first tenant organization to get started.</p>
-                <a href="{{ route('tenants.create') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] transition-all duration-200">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    New Tenant
+                <a href="{{ route('tenants.create') }}">
+                    <x-primary-button type="button">
+                        <x-heroicon-o-plus class="w-4 h-4" />
+                        New Tenant
+                    </x-primary-button>
                 </a>
             </div>
         @else
@@ -70,7 +61,7 @@
                         <tbody class="divide-y divide-gray-100 dark:divide-[#181820]">
                             @foreach ($tenants as $tenant)
                                 @php $primaryDomain = $tenant->domains->first()?->domain; @endphp
-                                <tr class="group border-l-2 border-transparent hover:border-l-brand-500 hover:bg-gray-50/70 dark:hover:bg-[#181820]/70 transition-all duration-150">
+                                <tr class="group hover:bg-gray-50/70 dark:hover:bg-[#181820]/70 transition-all duration-150">
                                     {{-- Tenant Name --}}
                                     <td class="px-5 py-4">
                                         <div class="flex items-center gap-3">
