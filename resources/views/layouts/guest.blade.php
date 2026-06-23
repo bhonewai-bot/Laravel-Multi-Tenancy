@@ -195,7 +195,7 @@
             {{-- ──────────────────────────────────────────────────────────
                  RIGHT PANEL — Form
             ────────────────────────────────────────────────────────── --}}
-            <div class="flex-1 flex flex-col bg-white dark:bg-[#0a0a0f]">
+            <div class="flex-1 flex flex-col bg-white dark:bg-[#08080c]">
 
                 {{-- Mobile brand header (visible below lg) --}}
                 <div class="lg:hidden flex items-center justify-between px-6 pt-6">

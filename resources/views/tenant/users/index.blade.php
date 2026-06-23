@@ -29,7 +29,7 @@
 
         <x-card>
             <div class="overflow-x-auto">
-                <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-[#262632]">
                     <thead>
                         <tr>
                             <th class="w-[24%] px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
@@ -39,9 +39,9 @@
                             <th class="w-[16%] px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                    <tbody class="divide-y divide-gray-200 dark:divide-[#262632]">
                         @forelse ($users as $user)
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38] hover:bg-gray-50 dark:hover:bg-[#1e1e28] transition-colors">
+                            <tr class="border-t border-gray-200 dark:border-[#262632] hover:bg-gray-50 dark:hover:bg-[#181820] transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $user->name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ $user->email }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
@@ -57,7 +57,7 @@
                                         <x-dropdown align="right" width="w-40">
                                             <x-slot name="trigger">
                                                 <button type="button"
-                                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 dark:border-[#2a2a38] bg-white dark:bg-[#14141c] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-[#1e1e28] transition-colors">
+                                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#101016] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] transition-colors">
                                                     Action
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -81,7 +81,7 @@
                                                         onsubmit="return confirm('Delete user {{ $user->name }}?');">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-[#1e1e28]">
+                                                        <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-[#181820]">
                                                             Delete
                                                         </button>
                                                     </form>
@@ -111,7 +111,7 @@
             </div>
 
             @if ($users->hasPages())
-                <div class="border-t border-gray-200 dark:border-[#2a2a38] px-6 py-4">
+                <div class="border-t border-gray-200 dark:border-[#262632] px-6 py-4">
                     {{ $users->links() }}
                 </div>
             @endif

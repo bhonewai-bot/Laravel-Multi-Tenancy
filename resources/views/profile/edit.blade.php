@@ -18,7 +18,7 @@
 
         {{-- Tabs --}}
         <div x-data="{ activeTab: 'profile' }">
-            <div class="flex gap-1 border-b border-gray-200 dark:border-[#2a2a38] mb-6">
+            <div class="flex gap-1 border-b border-gray-200 dark:border-[#262632] mb-6">
                 <button
                     @click="activeTab = 'profile'"
                     class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors"

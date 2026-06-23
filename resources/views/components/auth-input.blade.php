@@ -35,13 +35,16 @@
         {{ $autofocus ? 'autofocus' : '' }}
         autocomplete="{{ $autocomplete }}"
         {{ $attributes->merge(['class' => '
-            block w-full pt-5 pb-2 px-3 text-sm rounded-lg border shadow-sm
-            bg-white dark:bg-[#14141c]
+            block w-full pt-5 pb-2 px-3 text-sm rounded-lg
+            border border-gray-200 dark:border-[#262632]
+            bg-white dark:bg-[#101016]
             text-gray-900 dark:text-gray-100
-            transition-colors duration-200
+            shadow-card focus:shadow-glow-brand
+            focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 dark:focus:ring-brand-400/20
+            transition-all duration-200
             ' . ($hasError
-                ? 'border-red-400 dark:border-red-500 focus:border-red-500 focus:ring-red-500'
-                : 'border-gray-300 dark:border-[#2a2a38] focus:border-brand-500 focus:ring-brand-500 dark:focus:border-brand-400 dark:focus:ring-brand-400'
+                ? 'border-red-400 dark:border-red-500 focus:border-red-500 focus:ring-red-500/30'
+                : ''
             ) . '
         ']) }}
     />

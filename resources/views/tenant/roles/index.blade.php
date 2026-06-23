@@ -3,7 +3,7 @@
         <x-slot:actions>
             @can('create', App\Models\Role::class)
                 <a href="{{ route('tenant.roles.create', absolute: false) }}"
-                    class="inline-flex items-center px-4 py-2 bg-brand-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-brand-700 transition">
+                    class="inline-flex items-center px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 transition-all duration-200">
                     Add Role
                 </a>
             @endcan
@@ -20,7 +20,7 @@
 
         <x-card>
             <div class="overflow-x-auto">
-                <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-[#262632]">
                     <thead class="bg-gray-50 dark:bg-[#0e0e15]">
                         <tr>
                             <th class="w-[10%] px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
@@ -28,9 +28,9 @@
                             <th class="w-[14%] px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white dark:bg-[#14141c] divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                    <tbody class="bg-white dark:bg-[#101016] divide-y divide-gray-200 dark:divide-[#262632]">
                         @forelse ($roles as $role)
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38] hover:bg-gray-50 dark:hover:bg-[#1e1e28]">
+                            <tr class="border-t border-gray-200 dark:border-[#262632] hover:bg-gray-50 dark:hover:bg-[#181820]">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ ucfirst($role->name) }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                                     @if ($role->permissions->isEmpty())
@@ -50,7 +50,7 @@
                                         <x-dropdown align="right" width="w-40">
                                             <x-slot name="trigger">
                                                 <button type="button"
-                                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 dark:border-[#2a2a38] bg-white dark:bg-[#14141c] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-[#1e1e28]">
+                                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#101016] px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#181820]">
                                                     Action
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -74,7 +74,7 @@
                                                         onsubmit="return confirm('Delete role {{ $role->name }}?');">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-[#1e1e28]">
+                                                        <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-[#181820]">
                                                             Delete
                                                         </button>
                                                     </form>

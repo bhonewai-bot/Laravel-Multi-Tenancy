@@ -17,11 +17,11 @@ Review Blade templates and components to ensure they follow the TenantSmith desi
 Before reviewing, understand these critical tokens:
 
 ### Dark Theme Colors (Custom Hex — NOT Tailwind Grays)
-- Page bg: `#0a0a0f` → `dark:bg-[#0a0a0f]`
-- Surface: `#14141c` → `dark:bg-[#14141c]`
-- Elevated: `#1e1e28` → `dark:bg-[#1e1e28]`
-- Border: `#2a2a38` → `dark:border-[#2a2a38]`
-- Focus ring offset: `dark:focus:ring-offset-[#0a0a0f]`
+- Page bg: `#0a0a0f` → `dark:bg-[#08080c]`
+- Surface: `#14141c` → `dark:bg-[#101016]`
+- Elevated: `#1e1e28` → `dark:bg-[#181820]`
+- Border: `#2a2a38` → `dark:border-[#262632]`
+- Focus ring offset: `dark:focus:ring-offset-[#08080c]`
 
 ### Component Tokens
 - Buttons: `rounded-lg`, `shadow-sm hover:shadow-md` (primary)
@@ -33,18 +33,20 @@ Before reviewing, understand these critical tokens:
 For every Blade file you review, check:
 
 ### Critical (Must Pass)
-1. **Dark mode uses custom hex**: `dark:bg-gray-800`, `dark:bg-gray-900`, `dark:bg-gray-700` are WRONG. Must use `dark:bg-[#14141c]`, `dark:bg-[#0a0a0f]`, `dark:bg-[#1e1e28]`.
+1. **Dark mode uses custom hex**: `dark:bg-gray-800`, `dark:bg-gray-900`, `dark:bg-gray-700` are WRONG. Must use `dark:bg-[#101016]`, `dark:bg-[#08080c]`, `dark:bg-[#181820]`.
 2. **Dark mode completeness**: Every light-mode color utility must have a `dark:` counterpart.
 3. **Brand color usage**: Accent/focus colors should use `brand-*` tokens, not raw `indigo-*`.
-4. **Focus ring offsets**: Buttons with `focus:ring-2` must include `dark:focus:ring-offset-[#0a0a0f]`.
+4. **Focus ring offsets**: Buttons with `focus:ring-2` must include `dark:focus:ring-offset-[#08080c]`.
 5. **Sidebar icon active state**: Every nav icon MUST turn `text-brand-500 dark:text-brand-400` when its section is active. All items must be consistent — if Dashboard has brand-colored active icons, Tenants/Modules/Users/Roles/Domains must too.
+6. **Heroicons**: Sidebar icons must use Heroicons via `blade-heroicons` package, outline style (`<x-heroicon-o-*>`).
+7. **`:class` on Blade components**: Never use `:class` on `<x-*>` components — Blade parses it as PHP, not Alpine.js. Use `x-bind:class` instead. On plain HTML elements (`<div>`, `<span>`, `<a>`), `:class` works fine.
 
 ### Important (Should Pass)
 6. **Border radius**: Buttons and inputs should use `rounded-lg`, not `rounded-md`.
 7. **Shadows**: Inputs need `shadow-sm`. Primary buttons need `shadow-sm hover:shadow-md`.
-8. **Hover states**: All hover states need `dark:hover:` counterparts with `dark:hover:bg-[#1e1e28]`.
+8. **Hover states**: All hover states need `dark:hover:` counterparts with `dark:hover:bg-[#181820]`.
 9. **Typography**: Text colors must have dark variants. Muted text uses `text-gray-400 dark:text-gray-500`.
-10. **Borders**: All borders need `dark:border-[#2a2a38]`.
+10. **Borders**: All borders need `dark:border-[#262632]`.
 11. **Sidebar section labels**: Must use `text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-gray-500`.
 12. **Alpine.js in Blade**: `$store` is a client-side Alpine object — never use it inside `@if` / `@php` blocks. Use `x-show` for Alpine-conditional rendering.
 
@@ -76,7 +78,7 @@ For every Blade file you review, check:
 
 | # | Severity | Line | Issue | Fix |
 |---|----------|------|-------|-----|
-| 1 | CRITICAL | 12 | `dark:bg-gray-800` used | Change to `dark:bg-[#14141c]` |
+| 1 | CRITICAL | 12 | `dark:bg-gray-800` used | Change to `dark:bg-[#101016]` |
 | 2 | WARNING | 18 | `rounded-md` on button | Change to `rounded-lg` |
 
 ### Verdict: PASS / FAIL
@@ -86,12 +88,12 @@ For every Blade file you review, check:
 
 ## Common Mistakes to Flag
 
-- `dark:bg-gray-800` → should be `dark:bg-[#14141c]`
-- `dark:bg-gray-900` → should be `dark:bg-[#0a0a0f]`
-- `dark:bg-gray-700` → should be `dark:bg-[#1e1e28]`
-- `dark:border-gray-700` → should be `dark:border-[#2a2a38]`
-- `dark:border-gray-600` → should be `dark:border-[#2a2a38]`
-- `dark:focus:ring-offset-gray-800` → should be `dark:focus:ring-offset-[#0a0a0f]`
+- `dark:bg-gray-800` → should be `dark:bg-[#101016]`
+- `dark:bg-gray-900` → should be `dark:bg-[#08080c]`
+- `dark:bg-gray-700` → should be `dark:bg-[#181820]`
+- `dark:border-gray-700` → should be `dark:border-[#262632]`
+- `dark:border-gray-600` → should be `dark:border-[#262632]`
+- `dark:focus:ring-offset-gray-800` → should be `dark:focus:ring-offset-[#08080c]`
 - `rounded-md` on buttons → should be `rounded-lg`
 - `rounded-md` on inputs → should be `rounded-lg`
 - Missing `shadow-sm` on input fields
@@ -102,3 +104,4 @@ For every Blade file you review, check:
 - `@if (! $store.sidebar.collapsed)` → must be `x-show="!$store.sidebar.collapsed"` (Alpine, not PHP)
 - `localStorage()` in Blade `@php` → must be Alpine.js `$store` or removed
 - Dropdown links with icon + text missing `flex items-center gap-2` → icon and text stack vertically
+- `:class` on `<x-heroicon-o-*>` → Blade evaluates as PHP, throws "Undefined constant". Use `x-bind:class` instead

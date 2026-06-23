@@ -42,7 +42,7 @@
             <x-card>
                 @if ($domains->isNotEmpty())
                     <div class="overflow-x-auto">
-                        <table class="w-full divide-y divide-gray-200 dark:divide-[#2a2a38] text-sm">
+                        <table class="w-full divide-y divide-gray-200 dark:divide-[#262632] text-sm">
                             <thead class="bg-gray-50 dark:bg-[#0e0e15]">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Domain</th>
@@ -52,7 +52,7 @@
                                     <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-[#14141c] divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                            <tbody class="bg-white dark:bg-[#101016] divide-y divide-gray-200 dark:divide-[#262632]">
                                 @foreach ($domains as $domain)
                                     @php
                                         $isPrimary = $domainService->isPrimarySubDomain($tenant, $domain->domain);
@@ -63,7 +63,7 @@
                                             ? ['label' => 'Local TLS', 'variant' => 'brand']
                                             : $statusMeta($domain->cf_ssl_status);
                                     @endphp
-                                    <tr class="border-t border-gray-200 dark:border-[#2a2a38] hover:bg-gray-50 dark:hover:bg-[#1e1e28]">
+                                    <tr class="border-t border-gray-200 dark:border-[#262632] hover:bg-gray-50 dark:hover:bg-[#181820]">
                                         <td class="px-6 py-4">
                                             <div class="font-medium text-gray-900 dark:text-gray-100">{{ $domain->domain }}</div>
                                             @if ($isPrimary)

@@ -86,7 +86,7 @@
 
                 <div class="grid gap-4 md:grid-cols-2">
                     {{-- Hostname routing status --}}
-                    <div class="rounded-lg border border-gray-200 dark:border-[#2a2a38] bg-gray-50 dark:bg-[#0e0e15] p-5">
+                    <div class="rounded-lg border border-gray-200 dark:border-[#262632] bg-gray-50 dark:bg-[#0e0e15] p-5">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Hostname Routing</p>
@@ -97,7 +97,7 @@
                     </div>
 
                     {{-- SSL certificate status --}}
-                    <div class="rounded-lg border border-gray-200 dark:border-[#2a2a38] bg-gray-50 dark:bg-[#0e0e15] p-5">
+                    <div class="rounded-lg border border-gray-200 dark:border-[#262632] bg-gray-50 dark:bg-[#0e0e15] p-5">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">SSL Certificate</p>
@@ -110,19 +110,19 @@
 
                 {{-- Info grid --}}
                 <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    <div class="rounded-lg border border-gray-200 dark:border-[#2a2a38] bg-white dark:bg-[#14141c] p-4">
+                    <div class="rounded-lg border border-gray-200 dark:border-[#262632] bg-white dark:bg-[#101016] p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Verification</p>
                         <div class="mt-2">
                             <x-badge :variant="$isActive ? 'success' : 'warning'">{{ $isActive ? 'Verified' : 'Not verified yet' }}</x-badge>
                         </div>
                         <p class="mt-2 text-xs text-gray-500 dark:text-gray-500">Verified at: {{ optional($domain->verified_at)->format('M d, Y H:i') ?? '-' }}</p>
                     </div>
-                    <div class="rounded-lg border border-gray-200 dark:border-[#2a2a38] bg-white dark:bg-[#14141c] p-4">
+                    <div class="rounded-lg border border-gray-200 dark:border-[#262632] bg-white dark:bg-[#101016] p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Cloudflare Hostname ID</p>
                         <p class="mt-2 break-all font-mono text-sm text-gray-900 dark:text-gray-100">{{ $domain->cf_hostname_id ?: '-' }}</p>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-500">Used to poll Cloudflare status for this domain.</p>
                     </div>
-                    <div class="rounded-lg border border-gray-200 dark:border-[#2a2a38] bg-white dark:bg-[#14141c] p-4">
+                    <div class="rounded-lg border border-gray-200 dark:border-[#262632] bg-white dark:bg-[#101016] p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Sync</p>
                         <p class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">{{ optional($domain->cf_last_checked_at)->format('M d, Y H:i') ?? '-' }}</p>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-500">This updates whenever create or check-status runs.</p>
@@ -132,11 +132,11 @@
                 {{-- DNS configuration (non-primary domains) --}}
                 @if (! $isPrimary)
                     <div class="pt-5">
-                        <div class="rounded-lg bg-stone-50 dark:bg-[#1e1e28] p-5 text-sm text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-[#2a2a38]">
+                        <div class="rounded-lg bg-stone-50 dark:bg-[#181820] p-5 text-sm text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-[#262632]">
                             <p class="font-semibold">DNS configuration</p>
                             <p class="mt-1">Ask the tenant to create this record.</p>
 
-                            <div class="mt-4 overflow-x-auto rounded-lg bg-white dark:bg-[#14141c] border border-stone-200 dark:border-[#2a2a38]">
+                            <div class="mt-4 overflow-x-auto rounded-lg bg-white dark:bg-[#101016] border border-stone-200 dark:border-[#262632]">
                                 <table class="w-full text-left text-sm">
                                     <thead class="bg-gray-50 dark:bg-[#0e0e15]">
                                         <tr>
@@ -146,8 +146,8 @@
                                             <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Proxy</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white dark:bg-[#14141c] text-gray-700 dark:text-gray-300">
-                                        <tr class="border-t border-gray-200 dark:border-[#2a2a38]">
+                                    <tbody class="bg-white dark:bg-[#101016] text-gray-700 dark:text-gray-300">
+                                        <tr class="border-t border-gray-200 dark:border-[#262632]">
                                             <td class="px-4 py-3 font-semibold">CNAME</td>
                                             <td class="px-4 py-3 font-mono text-xs">{{ $cnameName }}</td>
                                             <td class="px-4 py-3 break-all font-mono text-xs">{{ $fallbackOrigin }}</td>
@@ -186,30 +186,30 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <tbody class="divide-y divide-gray-200 dark:divide-[#2a2a38]">
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38]">
+                        <tbody class="divide-y divide-gray-200 dark:divide-[#262632]">
+                            <tr class="border-t border-gray-200 dark:border-[#262632]">
                                 <th class="w-56 py-3 font-medium text-gray-500 dark:text-gray-400">Domain</th>
                                 <td class="py-3 text-gray-900 dark:text-gray-100">{{ $domain->domain }}</td>
                             </tr>
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38]">
+                            <tr class="border-t border-gray-200 dark:border-[#262632]">
                                 <th class="py-3 font-medium text-gray-500 dark:text-gray-400">Hostname status</th>
                                 <td class="py-3 text-gray-900 dark:text-gray-100">{{ $domain->cf_hostname_status ?? 'not available' }}</td>
                             </tr>
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38]">
+                            <tr class="border-t border-gray-200 dark:border-[#262632]">
                                 <th class="py-3 font-medium text-gray-500 dark:text-gray-400">SSL status</th>
                                 <td class="py-3 text-gray-900 dark:text-gray-100">{{ $domain->cf_ssl_status ?? 'not available' }}</td>
                             </tr>
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38]">
+                            <tr class="border-t border-gray-200 dark:border-[#262632]">
                                 <th class="py-3 font-medium text-gray-500 dark:text-gray-400">Verified</th>
                                 <td class="py-3">
                                     <x-badge :variant="$isActive ? 'success' : 'neutral'">{{ $isActive ? 'yes' : 'no' }}</x-badge>
                                 </td>
                             </tr>
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38]">
+                            <tr class="border-t border-gray-200 dark:border-[#262632]">
                                 <th class="py-3 font-medium text-gray-500 dark:text-gray-400">Last checked</th>
                                 <td class="py-3 text-gray-900 dark:text-gray-100">{{ optional($domain->cf_last_checked_at)->format('M d, Y H:i') ?? '-' }}</td>
                             </tr>
-                            <tr class="border-t border-gray-200 dark:border-[#2a2a38]">
+                            <tr class="border-t border-gray-200 dark:border-[#262632]">
                                 <th class="py-3 font-medium text-gray-500 dark:text-gray-400">Cloudflare error</th>
                                 <td class="py-3 text-gray-900 dark:text-gray-100">{{ $domain->cf_error ?: 'none' }}</td>
                             </tr>

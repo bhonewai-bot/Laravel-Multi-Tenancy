@@ -31,7 +31,7 @@
                 <div class="mt-2">
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         {{ __('Your email address is unverified.') }}
-                        <button form="send-verification" class="underline text-sm text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-[#0a0a0f]">
+                        <button form="send-verification" class="underline text-sm text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-[#08080c]">
                             {{ __('Click here to re-send the verification email.') }}
                         </button>
                     </p>

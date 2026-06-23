@@ -14,7 +14,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-gray-100 dark:bg-[#0a0a0f] text-gray-900 dark:text-gray-100">
+    <body class="font-sans antialiased bg-gray-100 dark:bg-[#08080c] text-gray-900 dark:text-gray-100">
         @php
             $isTenant = (bool) tenant();
         @endphp
@@ -24,7 +24,7 @@
 
             <div class="flex min-w-0 flex-1 flex-col">
                 {{-- Sticky Header --}}
-                <header class="sticky top-0 z-30 border-b border-gray-200 dark:border-[#2a2a38] bg-white/80 dark:bg-[#14141c]/80 backdrop-blur-xl">
+                <header class="sticky top-0 z-30 border-b border-gray-200 dark:border-[#262632] bg-white/80 dark:bg-[#101016]/80 backdrop-blur-xl">
                     <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
 
                         {{-- Left: Mobile sidebar toggle + Breadcrumbs --}}
@@ -33,7 +33,7 @@
                             <button
                                 x-data
                                 @click="$dispatch('toggle-mobile-sidebar')"
-                                class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1e1e28] transition-colors md:hidden"
+                                class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#181820] transition-colors md:hidden"
                             >
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -48,7 +48,7 @@
                         {{-- Right: Tenant badge + Theme toggle + User menu --}}
                         <div class="flex items-center gap-2">
                             @if ($isTenant)
-                                <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                                <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-500/20">
                                     {{ tenant()->id }}
                                 </span>
                             @endif
@@ -62,7 +62,7 @@
 
                 {{-- Page Header Slot --}}
                 @isset($header)
-                    <div class="bg-white dark:bg-[#14141c] border-b border-gray-200 dark:border-[#2a2a38]">
+                    <div class="bg-white dark:bg-[#101016] border-b border-gray-200 dark:border-[#262632]">
                         <div class="px-4 sm:px-6 lg:px-8 py-5">
                             {{ $header }}
                         </div>

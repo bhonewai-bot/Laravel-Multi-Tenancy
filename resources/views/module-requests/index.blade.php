@@ -3,7 +3,7 @@
         <x-page-header title="Module Requests">
             <x-slot:actions>
                 <a href="{{ route('modules.index') }}"
-                    class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#2a2a38] bg-white dark:bg-[#1e1e28] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-[#2a2a38] transition-colors">
+                    class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#181820] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#262632] transition-colors">
                     Back to Modules
                 </a>
             </x-slot:actions>
@@ -24,7 +24,7 @@
                     @if ($moduleRequests->isEmpty())
                         <x-empty-state title="No requests found" description="Module requests from tenants will appear here." />
                     @else
-                        <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                        <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-[#262632]">
                             <thead>
                                 <tr>
                                     <th class="w-[14%] px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Tenant</th>
@@ -34,9 +34,9 @@
                                     <th class="w-[30%] px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                            <tbody class="divide-y divide-gray-200 dark:divide-[#262632]">
                                 @foreach ($moduleRequests as $request)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-[#1e1e28] transition-colors">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-[#181820] transition-colors">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $request->tenant_id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $request->module->name ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -55,7 +55,7 @@
                                                     <form method="POST" action="{{ route('module-requests.approve', $request) }}" class="inline-flex">
                                                         @csrf
                                                         <button type="submit"
-                                                            class="inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-green-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-green-500 transition-colors">
+                                                            class="inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-green-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-card hover:bg-green-500 transition-colors">
                                                             Approve
                                                         </button>
                                                     </form>
@@ -63,7 +63,7 @@
                                                     <form method="POST" action="{{ route('module-requests.reject', $request) }}" class="inline-flex">
                                                         @csrf
                                                         <button type="submit"
-                                                            class="inline-flex w-full items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500 transition-colors">
+                                                            class="inline-flex w-full items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-card hover:bg-red-500 transition-colors">
                                                             Reject
                                                         </button>
                                                     </form>

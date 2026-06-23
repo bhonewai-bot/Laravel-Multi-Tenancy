@@ -2,8 +2,8 @@
 
 <div {{ $attributes }}>
     {{-- Desktop table (hidden on mobile) --}}
-    <div class="hidden lg:block overflow-hidden rounded-lg border border-gray-200 dark:border-[#2a2a38]">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-[#2a2a38]">
+    <div class="hidden lg:block rounded-lg border border-gray-200 dark:border-[#262632]">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-[#262632]">
             {{ $slot }}
         </table>
     </div>

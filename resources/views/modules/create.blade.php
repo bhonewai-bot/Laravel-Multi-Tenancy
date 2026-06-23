@@ -17,7 +17,7 @@
 
                     <div class="mb-6">
                         <x-input-label for="module_file" :value="__('Module ZIP File')" />
-                        <div class="mt-1 flex justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-[#2a2a38] px-6 pb-6 pt-5 transition-colors hover:border-blue-400 dark:hover:border-blue-500">
+                        <div class="mt-1 flex justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-[#262632] px-6 pb-6 pt-5 transition-colors hover:border-blue-400 dark:hover:border-blue-500">
                             <div class="space-y-1 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                                     <path
@@ -28,7 +28,7 @@
                                     />
                                 </svg>
                                 <div class="flex text-sm text-gray-600 dark:text-gray-400">
-                                    <label for="module_file" class="relative cursor-pointer rounded-lg bg-white dark:bg-[#14141c] font-medium text-blue-600 dark:text-blue-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:text-blue-500">
+                                    <label for="module_file" class="relative cursor-pointer rounded-lg bg-white dark:bg-[#101016] font-medium text-blue-600 dark:text-blue-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:text-blue-500">
                                         <span>Upload a file</span>
                                         <input
                                             id="module_file"
@@ -56,7 +56,7 @@
 
                     <div class="flex items-center justify-end gap-3">
                         <a href="{{ route('modules.index') }}"
-                           class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#2a2a38] bg-white dark:bg-[#1e1e28] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-[#2a2a38] transition-colors">
+                           class="inline-flex items-center rounded-lg border border-gray-300 dark:border-[#262632] bg-white dark:bg-[#181820] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#262632] transition-colors">
                             Cancel
                         </a>
                         <x-primary-button>Upload Module</x-primary-button>

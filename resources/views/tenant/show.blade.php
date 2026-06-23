@@ -6,7 +6,7 @@
                     Back
                 </x-secondary-button>
                 <a href="{{ route('tenants.edit', $tenant) }}"
-                    class="inline-flex items-center px-4 py-2 bg-brand-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-brand-700 transition">
+                    class="inline-flex items-center px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 transition-all duration-200">
                     Edit
                 </a>
             </x-slot>
@@ -47,7 +47,7 @@
             </x-slot>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-[#262632]">
                     <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Domain</th>
@@ -55,7 +55,7 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Open</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-[#2a2a38]">
+                    <tbody class="divide-y divide-gray-200 dark:divide-[#262632]">
                         @forelse ($tenant->domains as $domain)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $domain->domain }}</td>

@@ -31,6 +31,13 @@ export default {
                     950: '#1e1b4b',
                 },
             },
+            boxShadow: {
+                'card': 'var(--shadow-card)',
+                'card-hover': 'var(--shadow-card-hover)',
+                'elevated': 'var(--shadow-elevated)',
+                'glow-brand': 'var(--glow-brand)',
+                'glow-brand-strong': 'var(--glow-brand-strong)',
+            },
         },
     },
 

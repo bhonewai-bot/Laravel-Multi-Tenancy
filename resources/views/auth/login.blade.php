@@ -50,24 +50,11 @@
             autocomplete="current-password"
         />
 
-        {{-- Remember me --}}
-        <label for="remember_me" class="flex items-center gap-2.5 cursor-pointer group">
-            <input
-                id="remember_me"
-                type="checkbox"
-                name="remember"
-                class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-brand-600 shadow-sm focus:ring-brand-500 dark:focus:ring-brand-400 dark:bg-gray-800"
-            >
-            <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
-                Remember me
-            </span>
-        </label>
-
         {{-- Submit --}}
         <div class="pt-1">
             <button
                 type="submit"
-                class="group relative w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white rounded-lg bg-brand-600 hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#0a0a0f] shadow-sm hover:shadow-md transition-all duration-200 ease-in-out disabled:opacity-75 disabled:cursor-not-allowed"
+                class="group relative w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white rounded-lg bg-brand-600 hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] shadow-card hover:shadow-md transition-all duration-200 ease-in-out disabled:opacity-75 disabled:cursor-not-allowed"
                 :disabled="submitting"
             >
                 <span x-show="!submitting" class="flex items-center gap-2">

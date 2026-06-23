@@ -36,7 +36,7 @@
                                 id="domain"
                                 name="domain"
                                 type="text"
-                                class="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#2a2a38] dark:bg-[#14141c] dark:text-gray-100 focus:border-brand-500 focus:ring-brand-500"
+                                class="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#262632] dark:bg-[#101016] dark:text-gray-100 focus:border-brand-500 focus:ring-brand-500"
                                 placeholder="shop.example.com"
                                 :value="old('domain')"
                                 required

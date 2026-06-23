@@ -30,6 +30,8 @@ Route::middleware('auth')->group(function () {
 
     // Domain
 
+    // Design System (dev reference)
+    Route::get('/design-system', fn () => view('design-system.index'))->name('design-system');
 });
 
 require __DIR__.'/auth.php';

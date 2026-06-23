@@ -2,7 +2,7 @@
     <x-page-header title="Role Details">
         <x-slot:actions>
             <a href="{{ route('tenant.roles.index', absolute: false) }}"
-                class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#14141c] border border-gray-300 dark:border-[#2a2a38] rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#101016] border border-gray-300 dark:border-[#262632] rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] transition">
                 Back to Roles
             </a>
         </x-slot:actions>
@@ -30,7 +30,7 @@
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     @forelse ($role->permissions->groupBy(fn ($permission) => $permission->feature?->name ?? 'other') as $featureName => $permissions)
-                        <div class="rounded-lg border border-gray-200 dark:border-[#2a2a38] p-4">
+                        <div class="rounded-lg border border-gray-200 dark:border-[#262632] p-4">
                             <h4 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $featureName }}</h4>
                             <div class="mt-2 flex flex-wrap gap-2">
                                 @foreach ($permissions as $permission)

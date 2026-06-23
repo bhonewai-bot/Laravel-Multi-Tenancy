@@ -6,11 +6,13 @@
     {{ $attributes->merge(['class' => '
         group relative w-full flex items-center justify-center gap-2
         px-6 py-3 text-sm font-semibold text-white rounded-lg
-        bg-brand-600 hover:bg-brand-700 active:bg-brand-800
-        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900
-        shadow-sm hover:shadow-md
+        bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20
+        hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700
+        active:from-brand-600 active:to-brand-800
+        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c]
+        shadow-card
         transition-all duration-200 ease-in-out
-        disabled:opacity-75 disabled:cursor-not-allowed
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none
     ']) }}
 >
     <span x-show="!submitting" class="flex items-center gap-2">

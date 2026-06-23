@@ -32,7 +32,7 @@
                 <div>
                     <x-input-label for="role_id" :value="__('Role')" />
                     <select id="role_id" name="role_id"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#2a2a38] dark:bg-[#14141c] dark:text-gray-100 shadow-sm focus:border-brand-500 focus:ring-brand-500">
+                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#262632] dark:bg-[#101016] dark:text-gray-100 shadow-card focus:border-brand-500 focus:ring-brand-500">
                         <option value="">Select role</option>
                         @foreach ($roles as $role)
                             <option value="{{ $role->id }}" @selected((string) old('role_id') === (string) $role->id)>{{ ucfirst($role->name) }}</option>

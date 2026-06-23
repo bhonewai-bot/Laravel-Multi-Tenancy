@@ -1,6 +1,6 @@
 @props(['label', 'value', 'icon' => null, 'description' => null, 'trend' => null, 'trendDirection' => null])
 
-<div {{ $attributes->merge(['class' => 'bg-white dark:bg-[#14141c] rounded-lg border border-gray-200 dark:border-[#2a2a38] p-6 shadow-sm']) }}>
+<div {{ $attributes->merge(['class' => 'group bg-white dark:bg-[#101016] rounded-xl border border-gray-200 dark:border-[#262632] p-6 shadow-card hover:shadow-card-hover hover:border-brand-200 dark:hover:border-brand-800/40 transition-all duration-300']) }}>
     <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{{ $label }}</p>
@@ -26,7 +26,7 @@
             @endif
         </div>
         @if ($icon)
-            <div class="ml-4 p-3 rounded-lg bg-brand-50 dark:bg-brand-900/20">
+            <div class="ml-4 p-3 rounded-xl bg-brand-50 dark:bg-brand-500/10 group-hover:bg-brand-100 dark:group-hover:bg-brand-500/15 transition-colors duration-300">
                 <div class="w-6 h-6 text-brand-600 dark:text-brand-400">
                     {{ $icon }}
                 </div>
