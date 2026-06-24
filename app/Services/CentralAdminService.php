@@ -23,8 +23,6 @@ class CentralAdminService
      * - Reads central auth configuration.
      * - Writes to the central users table.
      * - Emits operational log entries when the bootstrap is skipped or completed.
-     *
-     * @return void
      */
     public function ensureConfiguredSuperAdminExists(): void
     {

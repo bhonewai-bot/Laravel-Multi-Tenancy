@@ -4,11 +4,11 @@ namespace Tests\Feature\Tenancy;
 
 use App\Models\User;
 use Database\Seeders\TenantBootstrapSeeder;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Tests\TestCase;
 
 class TenantBootstrapSeederTest extends TestCase

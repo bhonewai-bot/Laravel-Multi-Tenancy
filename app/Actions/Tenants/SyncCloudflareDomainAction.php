@@ -9,16 +9,16 @@ use App\Services\DomainCloudflareSyncService;
 use App\Services\TenantDomainService;
 
 /**
-     * Synchronize central domain metadata with Cloudflare hostname state.
-     *
-     * Side effects:
-     * - May call Cloudflare.
-     * - Writes Cloudflare status fields to the central domains table.
-     *
-     * @param  Tenant  $tenant
-     * @param  Domain  $domain
-     * @return void
-     */
+ * Synchronize central domain metadata with Cloudflare hostname state.
+ *
+ * Side effects:
+ * - May call Cloudflare.
+ * - Writes Cloudflare status fields to the central domains table.
+ *
+ * @param  Tenant  $tenant
+ * @param  Domain  $domain
+ * @return void
+ */
 class SyncCloudflareDomainAction
 {
     public function __construct(
@@ -26,7 +26,8 @@ class SyncCloudflareDomainAction
         private DomainCloudflareSyncService $domainSyncService
     ) {}
 
-    public function execute(Tenant $tenant, Domain $domain): void {
+    public function execute(Tenant $tenant, Domain $domain): void
+    {
         if (! config('cloudflare.enabled') || $this->domainService->isPrimarySubDomain($tenant, $domain->domain)) {
             // Platform-managed subdomains are trusted by convention and do not need custom-hostname status.
             $domain->forceFill([
@@ -56,7 +57,7 @@ class SyncCloudflareDomainAction
             $domain->forceFill([
                 'cf_last_checked_at' => now(),
                 'cf_error' => $e->getMessage(),
-                'verified_at' => null
+                'verified_at' => null,
             ])->save();
         }
     }

@@ -13,14 +13,13 @@ class ModuleRequestController extends Controller
 {
     /**
      * Display module requests with related tenant and module data.
-     *
-     * @return View
      */
     public function index(): View
     {
         $moduleRequests = ModuleRequest::with(['tenant', 'module'])
             ->latest()
             ->paginate(20);
+
         return view('module-requests.index', compact('moduleRequests'));
     }
 
@@ -29,9 +28,6 @@ class ModuleRequestController extends Controller
      *
      * Side effects:
      * - Writes review state to the central module_requests table.
-     *
-     * @param  ModuleRequest  $moduleRequest
-     * @return RedirectResponse
      */
     public function approve(ModuleRequest $moduleRequest): RedirectResponse
     {
@@ -41,14 +37,14 @@ class ModuleRequestController extends Controller
 
         $moduleRequest->loadMissing(['tenant', 'module']);
 
-        if (!$moduleRequest->tenant || !$moduleRequest->module) {
+        if (! $moduleRequest->tenant || ! $moduleRequest->module) {
             return back()->with('error', 'Request not found');
         }
 
         $moduleRequest->update([
             'status' => 'approved',
             'reviewed_at' => now(),
-            'review_note' => null
+            'review_note' => null,
         ]);
 
         return back()->with('success', 'Module request approved.');
@@ -59,9 +55,6 @@ class ModuleRequestController extends Controller
      *
      * Side effects:
      * - Writes review state to the central module_requests table.
-     *
-     * @param  ModuleRequest  $moduleRequest
-     * @return RedirectResponse
      */
     public function reject(ModuleRequest $moduleRequest): RedirectResponse
     {

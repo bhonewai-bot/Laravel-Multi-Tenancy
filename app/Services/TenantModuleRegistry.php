@@ -11,24 +11,27 @@ namespace App\Services;
 class TenantModuleRegistry
 {
     public const ACTION_INSTALL = 'install';
+
     public const ACTION_UNINSTALL = 'uninstall';
 
     public const OP_STATUS_QUEUED = 'queued';
+
     public const OP_STATUS_RUNNING = 'running';
+
     public const OP_STATUS_SUCCESS = 'success';
+
     public const OP_STATUS_FAILED = 'failed';
 
     /**
      * Return the normalized list of modules installed for the tenant.
      *
      * @param  mixed  $tenant
-     * @return array
      */
     public function getInstalledModules($tenant): array
     {
         $installed = $tenant->getAttribute('installed_modules') ?? [];
 
-        if (!is_array($installed)) {
+        if (! is_array($installed)) {
             return [];
         }
 
@@ -42,8 +45,6 @@ class TenantModuleRegistry
      * - Writes to the central tenant record.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return void
      */
     public function markInstalled($tenant, string $slug): void
     {
@@ -64,8 +65,6 @@ class TenantModuleRegistry
      * - Writes to the central tenant record.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return void
      */
     public function markUninstalled($tenant, string $slug): void
     {
@@ -82,7 +81,6 @@ class TenantModuleRegistry
      * Return all module operation records tracked for the tenant.
      *
      * @param  mixed  $tenant
-     * @return array
      */
     public function getModuleOperations($tenant): array
     {
@@ -95,14 +93,13 @@ class TenantModuleRegistry
      * Return the operation state for a single module slug.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return array|null
      */
     public function getModuleOperation($tenant, string $slug): ?array
     {
         $operations = $this->getModuleOperations($tenant);
 
         $operation = $operations[$slug] ?? null;
+
         return is_array($operation) ? $operation : null;
     }
 
@@ -110,10 +107,6 @@ class TenantModuleRegistry
      * Record that a module operation has been queued.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function startModuleOperation($tenant, string $slug, string $action, string $message = ''): void
     {
@@ -124,10 +117,6 @@ class TenantModuleRegistry
      * Record that a queued module operation is actively running.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function markModuleOperationRunning($tenant, string $slug, string $action, string $message = ''): void
     {
@@ -138,10 +127,6 @@ class TenantModuleRegistry
      * Record that a module operation completed successfully.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function markModuleOperationSucceeded($tenant, string $slug, string $action, string $message): void
     {
@@ -152,10 +137,6 @@ class TenantModuleRegistry
      * Record that a module operation failed.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function markModuleOperationFailed($tenant, string $slug, string $action, string $message): void
     {
@@ -169,8 +150,6 @@ class TenantModuleRegistry
      * - Writes to the central tenant record.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return void
      */
     public function clearModuleOperation($tenant, string $slug): void
     {
@@ -185,9 +164,6 @@ class TenantModuleRegistry
 
     /**
      * Determine whether the operation status is final.
-     *
-     * @param  string|null  $status
-     * @return bool
      */
     public function isTerminalStatus(?string $status): bool
     {
@@ -196,9 +172,6 @@ class TenantModuleRegistry
 
     /**
      * Determine whether the operation is still in progress.
-     *
-     * @param  string|null  $status
-     * @return bool
      */
     public function isProcessingStatus(?string $status): bool
     {
@@ -209,8 +182,6 @@ class TenantModuleRegistry
      * Persist the installed module list back to the central tenant record.
      *
      * @param  mixed  $tenant
-     * @param  array  $installed
-     * @return void
      */
     private function saveInstalledModules($tenant, array $installed): void
     {
@@ -226,11 +197,6 @@ class TenantModuleRegistry
      * bypass the surrounding locking conventions.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $status
-     * @param  string  $message
-     * @return void
      */
     private function upsertModuleOperation($tenant, string $slug, string $action, string $status, string $message): void
     {

@@ -1,21 +1,26 @@
 <x-app-layout>
-    <x-slot name="header">
-        <x-page-header title="Edit Tenant" />
-    </x-slot>
+    <div class="animate-fade-up">
 
-    <div class="max-w-2xl">
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Tenant</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $tenant->name ?? $tenant->id }}</p>
+            </div>
+            <a href="{{ route('tenants.index') }}">
+                <x-secondary-button type="button">Back to Tenants</x-secondary-button>
+            </a>
+        </div>
+
+        {{-- Errors --}}
         @if ($errors->any())
-            <div class="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 text-sm text-red-700 dark:text-red-400">
-                <p class="font-semibold">Please fix the following errors:</p>
-                <ul class="mt-2 list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+            <div class="mb-6">
+                <x-alert variant="error">Please fix the errors below.</x-alert>
             </div>
         @endif
 
-        <form method="POST" action="{{ route('tenants.update', $tenant) }}">
+        {{-- Form --}}
+        <form method="POST" action="{{ route('tenants.update', $tenant) }}" x-data="{ submitting: false }" @submit="submitting = true">
             @csrf
             @method('PUT')
 
@@ -58,12 +63,12 @@
 
                 <x-slot name="footer">
                     <div class="flex items-center justify-end gap-3">
-                        <a href="{{ route('tenants.index') }}"
-                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-[#101016] border border-gray-300 dark:border-[#262632] rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 shadow-card hover:bg-gray-50 dark:hover:bg-[#181820] transition">
-                            Cancel
+                        <a href="{{ route('tenants.index') }}">
+                            <x-secondary-button type="button">Cancel</x-secondary-button>
                         </a>
-                        <x-primary-button>
-                            Save Changes
+                        <x-primary-button x-bind:disabled="submitting">
+                            <span x-show="!submitting">UPDATE TENANT</span>
+                            <span x-show="submitting" x-cloak>UPDATING...</span>
                         </x-primary-button>
                     </div>
                 </x-slot>

@@ -23,9 +23,11 @@ class SyncPendingCloudflareDomain implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private const MAX_ATTEMPTS = 15;
+
     private const RETRY_DELAY_SECONDS = 120;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -40,9 +42,6 @@ class SyncPendingCloudflareDomain implements ShouldQueue
      * - Reads and writes the central domains table.
      * - Calls Cloudflare.
      * - Dispatches a follow-up queue job while activation is still in progress.
-     *
-     * @param  DomainCloudflareSyncService  $syncService
-     * @return void
      */
     public function handle(DomainCloudflareSyncService $syncService): void
     {
@@ -68,9 +67,6 @@ class SyncPendingCloudflareDomain implements ShouldQueue
      * Side effects:
      * - Writes failure metadata to the central domains table.
      * - Emits an error log.
-     *
-     * @param  Throwable  $exception
-     * @return void
      */
     public function failed(Throwable $exception): void
     {

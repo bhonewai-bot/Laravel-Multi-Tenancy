@@ -8,10 +8,7 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a new custom domain for your application.</p>
             </div>
             <a href="{{ route('tenant.domains.index', absolute: false) }}">
-                <x-secondary-button type="button">
-                    <x-heroicon-o-arrow-left class="w-4 h-4" />
-                    Back to Domains
-                </x-secondary-button>
+                <x-secondary-button type="button">Back to Domains</x-secondary-button>
             </a>
         </div>
 

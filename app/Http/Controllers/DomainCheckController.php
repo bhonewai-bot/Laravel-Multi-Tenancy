@@ -19,10 +19,6 @@ class DomainCheckController extends Controller
      *
      * Side effects:
      * - Reads the central domains table.
-     *
-     * @param  Request  $request
-     * @param  TenantDomainService  $domainService
-     * @return Response
      */
     public function __invoke(Request $request, TenantDomainService $domainService): Response
     {
@@ -33,7 +29,7 @@ class DomainCheckController extends Controller
             return response('Domain-check token not configured', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        if (!hash_equals($configuredToken, $providedToken)) {
+        if (! hash_equals($configuredToken, $providedToken)) {
             return response('Unauthorized', 403);
         }
 

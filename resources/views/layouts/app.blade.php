@@ -9,7 +9,7 @@
 
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=inter:400;500;600;700&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
@@ -31,8 +31,7 @@
                         <div class="flex items-center gap-3">
                             {{-- Mobile sidebar toggle --}}
                             <button
-                                x-data
-                                @click="$dispatch('toggle-mobile-sidebar')"
+                                @click="$store.sidebar.toggleMobile()"
                                 class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#181820] transition-colors md:hidden"
                             >
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -76,6 +75,6 @@
             </div>
         </div>
 
-        @livewireScripts
+        @livewireScriptConfig
     </body>
 </html>

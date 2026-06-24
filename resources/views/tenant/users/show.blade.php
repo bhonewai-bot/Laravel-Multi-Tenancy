@@ -10,17 +10,11 @@
             <div class="flex items-center gap-2">
                 @can('update', $user)
                     <a href="{{ route('tenant.users.edit', $user, absolute: false) }}">
-                        <x-secondary-button type="button">
-                            <x-heroicon-o-pencil class="w-4 h-4" />
-                            Edit User
-                        </x-secondary-button>
+                        <x-secondary-button type="button">Edit User</x-secondary-button>
                     </a>
                 @endcan
                 <a href="{{ route('tenant.users.index', absolute: false) }}">
-                    <x-secondary-button type="button">
-                        <x-heroicon-o-arrow-left class="w-4 h-4" />
-                        Back to Users
-                    </x-secondary-button>
+                    <x-secondary-button type="button">Back to Users</x-secondary-button>
                 </a>
             </div>
         </div>

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Faker\Provider\Base;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;

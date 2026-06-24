@@ -25,8 +25,6 @@ class TenantController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return View
      */
     public function index(): View
     {
@@ -37,8 +35,6 @@ class TenantController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -51,9 +47,6 @@ class TenantController extends Controller
      * Side effects:
      * - Writes tenant and domain records to the central database.
      * - May call Cloudflare to provision domain state.
-     *
-     * @param  TenantStoreRequest  $request
-     * @return RedirectResponse
      */
     public function store(TenantStoreRequest $request): RedirectResponse
     {
@@ -66,9 +59,6 @@ class TenantController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param  Tenant  $tenant
-     * @return View
      */
     public function show(Tenant $tenant): View
     {
@@ -79,9 +69,6 @@ class TenantController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param  Tenant  $tenant
-     * @return View
      */
     public function edit(Tenant $tenant): View
     {
@@ -96,10 +83,6 @@ class TenantController extends Controller
      * Side effects:
      * - Writes tenant and domain changes to the central database.
      * - May call Cloudflare to refresh hostname state.
-     *
-     * @param  TenantUpdateRequest  $request
-     * @param  Tenant  $tenant
-     * @return RedirectResponse
      */
     public function update(TenantUpdateRequest $request, Tenant $tenant): RedirectResponse
     {
@@ -116,9 +99,6 @@ class TenantController extends Controller
      * Side effects:
      * - Deletes the central tenant record.
      * - Triggers downstream tenancy cleanup listeners.
-     *
-     * @param  Tenant  $tenant
-     * @return RedirectResponse
      */
     public function destroy(Tenant $tenant): RedirectResponse
     {

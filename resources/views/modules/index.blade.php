@@ -99,16 +99,20 @@
 
                                     {{-- Actions --}}
                                     <td class="px-5 py-4 text-right">
-                                        <form method="POST" action="{{ route('modules.toggle', $module) }}" class="inline-flex">
+                                        <form method="POST" action="{{ route('modules.toggle', $module) }}" x-data="{ toggling: false }" @submit="toggling = true">
                                             @csrf
                                             @if ($module->is_active)
-                                                <x-danger-button type="submit">
-                                                    Disable
-                                                </x-danger-button>
+                                                <button type="submit" :disabled="toggling"
+                                                    class="inline-flex items-center px-4 py-2 bg-gradient-to-b from-red-500 to-red-600 border border-red-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] hover:from-red-500 hover:to-red-700 active:from-red-600 active:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                                                    <span x-show="!toggling">DISABLE</span>
+                                                    <span x-show="toggling" x-cloak>DISABLING...</span>
+                                                </button>
                                             @else
-                                                <x-primary-button type="submit">
-                                                    Enable
-                                                </x-primary-button>
+                                                <button type="submit" :disabled="toggling"
+                                                    class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                                    <span x-show="!toggling">ENABLE</span>
+                                                    <span x-show="toggling" x-cloak>ENABLING...</span>
+                                                </button>
                                             @endif
                                         </form>
                                     </td>
@@ -146,16 +150,20 @@
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <form method="POST" action="{{ route('modules.toggle', $module) }}" class="flex-1">
+                                <form method="POST" action="{{ route('modules.toggle', $module) }}" x-data="{ toggling: false }" @submit="toggling = true" class="flex-1">
                                     @csrf
                                     @if ($module->is_active)
-                                        <x-danger-button type="submit" class="w-full">
-                                            Disable
-                                        </x-danger-button>
+                                        <button type="submit" :disabled="toggling"
+                                            class="inline-flex w-full items-center justify-center px-4 py-2 bg-gradient-to-b from-red-500 to-red-600 border border-red-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] hover:from-red-500 hover:to-red-700 active:from-red-600 active:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                                            <span x-show="!toggling">DISABLE</span>
+                                            <span x-show="toggling" x-cloak>DISABLING...</span>
+                                        </button>
                                     @else
-                                        <x-primary-button type="submit" class="w-full">
-                                            Enable
-                                        </x-primary-button>
+                                        <button type="submit" :disabled="toggling"
+                                            class="inline-flex w-full items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                            <span x-show="!toggling">ENABLE</span>
+                                            <span x-show="toggling" x-cloak>ENABLING...</span>
+                                        </button>
                                     @endif
                                 </form>
                             </div>

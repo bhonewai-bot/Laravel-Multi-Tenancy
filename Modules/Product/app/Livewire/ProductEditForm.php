@@ -15,10 +15,15 @@ class ProductEditForm extends Component
     public Product $product;
 
     public string $name = '';
+
     public string $sku = '';
+
     public string $price = '';
+
     public string $quantity = '';
+
     public string $description = '';
+
     public $image = null;
 
     public function mount(Product $product): void
@@ -33,11 +38,11 @@ class ProductEditForm extends Component
 
     protected function rules(): array
     {
-        return[
+        return [
             'name' => ['required', 'string', 'max:255'],
             'sku' => [
-                'required', 
-                'string', 
+                'required',
+                'string',
                 'max:255',
                 Rule::unique('products', 'sku')->ignore($this->product->id),
             ],

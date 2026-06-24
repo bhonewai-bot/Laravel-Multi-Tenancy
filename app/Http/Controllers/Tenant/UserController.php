@@ -17,8 +17,6 @@ class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
-     * @return View
      */
     public function index(): View
     {
@@ -31,8 +29,6 @@ class UserController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -48,9 +44,6 @@ class UserController extends Controller
      *
      * Side effects:
      * - Writes a user record to the tenant database.
-     *
-     * @param  UserStoreRequest  $request
-     * @return RedirectResponse
      */
     public function store(UserStoreRequest $request): RedirectResponse
     {
@@ -62,7 +55,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
-            'role_id' => $validated['role_id'] ?? null
+            'role_id' => $validated['role_id'] ?? null,
         ]);
 
         return redirect()->route('tenant.users.index')->with('success', 'User created successfully.');
@@ -70,9 +63,6 @@ class UserController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param  User  $user
-     * @return View
      */
     public function show(User $user): View
     {
@@ -85,9 +75,6 @@ class UserController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param  User  $user
-     * @return View
      */
     public function edit(User $user): View
     {
@@ -104,10 +91,6 @@ class UserController extends Controller
      *
      * Side effects:
      * - Writes to the tenant users table.
-     *
-     * @param  UserUpdateRequest  $request
-     * @param  User  $user
-     * @return RedirectResponse
      */
     public function update(UserUpdateRequest $request, User $user): RedirectResponse
     {
@@ -151,9 +134,6 @@ class UserController extends Controller
      *
      * Side effects:
      * - Deletes a user from the tenant database.
-     *
-     * @param  User  $user
-     * @return RedirectResponse
      */
     public function destroy(User $user): RedirectResponse
     {

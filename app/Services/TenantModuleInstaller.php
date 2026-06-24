@@ -19,8 +19,11 @@ use RuntimeException;
 class TenantModuleInstaller
 {
     public const RESULT_INSTALLED = 'installed';
+
     public const RESULT_ALREADY_INSTALLED = 'already_installed';
+
     public const RESULT_UNINSTALLED = 'uninstalled';
+
     public const RESULT_ALREADY_UNINSTALLED = 'already_uninstalled';
 
     public function __construct(
@@ -36,7 +39,6 @@ class TenantModuleInstaller
      *
      * @param  mixed  $tenant
      * @param  mixed  $module
-     * @return string
      */
     public function install($tenant, $module): string
     {
@@ -48,11 +50,11 @@ class TenantModuleInstaller
             // Resolve module files before mutating tenant state so missing assets fail cleanly.
             $migrationPath = $this->resolveMigrationPath($module);
 
-            if (!$migrationPath) {
+            if (! $migrationPath) {
                 throw new RuntimeException("Module files not found for '{$module->name}'.");
             }
 
-            $phpMigrations = glob($migrationPath . '/*.php') ?: [];
+            $phpMigrations = glob($migrationPath.'/*.php') ?: [];
             if (count($phpMigrations) === 0) {
                 throw new RuntimeException("No migration files found for '{$module->name}'.");
             }
@@ -87,18 +89,17 @@ class TenantModuleInstaller
      *
      * @param  mixed  $tenant
      * @param  mixed  $module
-     * @return string
      */
     public function uninstall($tenant, $module): string
     {
         return $this->withOperationLock($tenant, $module, function () use ($tenant, $module): string {
-            if (!in_array($module->slug, $this->registry->getInstalledModules($tenant), true)) {
+            if (! in_array($module->slug, $this->registry->getInstalledModules($tenant), true)) {
                 return self::RESULT_ALREADY_UNINSTALLED;
             }
 
             $migrationPath = $this->resolveMigrationPath($module);
 
-            if (!$migrationPath) {
+            if (! $migrationPath) {
                 throw new RuntimeException("Module files not found for '{$module->name}'.");
             }
 
@@ -123,7 +124,6 @@ class TenantModuleInstaller
      * Resolve the filesystem path containing the module's migration files.
      *
      * @param  mixed  $module
-     * @return string|null
      */
     private function resolveMigrationPath($module): ?string
     {
@@ -153,20 +153,19 @@ class TenantModuleInstaller
      * - Executes an Artisan seeding command against the tenant connection.
      *
      * @param  mixed  $module
-     * @return void
      */
     private function runSeederIfExists($module): void
     {
         $seederClass = $this->resolveSeederClass($module);
 
-        if (!$seederClass) {
+        if (! $seederClass) {
             return;
         }
 
         $seedExitCode = Artisan::call('db:seed', [
             '--database' => 'tenant',
             '--class' => $seederClass,
-            '--force' => true
+            '--force' => true,
         ]);
 
         if ($seedExitCode !== 0) {
@@ -178,7 +177,6 @@ class TenantModuleInstaller
      * Resolve the module seeder class using both display name and slug conventions.
      *
      * @param  mixed  $module
-     * @return string|null
      */
     private function resolveSeederClass($module): ?string
     {
@@ -207,8 +205,6 @@ class TenantModuleInstaller
      *
      * @param  mixed  $tenant
      * @param  mixed  $module
-     * @param  callable  $operation
-     * @return string
      */
     private function withOperationLock($tenant, $module, callable $operation): string
     {
@@ -219,7 +215,7 @@ class TenantModuleInstaller
         }
 
         // Module migrations are not transaction-safe across all drivers, so a coarse lock is used instead.
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             throw new RuntimeException('Another module operation is running. Please retry in a moment.');
         }
 
@@ -235,7 +231,6 @@ class TenantModuleInstaller
      *
      * @param  mixed  $tenant
      * @param  mixed  $module
-     * @return string
      */
     private function lockKey($tenant, $module): string
     {

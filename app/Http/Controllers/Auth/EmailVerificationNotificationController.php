@@ -17,9 +17,6 @@ class EmailVerificationNotificationController extends Controller
      *
      * Side effects:
      * - Dispatches an email verification notification when needed.
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {

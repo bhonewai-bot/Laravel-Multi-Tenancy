@@ -30,7 +30,7 @@ class TenantStoreRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
-    
+
     public function messages(): array
     {
         return [

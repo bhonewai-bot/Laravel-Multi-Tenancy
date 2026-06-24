@@ -21,10 +21,6 @@ class CloudflareHostnameChallengeController extends Controller
      *
      * Side effects:
      * - Reads from the central domains table.
-     *
-     * @param  Request  $request
-     * @param  string  $hostnameId
-     * @return Response
      */
     public function __invoke(Request $request, string $hostnameId): Response
     {

@@ -61,7 +61,7 @@ class HostResolver
     protected function isPrimarySubDomain(Domain $domain): bool
     {
         foreach ($this->centralDomains() as $centralDomain) {
-            if (str_ends_with($domain->domain, '.' . $centralDomain)) {
+            if (str_ends_with($domain->domain, '.'.$centralDomain)) {
                 return true;
             }
         }

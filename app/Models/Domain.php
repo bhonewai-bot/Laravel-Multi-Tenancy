@@ -16,12 +16,12 @@ class Domain extends ModelsDomain
         'cf_error',
         'cf_payload',
         'verified_at',
-        'verification_code'
+        'verification_code',
     ];
 
     protected $casts = [
         'cf_last_checked_at' => 'datetime',
         'cf_payload' => 'array',
-        'verified_at' => 'datetime'
+        'verified_at' => 'datetime',
     ];
 }

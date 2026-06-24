@@ -132,10 +132,7 @@ Every page follows one of two patterns: **List** or **Form**. Copy the exact str
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Form description.</p>
             </div>
             <a href="{{ route('...') }}">
-                <x-secondary-button type="button">
-                    <x-heroicon-o-arrow-left class="w-4 h-4" />
-                    Back
-                </x-secondary-button>
+                <x-secondary-button type="button">Back</x-secondary-button>
             </a>
         </div>
 
@@ -156,10 +153,10 @@ Every page follows one of two patterns: **List** or **Form**. Copy the exact str
                         <a href="{{ route('...') }}">
                             <x-secondary-button type="button">Cancel</x-secondary-button>
                         </a>
-                        <button type="submit" :disabled="submitting" class="[PRIMARY BUTTON CLASSES]">
+                        <x-primary-button x-bind:disabled="submitting" type="submit">
                             <span x-show="!submitting">SAVE</span>
                             <span x-show="submitting" x-cloak>SAVING...</span>
-                        </button>
+                        </x-primary-button>
                     </div>
                 </x-slot>
             </x-card>
@@ -174,8 +171,9 @@ Every page follows one of two patterns: **List** or **Form**. Copy the exact str
 2. **Page structure:** Header → Alerts → Empty State (or) Table/Form → Pagination
 3. **Flash messages:** Always `<x-alert>`, wrapped in `<div class="mb-6">`
 4. **CTA buttons:** `<a>` link with inline primary button classes (not `<x-primary-button>` wrapped in `<a>`)
-5. **Submit buttons:** Inline `<button>` with primary button classes + `:disabled="submitting"` + loading state
+5. **Submit buttons:** Use `<x-primary-button x-bind:disabled="submitting" type="submit">` with Alpine loading state. Never use `:disabled` (Blade expression syntax) — always `x-bind:disabled` so Alpine evaluates it.
 6. **Table header:** `text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400`, `bg-gray-50/50 dark:bg-[#0e0e15]/50`
 7. **Table rows:** `hover:bg-gray-50/70 dark:hover:bg-[#181820]/70 transition-all duration-150`
 8. **Avatar squares:** `w-9 h-9 rounded-lg bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20`
 9. **Form footer buttons:** Cancel uses `<x-secondary-button>`, submit uses inline primary button with Alpine loading
+10. **Mobile sidebar:** A separate overlay (`fixed inset-0 z-50`) containing backdrop + slide-in panel using `x-show` + `x-transition` with `-translate-x-full` ↔ `translate-x-0`. The `<aside>` stays `hidden md:flex` untouched. Both feed from shared `_sidebar-nav.blade.php` partial.

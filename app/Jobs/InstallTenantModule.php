@@ -26,6 +26,7 @@ class InstallTenantModule implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -35,8 +36,6 @@ class InstallTenantModule implements ShouldQueue
 
     /**
      * Return the retry schedule for transient queue failures.
-     *
-     * @return array
      */
     public function backoff(): array
     {
@@ -50,10 +49,6 @@ class InstallTenantModule implements ShouldQueue
      * - Reads central tenant/module metadata.
      * - Writes module operation state to the central tenant record.
      * - Runs tenant migrations and seeders through TenantModuleInstaller.
-     *
-     * @param  TenantModuleInstaller  $installer
-     * @param  TenantModuleRegistry  $registry
-     * @return void
      */
     public function handle(TenantModuleInstaller $installer, TenantModuleRegistry $registry): void
     {
@@ -66,6 +61,7 @@ class InstallTenantModule implements ShouldQueue
                 'tenant_id' => $this->tenantId,
                 'module_id' => $this->moduleId,
             ]);
+
             return;
         }
 
@@ -110,9 +106,6 @@ class InstallTenantModule implements ShouldQueue
      * Side effects:
      * - Writes failure state to the central tenant record.
      * - Emits an error log for operations monitoring.
-     *
-     * @param  Throwable  $exception
-     * @return void
      */
     public function failed(Throwable $exception): void
     {

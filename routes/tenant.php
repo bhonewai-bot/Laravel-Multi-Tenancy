@@ -8,8 +8,6 @@ use App\Http\Controllers\Tenant\ModuleRequestController;
 use App\Http\Controllers\Tenant\RoleController;
 use App\Http\Controllers\Tenant\UserController;
 use App\Http\Middleware\RejectInvalidTenantHost;
-use App\Livewire\TenantCounter;
-use App\Livewire\TenantSearch;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;

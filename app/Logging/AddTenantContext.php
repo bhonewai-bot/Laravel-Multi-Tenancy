@@ -16,9 +16,6 @@ class AddTenantContext
 {
     /**
      * Register a Monolog processor that appends tenant, host, request, and job context.
-     *
-     * @param  Logger  $logger
-     * @return void
      */
     public function __invoke(Logger $logger): void
     {
@@ -67,6 +64,7 @@ class AddTenantContext
             }
 
             $record['extra'] = array_merge($record['extra'], $extra);
+
             return $record;
         });
     }

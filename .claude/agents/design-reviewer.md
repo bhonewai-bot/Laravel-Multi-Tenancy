@@ -51,7 +51,7 @@ For every Blade file you review, check:
 7. **Heroicons**: Sidebar icons must use Heroicons via `blade-heroicons` package, outline style (`<x-heroicon-o-*>`).
 8. **Button components**: Use `<x-primary-button>`, `<x-secondary-button>`, `<x-danger-button>`. Never write inline button classes. CTA links (`<a>`) that look like buttons must use the exact same classes as the button components + `ease-in-out`.
 9. **Alert component**: Flash/status messages must use `<x-alert variant="success|error|warning|info">`. Never inline alert divs.
-10. **`:class` on Blade components**: Use `x-bind:class` instead of `:class` on any `<x-*>` component.
+10. **`:class` / `:disabled` on Blade components**: Use `x-bind:class` instead of `:class`, and `x-bind:disabled` instead of `:disabled` on any `<x-*>` component. The `:` prefix causes Blade to evaluate as PHP, throwing "Undefined constant" errors. This applies to ALL Alpine bindings on Blade components — always use `x-bind:` prefix, never `:`.
 
 ### Important (Should Pass)
 11. **Border radius**: Buttons and inputs should use `rounded-lg`, not `rounded-md`.
@@ -66,6 +66,7 @@ For every Blade file you review, check:
 14. **Alpine.js scope**: `x-data` for form submission should be on `<form>`, not on `<button>`, to avoid isolated scope issues.
 15. **Tenant-aware content**: Guest layouts and dashboards should check `tenant()` for conditional content.
 16. **Dropdown link alignment**: Items with icon + text need `class="flex items-center gap-2"` on the `<x-dropdown-link>`.
+17. **Back button arrow icons**: Back/cancel buttons should NOT have arrow icons (`x-heroicon-o-arrow-left`). Secondary buttons provide enough visual affordance on their own.
 
 ## Process
 
@@ -117,4 +118,6 @@ For every Blade file you review, check:
 - `@if (! $store.sidebar.collapsed)` → must be `x-show="!$store.sidebar.collapsed"` (Alpine, not PHP)
 - `localStorage()` in Blade `@php` → must be Alpine.js `$store` or removed
 - Dropdown links with icon + text missing `flex items-center gap-2` → icon and text stack vertically
-- `:class` on `<x-heroicon-o-*>` → Blade evaluates as PHP, throws "Undefined constant". Use `x-bind:class` instead
+- `:class` / `:disabled` on `<x-*>` components → Blade evaluates as PHP, throws "Undefined constant". Use `x-bind:class` / `x-bind:disabled` instead
+- Arrow icons on back buttons (`<x-heroicon-o-arrow-left>`) → remove them. Secondary buttons stand on their own
+- Sidebar not using `_sidebar-nav` shared partial for mobile+desktop → duplicated nav markup drifts. Both mobile overlay and desktop sidebar must include `_sidebar-nav.blade.php`

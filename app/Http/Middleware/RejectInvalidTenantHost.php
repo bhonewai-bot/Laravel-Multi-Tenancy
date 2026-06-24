@@ -29,11 +29,11 @@ class RejectInvalidTenantHost
 
         $domain = $this->hosts->findTenantDomain($host);
 
-        if (!$domain) {
+        if (! $domain) {
             abort(404);
         }
 
-        if (!$this->hosts->canServeTenantHost($host)) {
+        if (! $this->hosts->canServeTenantHost($host)) {
             abort(403, 'This domain is not verified.');
         }
 

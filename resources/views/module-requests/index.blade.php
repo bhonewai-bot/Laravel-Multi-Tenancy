@@ -8,10 +8,7 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $moduleRequests->total() }} requests from tenants</p>
             </div>
             <a href="{{ route('modules.index') }}">
-                <x-secondary-button type="button">
-                    <x-heroicon-o-arrow-left class="w-4 h-4" />
-                    Back to Modules
-                </x-secondary-button>
+                <x-secondary-button type="button">Back to Modules</x-secondary-button>
             </a>
         </div>
 
@@ -91,18 +88,22 @@
                                     <td class="px-5 py-4 text-right">
                                         @if ($request->status === 'pending')
                                             <div class="flex items-center justify-end gap-2">
-                                                <form method="POST" action="{{ route('module-requests.approve', $request) }}" class="inline-flex">
+                                                <form method="POST" action="{{ route('module-requests.approve', $request) }}" x-data="{ approving: false }" @submit="approving = true">
                                                     @csrf
-                                                    <x-primary-button type="submit">
-                                                        Approve
-                                                    </x-primary-button>
+                                                    <button type="submit" :disabled="approving"
+                                                        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                                        <span x-show="!approving">APPROVE</span>
+                                                        <span x-show="approving" x-cloak>APPROVING...</span>
+                                                    </button>
                                                 </form>
 
-                                                <form method="POST" action="{{ route('module-requests.reject', $request) }}" class="inline-flex">
+                                                <form method="POST" action="{{ route('module-requests.reject', $request) }}" x-data="{ rejecting: false }" @submit="rejecting = true">
                                                     @csrf
-                                                    <x-danger-button type="submit">
-                                                        Reject
-                                                    </x-danger-button>
+                                                    <button type="submit" :disabled="rejecting"
+                                                        class="inline-flex items-center px-4 py-2 bg-gradient-to-b from-red-500 to-red-600 border border-red-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] hover:from-red-500 hover:to-red-700 active:from-red-600 active:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                                                        <span x-show="!rejecting">REJECT</span>
+                                                        <span x-show="rejecting" x-cloak>REJECTING...</span>
+                                                    </button>
                                                 </form>
                                             </div>
                                         @else
@@ -144,17 +145,21 @@
 
                             @if ($request->status === 'pending')
                                 <div class="flex items-center gap-2">
-                                    <form method="POST" action="{{ route('module-requests.approve', $request) }}" class="flex-1">
+                                    <form method="POST" action="{{ route('module-requests.approve', $request) }}" x-data="{ approving: false }" @submit="approving = true" class="flex-1">
                                         @csrf
-                                        <x-primary-button type="submit" class="w-full">
-                                            Approve
-                                        </x-primary-button>
+                                        <button type="submit" :disabled="approving"
+                                            class="inline-flex w-full items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                            <span x-show="!approving">APPROVE</span>
+                                            <span x-show="approving" x-cloak>APPROVING...</span>
+                                        </button>
                                     </form>
-                                    <form method="POST" action="{{ route('module-requests.reject', $request) }}" class="flex-1">
+                                    <form method="POST" action="{{ route('module-requests.reject', $request) }}" x-data="{ rejecting: false }" @submit="rejecting = true" class="flex-1">
                                         @csrf
-                                        <x-danger-button type="submit" class="w-full">
-                                            Reject
-                                        </x-danger-button>
+                                        <button type="submit" :disabled="rejecting"
+                                            class="inline-flex w-full items-center px-4 py-2 bg-gradient-to-b from-red-500 to-red-600 border border-red-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] hover:from-red-500 hover:to-red-700 active:from-red-600 active:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                                            <span x-show="!rejecting">REJECT</span>
+                                            <span x-show="rejecting" x-cloak>REJECTING...</span>
+                                        </button>
                                     </form>
                                 </div>
                             @endif

@@ -15,8 +15,6 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 {
     /**
      * Register Telescope filters and redact sensitive request details outside local development.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -38,8 +36,6 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 
     /**
      * Prevent sensitive request details from being logged by Telescope.
-     *
-     * @return void
      */
     protected function hideSensitiveRequestDetails(): void
     {
@@ -60,13 +56,12 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      * Register the Telescope gate.
      *
      * This gate determines who can access Telescope in non-local environments.
-     *
-     * @return void
      */
     protected function gate(): void
     {
         Gate::define('viewTelescope', function (User $user) {
             $allowed = array_filter(array_map('trim', explode(',', (string) env('TELESCOPE_ALLOWED_EMAILS', ''))));
+
             return in_array($user->email, $allowed);
         });
     }

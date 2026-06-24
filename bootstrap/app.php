@@ -1,17 +1,17 @@
 <?php
 
+use App\Http\Controllers\CloudflareHostnameChallengeController;
+use App\Http\Controllers\DomainCheckController;
 use App\Http\Middleware\EnsureModuleInstalled;
 use App\Http\Middleware\EnsureTenantPermission;
 use App\Http\Middleware\EnsureTenantRole;
-use App\Http\Controllers\CloudflareHostnameChallengeController;
-use App\Http\Controllers\DomainCheckController;
 use App\Support\AppHome;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException;
 use Illuminate\Support\Facades\Route;
+use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

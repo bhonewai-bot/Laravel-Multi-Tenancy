@@ -8,10 +8,7 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add a new module to the platform</p>
             </div>
             <a href="{{ route('modules.index') }}">
-                <x-secondary-button type="button">
-                    <x-heroicon-o-arrow-left class="w-4 h-4" />
-                    Back to Modules
-                </x-secondary-button>
+                <x-secondary-button type="button">Back to Modules</x-secondary-button>
             </a>
         </div>
 
@@ -23,7 +20,7 @@
         @endif
 
             <x-card>
-                <form method="POST" action="{{ route('modules.store') }}" enctype="multipart/form-data" class="space-y-6">
+                <form method="POST" action="{{ route('modules.store') }}" enctype="multipart/form-data" class="space-y-6" x-data="{ submitting: false }" @submit="submitting = true">
                     @csrf
 
                     <div class="mb-6">
@@ -71,8 +68,15 @@
                                 Cancel
                             </x-secondary-button>
                         </a>
-                        <x-primary-button>
-                            Upload Module
+                        <x-primary-button x-bind:disabled="submitting" type="submit">
+                            <span x-show="!submitting">Upload Module</span>
+                            <span x-show="submitting" x-cloak class="flex items-center gap-2">
+                                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                                Uploading...
+                            </span>
                         </x-primary-button>
                     </div>
                 </form>

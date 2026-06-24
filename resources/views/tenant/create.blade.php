@@ -9,13 +9,8 @@
 
         {{-- Validation Errors --}}
         @if ($errors->any())
-            <div class="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 text-sm text-red-700 dark:text-red-400">
-                <p class="font-semibold">Please fix the following errors:</p>
-                <ul class="mt-2 list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+            <div class="mb-6">
+                <x-alert variant="error">Please fix the following errors: {{ implode(', ', $errors->all()) }}</x-alert>
             </div>
         @endif
 

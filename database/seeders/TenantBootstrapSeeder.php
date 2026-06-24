@@ -21,7 +21,7 @@ class TenantBootstrapSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
 
         $admin = User::firstOrCreate(
-            ['email' => "admin@example.com"],
+            ['email' => 'admin@example.com'],
             // ['email' => "admin@{$tenantId}.local"],
             [
                 'name' => 'Admin User',

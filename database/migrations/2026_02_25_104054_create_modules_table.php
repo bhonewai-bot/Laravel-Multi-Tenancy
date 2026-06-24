@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();               // Customer, Product
             $table->string('slug')->unique();               // customer, product
-            $table->string('version')->default('1.0.0');    
+            $table->string('version')->default('1.0.0');
             $table->string('description')->nullable();
             $table->string('icon_path')->nullable();
-            $table->decimal('price', 10, 2)->default(0);    
+            $table->decimal('price', 10, 2)->default(0);
             $table->boolean('is_active')->default(true);       // available in marketplace
             $table->timestamps();
         });

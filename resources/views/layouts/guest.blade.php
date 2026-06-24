@@ -9,7 +9,7 @@
 
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=inter:400;500;600;700&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -38,9 +38,9 @@
 
                     {{-- Top: Logo + Brand --}}
                     <div class="animate-fade-up">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2.5">
                             <x-application-logo class="w-10 h-10" />
-                            <span class="text-lg font-semibold text-white">TenantSmith</span>
+                            <span class="text-lg font-bold tracking-tight text-white translate-y-[0.5px]">TenantSmith</span>
                         </div>
                     </div>
 
@@ -199,9 +199,9 @@
 
                 {{-- Mobile brand header (visible below lg) --}}
                 <div class="lg:hidden flex items-center justify-between px-6 pt-6">
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-2">
                         <x-application-logo class="w-8 h-8" />
-                        <span class="text-base font-semibold text-gray-800 dark:text-gray-100">TenantSmith</span>
+                        <span class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100 translate-y-[4px]">TenantSmith</span>
                     </div>
                     <x-theme-toggle />
                 </div>
@@ -215,5 +215,6 @@
             </div>
 
         </div>
+        @livewireScriptConfig
     </body>
 </html>

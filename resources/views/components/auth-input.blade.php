@@ -26,7 +26,10 @@
     <input
         id="{{ $name }}"
         name="{{ $name }}"
-        :type="{{ $type === 'password' ? 'showPassword ? \'text\' : \'password\'' : "'{$type}'" }}"
+        type="{{ $type }}"
+        @if ($type === 'password')
+            :type="showPassword ? 'text' : 'password'"
+        @endif
         x-model="value"
         @focus="focused = true"
         @blur="focused = false"

@@ -65,7 +65,7 @@ class TenantDomainLifecycleTest extends TestCase
     {
         DB::table('tenants')->insert([
             'id' => $tenantId,
-            'data' => json_encode(['name' => 'Tenant ' . $tenantId]),
+            'data' => json_encode(['name' => 'Tenant '.$tenantId]),
             'created_at' => now(),
             'updated_at' => now(),
         ]);

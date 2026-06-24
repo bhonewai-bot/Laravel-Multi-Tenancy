@@ -19,22 +19,18 @@ class EnsureModuleInstalled
      * module access checks could read the wrong tenant metadata.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  Request  $request
-     * @param  Closure  $next
-     * @param  string  $module
-     * @return Response
      */
     public function handle(Request $request, Closure $next, string $module): Response
     {
         $tenant = tenant();
 
-        if (!$tenant) {
+        if (! $tenant) {
             abort(404, 'Tenant context is required.');
         }
 
         $installedModules = $tenant->getAttribute('installed_modules') ?? [];
 
-        if (!is_array($installedModules)) {
+        if (! is_array($installedModules)) {
             $installedModules = [];
         }
 
@@ -46,7 +42,7 @@ class EnsureModuleInstalled
 
         $targetModule = Str::lower($module);
 
-        if (!in_array($targetModule, $installedModules, true)) {
+        if (! in_array($targetModule, $installedModules, true)) {
             abort(403, "Access denied. You have not installed the '{$targetModule}' module.");
         }
 

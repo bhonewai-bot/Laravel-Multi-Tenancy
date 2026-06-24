@@ -25,6 +25,7 @@ class UninstallTenantModule implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -34,8 +35,6 @@ class UninstallTenantModule implements ShouldQueue
 
     /**
      * Return the retry schedule for transient queue failures.
-     *
-     * @return array
      */
     public function backoff(): array
     {
@@ -49,10 +48,6 @@ class UninstallTenantModule implements ShouldQueue
      * - Reads central tenant/module metadata.
      * - Writes module operation state to the central tenant record.
      * - Runs tenant rollback commands through TenantModuleInstaller.
-     *
-     * @param  TenantModuleInstaller  $installer
-     * @param  TenantModuleRegistry  $registry
-     * @return void
      */
     public function handle(TenantModuleInstaller $installer, TenantModuleRegistry $registry): void
     {
@@ -65,6 +60,7 @@ class UninstallTenantModule implements ShouldQueue
                 'tenant_id' => $this->tenantId,
                 'module_id' => $this->moduleId,
             ]);
+
             return;
         }
 
@@ -108,9 +104,6 @@ class UninstallTenantModule implements ShouldQueue
      * Side effects:
      * - Writes failure state to the central tenant record.
      * - Emits an error log for operations monitoring.
-     *
-     * @param  Throwable  $exception
-     * @return void
      */
     public function failed(Throwable $exception): void
     {

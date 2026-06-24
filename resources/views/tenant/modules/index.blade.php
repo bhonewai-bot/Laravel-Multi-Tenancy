@@ -214,8 +214,8 @@
                                 @elseif ($row['is_installed'])
                                     @if ($row['open_route_name'])
                                         <a href="{{ route($row['open_route_name'], absolute: false) }}"
-                                            class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-brand-600 border border-transparent rounded-lg text-xs font-medium text-white hover:bg-brand-500 transition duration-150">
-                                            Open
+                                            class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg text-xs font-semibold text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out">
+                                            OPEN
                                         </a>
                                     @endif
                                     <form method="POST" action="{{ route('tenant.modules.uninstall') }}" class="flex-1">
@@ -231,8 +231,8 @@
                                         @csrf
                                         <input type="hidden" name="module_id" value="{{ $module->id }}">
                                         <button type="submit"
-                                            class="w-full inline-flex items-center justify-center px-3 py-2 bg-brand-600 border border-transparent rounded-lg text-xs font-medium text-white hover:bg-brand-500 transition duration-150">
-                                            Install
+                                            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out">
+                                            INSTALL
                                         </button>
                                     </form>
                                 @elseif ($row['request_status'] === 'pending')

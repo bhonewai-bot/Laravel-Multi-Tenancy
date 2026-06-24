@@ -10,8 +10,8 @@ use App\Policies\ModuleRequestPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\UserPolicy;
 use App\Services\CentralAdminService;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -24,8 +24,6 @@ class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register container bindings for the application.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -38,8 +36,6 @@ class AppServiceProvider extends ServiceProvider
      * Side effects:
      * - Registers authorization policies.
      * - May write to the central users table through CentralAdminService.
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -51,11 +47,11 @@ class AppServiceProvider extends ServiceProvider
         app(CentralAdminService::class)->ensureConfiguredSuperAdminExists();
 
         Livewire::setUpdateRoute(function ($handle) {
-             return Route::post('/livewire/update',$handle)->middleware([
+            return Route::post('/livewire/update', $handle)->middleware([
                 'web',
                 RejectInvalidTenantHost::class,
                 InitializeTenancyByDomain::class,
-                PreventAccessFromCentralDomains::class
+                PreventAccessFromCentralDomains::class,
             ]);
         });
     }

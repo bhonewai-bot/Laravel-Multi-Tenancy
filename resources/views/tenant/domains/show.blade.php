@@ -48,10 +48,7 @@
                     </a>
                 @endif
                 <a href="{{ route('tenant.domains.index', absolute: false) }}">
-                    <x-secondary-button type="button">
-                        <x-heroicon-o-arrow-left class="w-4 h-4" />
-                        All Domains
-                    </x-secondary-button>
+                    <x-secondary-button type="button">All Domains</x-secondary-button>
                 </a>
             </div>
         </div>

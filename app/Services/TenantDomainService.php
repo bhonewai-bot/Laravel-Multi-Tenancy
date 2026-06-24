@@ -24,9 +24,6 @@ class TenantDomainService
 
     /**
      * Normalize hostnames before persistence or comparison.
-     *
-     * @param  string  $domain
-     * @return string
      */
     public function normalize(string $domain): string
     {
@@ -35,8 +32,6 @@ class TenantDomainService
 
     /**
      * Generate the TXT verification token used for legacy DNS ownership checks.
-     *
-     * @return string
      */
     public function makeVerificationCode(): string
     {
@@ -45,13 +40,10 @@ class TenantDomainService
 
     /**
      * Build the TXT record name expected for legacy DNS verification.
-     *
-     * @param  string  $domain
-     * @return string
      */
     public function verificationRecordName(string $domain): string
     {
-        return '_tenant-verification.' . $this->normalize($domain);
+        return '_tenant-verification.'.$this->normalize($domain);
     }
 
     /**
@@ -59,9 +51,6 @@ class TenantDomainService
      *
      * Central domains must never be accepted as tenant custom domains because that
      * would break tenant isolation and create routing ambiguity.
-     *
-     * @param  string  $domain
-     * @return bool
      */
     public function isCentralDomain(string $domain): bool
     {
@@ -77,10 +66,6 @@ class TenantDomainService
 
     /**
      * Determine whether a host is the tenant's platform-managed primary subdomain.
-     *
-     * @param  Tenant  $tenant
-     * @param  string  $domain
-     * @return bool
      */
     public function isPrimarySubDomain(Tenant $tenant, string $domain): bool
     {
@@ -101,10 +86,6 @@ class TenantDomainService
      * Determine whether a custom domain exists for the tenant and has passed verification.
      *
      * NOTE: The tenant_id predicate is essential to avoid cross-tenant domain leakage.
-     *
-     * @param  Tenant  $tenant
-     * @param  string  $domain
-     * @return bool
      */
     public function isVerifiedCustomDomain(Tenant $tenant, string $domain): bool
     {
@@ -115,7 +96,7 @@ class TenantDomainService
             ->where('domain', $host)
             ->first();
 
-        if (!$domainModel) {
+        if (! $domainModel) {
             return false;
         }
 
@@ -124,10 +105,6 @@ class TenantDomainService
 
     /**
      * Decide whether the current request host is allowed to serve the tenant.
-     *
-     * @param  Tenant  $tenant
-     * @param  string  $domain
-     * @return bool
      */
     public function canUseAsTenantDomain(Tenant $tenant, string $domain): bool
     {
@@ -145,10 +122,6 @@ class TenantDomainService
      *
      * Side effects:
      * - Performs a DNS lookup.
-     *
-     * @param  string  $domain
-     * @param  string  $verificationCode
-     * @return bool
      */
     public function checkDnsTxtVerification(string $domain, string $verificationCode): bool
     {

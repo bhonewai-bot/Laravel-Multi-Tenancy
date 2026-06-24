@@ -5,10 +5,8 @@
                 <x-secondary-button onclick="window.location='{{ route('tenants.index') }}'">
                     Back
                 </x-secondary-button>
-                <a href="{{ route('tenants.edit', $tenant) }}"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 active:from-brand-600 active:to-brand-800 transition-all duration-200">
-                    <x-heroicon-o-pencil class="w-4 h-4" />
-                    Edit Tenant
+                <a href="{{ route('tenants.edit', $tenant) }}">
+                    <x-primary-button type="button">Edit Tenant</x-primary-button>
                 </a>
             </x-slot>
         </x-page-header>

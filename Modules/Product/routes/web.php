@@ -8,7 +8,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-    'module:product'
+    'module:product',
 ])->group(function () {
     Route::group(['middleware' => 'auth'], function () {
         Route::resource('products', ProductController::class)->names('product');
