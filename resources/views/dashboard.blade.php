@@ -77,103 +77,52 @@
             @endif
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {{-- Recent Activity --}}
+        <x-card>
+            <x-slot name="header">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
+            </x-slot>
 
-            {{-- Recent Activity --}}
-            <div class="lg:col-span-2">
-                <x-card>
-                    <x-slot name="header">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
-                    </x-slot>
-
-                    @if (($recentRequests ?? collect())->isEmpty())
-                        <x-empty-state title="No recent activity" description="Activity will appear here as things happen" />
-                    @else
-                        <div class="space-y-4">
-                            @foreach (($recentRequests ?? collect()) as $request)
-                                <div class="flex items-start gap-3">
-                                    <div class="mt-1 w-2 h-2 rounded-full shrink-0
-                                        {{ match($request->status) {
-                                            'approved' => 'bg-green-500',
-                                            'rejected' => 'bg-red-500',
-                                            'pending' => 'bg-amber-500',
-                                            default => 'bg-gray-400',
-                                        } }}"></div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm text-gray-900 dark:text-gray-100">
-                                            <span class="font-medium">{{ $request->module->name ?? 'Module' }}</span>
-                                            @if (!$isTenant && $request->tenant)
-                                                <span class="text-gray-500 dark:text-gray-400"> for {{ $request->tenant->name }}</span>
-                                            @endif
-                                            <span class="text-gray-500 dark:text-gray-400">
-                                                — {{ match($request->status) {
-                                                    'pending' => 'request pending',
-                                                    'approved' => 'approved',
-                                                    'rejected' => 'rejected',
-                                                    default => $request->status,
-                                                } }}
-                                            </span>
-                                        </p>
-                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ $request->created_at->diffForHumans() }}</p>
-                                    </div>
-                                    <x-badge :variant="match($request->status) {
-                                        'approved' => 'success',
-                                        'rejected' => 'danger',
-                                        'pending' => 'warning',
-                                        default => 'neutral',
-                                    }" :label="$request->status" />
-                                </div>
-                            @endforeach
+            @if (($recentRequests ?? collect())->isEmpty())
+                <x-empty-state title="No recent activity" description="Activity will appear here as things happen" />
+            @else
+                <div class="space-y-4">
+                    @foreach (($recentRequests ?? collect()) as $request)
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 w-2 h-2 rounded-full shrink-0
+                                {{ match($request->status) {
+                                    'approved' => 'bg-green-500',
+                                    'rejected' => 'bg-red-500',
+                                    'pending' => 'bg-amber-500',
+                                    default => 'bg-gray-400',
+                                } }}"></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-900 dark:text-gray-100">
+                                    <span class="font-medium">{{ $request->module->name ?? 'Module' }}</span>
+                                    @if (!$isTenant && $request->tenant)
+                                        <span class="text-gray-500 dark:text-gray-400"> for {{ $request->tenant->name }}</span>
+                                    @endif
+                                    <span class="text-gray-500 dark:text-gray-400">
+                                        — {{ match($request->status) {
+                                            'pending' => 'request pending',
+                                            'approved' => 'approved',
+                                            'rejected' => 'rejected',
+                                            default => $request->status,
+                                        } }}
+                                    </span>
+                                </p>
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ $request->created_at->diffForHumans() }}</p>
+                            </div>
+                            <x-badge :variant="match($request->status) {
+                                'approved' => 'success',
+                                'rejected' => 'danger',
+                                'pending' => 'warning',
+                                default => 'neutral',
+                            }" :label="$request->status" />
                         </div>
-                    @endif
-                </x-card>
-            </div>
-
-            {{-- Quick Actions --}}
-            <div>
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
-                <div class="space-y-3">
-                    @if ($isTenant)
-                        <x-quick-action href="{{ route('tenant.users.create', absolute: false) }}" title="Add Team Member" description="Invite a new user to your workspace">
-                            <x-slot name="icon">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" /></svg>
-                            </x-slot>
-                        </x-quick-action>
-
-                        <x-quick-action href="{{ route('tenant.modules.index', absolute: false) }}" title="Request Module" description="Browse and request new modules">
-                            <x-slot name="icon">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </x-slot>
-                        </x-quick-action>
-
-                        <x-quick-action href="{{ route('tenant.domains.create', absolute: false) }}" title="Add Domain" description="Connect a custom domain">
-                            <x-slot name="icon">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
-                            </x-slot>
-                        </x-quick-action>
-
-                    @else
-                        <x-quick-action href="{{ route('tenants.create', absolute: false) }}" title="Create Tenant" description="Provision a new tenant workspace">
-                            <x-slot name="icon">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </x-slot>
-                        </x-quick-action>
-
-                        <x-quick-action href="{{ route('modules.create', absolute: false) }}" title="Upload Module" description="Add a new module to the platform">
-                            <x-slot name="icon">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                            </x-slot>
-                        </x-quick-action>
-
-                        <x-quick-action href="{{ route('module-requests.index', absolute: false) }}" title="Review Requests" description="Approve or reject module requests">
-                            <x-slot name="icon">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </x-slot>
-                        </x-quick-action>
-                    @endif
+                    @endforeach
                 </div>
-            </div>
-
-        </div>
+            @endif
+        </x-card>
     </div>
 </x-app-layout>

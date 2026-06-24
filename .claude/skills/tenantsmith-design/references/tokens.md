@@ -121,7 +121,7 @@ All nav items: `flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm transit
 | -------- | ------------------------------------------ | ------------------------------------------------ |
 | Inactive | none                                       | `text-gray-600 dark:text-gray-400`               |
 | Hover    | `hover:bg-gray-50 dark:hover:bg-[#181820]` | `hover:text-gray-900 dark:hover:text-gray-100`   |
-| Active   | `bg-brand-50 dark:bg-brand-900/20`         | `text-brand-700 dark:text-brand-300 font-medium` |
+| Active   | `bg-brand-50 dark:bg-brand-500/10`         | `text-brand-700 dark:text-brand-300 font-medium` |
 
 Sub-links: `flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors`
 
@@ -162,7 +162,7 @@ Sub-links: `flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-co
 | ------------------- | ------------------------------------------ | -------------------------------------------------------------- |
 | application-logo    | `components/application-logo.blade.php`    | SVG with brand-300/400/500                                     |
 | theme-toggle        | `components/theme-toggle.blade.php`        | Alpine `$store.theme.toggle()`                                 |
-| auth-input          | `components/auth-input.blade.php`          | Floating label, `rounded-lg`, `shadow-sm`                      |
+| auth-input          | `components/auth-input.blade.php`          | Floating label, `rounded-lg`, `shadow-card`                      |
 | auth-button         | `components/auth-button.blade.php`         | Inlined in login form (see button tokens)                      |
 | primary-button      | `components/primary-button.blade.php`      | `bg-brand-600 hover:bg-brand-700`                              |
 | secondary-button    | `components/secondary-button.blade.php`    | `bg-white dark:bg-[#101016]`                                   |
@@ -174,7 +174,7 @@ Sub-links: `flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-co
 | dropdown-link       | `components/dropdown-link.blade.php`       | `hover:bg-gray-100 dark:hover:bg-[#181820]`                    |
 | modal               | `components/modal.blade.php`               | `bg-white dark:bg-[#101016]`                                   |
 | nav-link            | `components/nav-link.blade.php`            | `border-brand-500` active state                                |
-| responsive-nav-link | `components/responsive-nav-link.blade.php` | `border-brand-500 bg-brand-50 dark:bg-brand-900/20`            |
+| responsive-nav-link | `components/responsive-nav-link.blade.php` | `border-brand-500 bg-brand-50 dark:bg-brand-500/10`            |
 | auth-session-status | `components/auth-session-status.blade.php` | `text-green-600 dark:text-green-400`                           |
 | sidebar             | `components/sidebar.blade.php`             | `bg-white dark:bg-[#101016]`, all nav items themed             |
 | guest-layout        | `layouts/guest.blade.php`                  | Split-screen, brand gradient, tenant-aware                     |
@@ -182,7 +182,6 @@ Sub-links: `flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-co
 | card                | `components/card.blade.php`                | `bg-white dark:bg-[#101016]` + header/footer slots             |
 | badge               | `components/badge.blade.php`               | Variants: success, warning, danger, info, brand, neutral       |
 | stat-card           | `components/stat-card.blade.php`           | Icon + value + label + trend indicator                         |
-| quick-action        | `components/quick-action.blade.php`        | Icon + title + description + chevron                           |
 | data-table          | `components/data-table.blade.php`          | Responsive: table on lg, cards on mobile                       |
 | breadcrumbs         | `components/breadcrumbs.blade.php`         | Navigation breadcrumb trail                                    |
 | user-menu           | `components/user-menu.blade.php`           | Avatar initials + dropdown, `flex items-center gap-2` on links |
@@ -206,5 +205,5 @@ When adding or modifying a component, verify:
 - [ ] Focus ring offsets use `dark:focus:ring-offset-[#08080c]`
 - [ ] Brand accent uses `brand-*` not raw `indigo-*`
 - [ ] Buttons and inputs use `rounded-lg` (not `rounded-md`)
-- [ ] Primary buttons have `shadow-sm hover:shadow-md`
-- [ ] Input fields have `shadow-sm`
+- [ ] Primary buttons use `<x-primary-button>` component with `shadow-card hover:shadow-glow-brand-strong`
+- [ ] Input fields use `shadow-card`, focus uses `shadow-glow-brand`

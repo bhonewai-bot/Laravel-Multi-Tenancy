@@ -1,65 +1,82 @@
 <x-app-layout>
-    <x-slot name="header">
-        <x-page-header
-            title="Add User"
-            description="Create a new user for this tenant."
-        >
-            <x-slot name="actions">
-                <a href="{{ route('tenant.users.index', absolute: false) }}">
-                    <x-secondary-button type="button">Back to Users</x-secondary-button>
-                </a>
-            </x-slot>
-        </x-page-header>
-    </x-slot>
+    <div class="animate-fade-up">
 
-    <div class="space-y-6">
-        <x-card>
-            <form method="POST" action="{{ route('tenant.users.store', absolute: false) }}" class="space-y-6">
-                @csrf
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Add User</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create a new user for this tenant.</p>
+            </div>
+            <a href="{{ route('tenant.users.index', absolute: false) }}">
+                <x-secondary-button type="button">
+                    <x-heroicon-o-arrow-left class="w-4 h-4" />
+                    Back to Users
+                </x-secondary-button>
+            </a>
+        </div>
 
-                <div>
-                    <x-input-label for="name" :value="__('Name')" />
-                    <x-text-input id="name" name="name" type="text" class="mt-1 block w-full rounded-lg" :value="old('name')" required />
-                    <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        {{-- Errors --}}
+        @if ($errors->any())
+            <div class="mb-6">
+                <x-alert variant="error">Please fix the errors below.</x-alert>
+            </div>
+        @endif
+
+        {{-- Form --}}
+        <form method="POST" action="{{ route('tenant.users.store', absolute: false) }}" x-data="{ submitting: false }" @submit="submitting = true">
+            @csrf
+            <x-card>
+                <div class="space-y-6">
+                    <div>
+                        <x-input-label for="name" :value="__('Name')" />
+                        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full rounded-lg" :value="old('name')" required />
+                        <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="email" :value="__('Email')" />
+                        <x-text-input id="email" name="email" type="email" class="mt-1 block w-full rounded-lg" :value="old('email')" required />
+                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="role_id" :value="__('Role')" />
+                        <select id="role_id" name="role_id"
+                            class="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#262632] dark:bg-[#101016] dark:text-gray-100 shadow-card focus:border-brand-500 focus:ring-brand-500">
+                            <option value="">Select role</option>
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id }}" @selected((string) old('role_id') === (string) $role->id)>{{ ucfirst($role->name) }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('role_id')" class="mt-2" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="password" :value="__('Password')" />
+                        <x-text-input id="password" name="password" type="password" class="mt-1 block w-full rounded-lg" required />
+                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                        <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full rounded-lg" required />
+                        <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+                    </div>
                 </div>
 
-                <div>
-                    <x-input-label for="email" :value="__('Email')" />
-                    <x-text-input id="email" name="email" type="email" class="mt-1 block w-full rounded-lg" :value="old('email')" required />
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                </div>
-
-                <div>
-                    <x-input-label for="role_id" :value="__('Role')" />
-                    <select id="role_id" name="role_id"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#262632] dark:bg-[#101016] dark:text-gray-100 shadow-card focus:border-brand-500 focus:ring-brand-500">
-                        <option value="">Select role</option>
-                        @foreach ($roles as $role)
-                            <option value="{{ $role->id }}" @selected((string) old('role_id') === (string) $role->id)>{{ ucfirst($role->name) }}</option>
-                        @endforeach
-                    </select>
-                    <x-input-error :messages="$errors->get('role_id')" class="mt-2" />
-                </div>
-
-                <div>
-                    <x-input-label for="password" :value="__('Password')" />
-                    <x-text-input id="password" name="password" type="password" class="mt-1 block w-full rounded-lg" required />
-                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                </div>
-
-                <div>
-                    <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-                    <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full rounded-lg" required />
-                    <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                </div>
-
-                <div class="flex justify-end gap-3 pt-2">
-                    <a href="{{ route('tenant.users.index', absolute: false) }}">
-                        <x-secondary-button type="button">Cancel</x-secondary-button>
-                    </a>
-                    <x-primary-button>Create User</x-primary-button>
-                </div>
-            </form>
-        </x-card>
+                <x-slot name="footer">
+                    <div class="flex items-center justify-end gap-3">
+                        <a href="{{ route('tenant.users.index', absolute: false) }}">
+                            <x-secondary-button type="button">Cancel</x-secondary-button>
+                        </a>
+                        <button type="submit" :disabled="submitting"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                            <span x-show="!submitting">CREATE USER</span>
+                            <span x-show="submitting" x-cloak>CREATING...</span>
+                        </button>
+                    </div>
+                </x-slot>
+            </x-card>
+        </form>
     </div>
 </x-app-layout>
