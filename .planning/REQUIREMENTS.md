@@ -54,20 +54,20 @@ Deferred to next milestone.
 | AUTH-02 | Phase 1 | Pending |
 | AUTH-03 | Phase 1 | Pending |
 | AUTH-04 | Phase 1 | Pending |
-| UPLOAD-01 | Phase 1 | Pending |
-| UPLOAD-02 | Phase 1 | Pending |
-| UPLOAD-03 | Phase 1 | Pending |
-| UPLOAD-04 | Phase 1 | Pending |
-| STATE-01 | Phase 1 | Pending |
-| STATE-02 | Phase 1 | Pending |
-| STATE-03 | Phase 1 | Pending |
-| STATE-04 | Phase 1 | Pending |
+| UPLOAD-01 | Phase 2 | Pending |
+| UPLOAD-02 | Phase 2 | Pending |
+| UPLOAD-03 | Phase 2 | Pending |
+| UPLOAD-04 | Phase 2 | Pending |
+| STATE-01 | Phase 3 | Pending |
+| STATE-02 | Phase 3 | Pending |
+| STATE-03 | Phase 3 | Pending |
+| STATE-04 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 12 total
 - Mapped to phases: 12
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-25*
-*Last updated: 2026-06-25 after initial definition*
+*Last updated: 2026-06-25 after roadmap creation*
