@@ -4,207 +4,223 @@
 
 ## APIs & External Services
 
-**Cloudflare Custom Hostnames API:**
-- Purpose: Manage tenant custom domains (SSL provisioning, DNS validation)
-- Service: `App\Services\CloudflareService`
+**Cloudflare Custom Hostnames (SSL for SaaS):**
+- Used for provisioning SSL certificates on tenant custom domains
+- API: Cloudflare Custom Hostnames API v4 (`https://api.cloudflare.com/client/v4`)
+- Client: `app/Services/CloudflareService.php` - HTTP client wrapping Cloudflare API calls
+- Sync orchestrator: `app/Services/DomainCloudflareSyncService.php` - Manages create/refresh/poll lifecycle
+- Background polling: `app/Jobs/SyncPendingCloudflareDomain.php` - Re-polls every 2 minutes, max 15 attempts (30 min)
 - Config: `config/cloudflare.php`
-- Authentication: API Token via `CLOUDFLARE_API_TOKEN` env var
-- Rate Limits: Configurable timeout/retry (default 15s timeout, 2 retries)
-- Endpoints Used:
-  - POST `/custom_hostnames` - Create hostname for tenant domain
-  - GET `/custom_hostnames/{cloudflareId}` - Check hostname status
-- Error Handling: Throws `RuntimeException` on API failures with response parsing
-- Retry Strategy: Exponential backoff with configurable sleep (200ms default)
+- Auth: `CLOUDFLARE_API_TOKEN` env var (Bearer token)
+- Zone: `CLOUDFLARE_ZONE_ID` env var
+- Zone domain: `CLOUDFLARE_ZONE_DOMAIN` env var
+- Fallback origin: `CLOUDFLARE_FALLBACK_ORIGIN` env var
+- Enable toggle: `CLOUDFLARE_ENABLED` env var (default: `false`)
+- Async mode: `CLOUDFLARE_ASYNC_POLLING` env var (set `true` in production)
+- Validation method: `CLOUDFLARE_VALIDATION_METHOD` env var (default: `http`)
+- Timeout/retry: `CLOUDFLARE_TIMEOUT` (15s), `CLOUDFLARE_RETRY_TIMES` (2), `CLOUDFLARE_RETRY_SLEEP_MS` (200ms)
+- Console command: `domains:sync-cloudflare` in `routes/console.php`
+- Challenge endpoint: `/.well-known/cf-custom-hostname-challenge/{hostnameId}` in `bootstrap/app.php`
 
-**ScrapingBee (Pluggable):**
-- Purpose: Web scraping service (available but not actively used in core flows)
-- Config: `config/services.php`
-- Authentication: API Key via `SCRAPINGBEE_API_KEY` env var
-- Base URL: `https://api.scrapingbee.com/api/v1`
-- Usage: Optional for external data fetching (available via config)
+**Cloudflare DNS Verification (legacy):**
+- TXT record verification for domain ownership
+- Service: `app/Services/TenantDomainService.php` method `checkDnsTxtVerification()`
+- Record pattern: `_tenant-verification.{domain}` with TXT record containing verification code
 
-**AWS SES (Pluggable):**
-- Purpose: Email delivery service
-- Config: `config/services.php`
-- Authentication: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
-- Region: Configurable via `AWS_DEFAULT_REGION` (default: us-east-1)
-- Status: Not actively used (mail defaults to 'log' driver)
+**ScrapingBee (Web Scraping):**
+- Used for scraping product data from Shopee URLs (which require JavaScript rendering)
+- Client: `Modules/Product/app/Services/Imports/ScrapingBeeClient.php`
+- API base URL: `SCRAPINGBEE_BASE_URL` env var (default: `https://api.scrapingbee.com/api/v1`)
+- Auth: `SCRAPINGBEE_API_KEY` env var
+- Config: `config/services.php` under `scrapingbee` key
+- Parameters used: `render_js=true`, `stealth_proxy=true`, `country_code=th`, `wait_browser=networkidle2`, `wait=4000`
+- Timeout: 180 seconds
+- NOTE: The `ScrapingBeeClient::fetchHtml()` method contains a `dd()` debug statement that must be removed before production use
 
-**AWS SQS (Pluggable):**
-- Purpose: Message queue service for high-scale production
-- Config: `config/queue.php`
-- Authentication: Same as SES
-- Status: Available but database queue is default
+**Lazada Product Scraping:**
+- Direct HTTP scraping of Lazada product pages (no proxy needed)
+- Importer: `Modules/Product/app/Services/Imports/Importers/LazadaProductImporter.php`
+- Method: Fetches page via HTTP, parses JSON-LD structured data with Symfony DomCrawler
+- Extracts: name, SKU, price, quantity, description, image
+- Downloads product images to `public/products/` via local filesystem storage
 
-**Postmark/Resend (Pluggable):**
-- Purpose: Transactional email services
-- Config: `config/services.php`
-- Authentication: API keys via `POSTMARK_API_KEY` or `RESEND_API_KEY`
-- Status: Not actively configured (alternatives to SES)
+**Shopee Product Scraping:**
+- Proxied scraping via ScrapingBee (Shopee requires JS rendering)
+- Importer: `Modules/Product/app/Services/Imports/Importers/ShopeeProductImporter.php`
+- Method: Fetches rendered HTML via ScrapingBee, parses Open Graph meta tags with Symfony DomCrawler
+- Extracts: name, SKU (parsed from URL pattern `i.{id}.{id}`), price (regex on Thai baht pattern), description, image
+
+**Slack (Logging/Alerts):**
+- Configured for operational log shipping and alerts
+- Config: `config/logging.php` channels `slack` and `ops_alert`
+- Auth: `LOG_SLACK_WEBHOOK_URL` and `OPS_ALERT_SLACK_WEBHOOK_URL` env vars
+- Also configured in `config/services.php` under `slack.notifications` for notification channels
+- Auth: `SLACK_BOT_USER_OAUTH_TOKEN`, `SLACK_BOT_USER_DEFAULT_CHANNEL` env vars
+
+**Laravel Cloud (Deployment):**
+- Deployment platform for production
+- CLI: `laravel/cloud-cli` (`cloud` command)
+- Deployment skill: `.claude/skills/deploying-laravel-cloud/SKILL.md`
+- Resources: application, environment, instance, database-cluster, database, cache, bucket, domain, background-process, command, deployment
+- Config: `.cloud/config.json` (repo-local), `~/.config/cloud/config.json` (global auth)
 
 ## Data Storage
 
 **Databases:**
-- SQLite (Primary - Development)
-  - Connection: `database.sqlite` (central), `database/tenant*` (per tenant)
-  - Client: Laravel Eloquent ORM
-  - Tenancy Strategy: Separate SQLite file per tenant database
-  - File Management: Automatic creation/deletion via Stancl tenancy bootstrappers
+- MySQL 8.0 (primary)
+  - Central connection: `env('DB_CONNECTION')` (default `sqlite` in dev, `mysql` in production)
+  - Tenant connections: dynamically created as `tenant{tenant_id}` databases
+  - Tenant DB prefix: `tenant` (configurable in `config/tenancy.php`)
+  - Config: `config/database.php` defines connections for sqlite, mysql, mariadb, pgsql, sqlsrv
+  - Docker: MySQL 8.0 exposed on port 3307
 
-- MySQL/PostgreSQL (Production-Ready)
-  - Connection: Via `DB_*` environment variables
-  - Client: Laravel Eloquent ORM
-  - Tenancy Strategy: Schema-based or separate database per tenant
-  - Migration: Database-per-tenant with prefix naming (`tenant{uuid}`)
-
-- Central Database
-  - Purpose: Store tenants, modules, central users, domain mappings
-  - Connection: `central` connection name
-  - Tables: `tenants`, `domains`, `modules`, `module_requests`, `users` (central)
+- SQLite (development default)
+  - Default connection for local dev and testing
+  - In-memory for PHPUnit tests (`DB_DATABASE=:memory:`)
 
 **File Storage:**
-- Local filesystem: `storage/app/private` (default), `storage/app/public`
-- Cloud: S3 support available but not actively used
-- Tenant-aware: Filesystem tenancy bootstrapper isolates per-tenant files
-- No active external file storage integration
+- Local filesystem (`storage/app/private/`) - default disk
+- Public disk (`storage/app/public/`) - served via `public/storage` symlink
+  - Product module stores imported product images here under `products/` directory
+- S3 - configured but not actively used (commented out in tenancy filesystem config)
+- Tenant-scoped: `local` and `public` disks are suffixed with tenant ID via `FilesystemTenancyBootstrapper`
 
 **Caching:**
-- Default: Database-driven cache
-- Supports: Array, file, redis, memcached, dynamodb
-- Tenant-aware: Cache tenancy bootstrapper tags cache by tenant
-- Not actively using external cache service
+- Default driver: `database` (configurable via `CACHE_STORE` env)
+- Redis configured for both default and cache connections
+- Tenant-scoped via `CacheTenancyBootstrapper` (tag-based isolation)
+- Module install operations use cache locks: `tenant:module-operation:{tenantId}:{slug}`
+
+**Queue:**
+- Default driver: `database` (configurable via `QUEUE_CONNECTION` env)
+- Redis queue also configured
+- Tenant-aware via `QueueTenancyBootstrapper`
+- Failed jobs: `database-uuids` driver
+- Docker queue worker: runs `php artisan queue:work database` with configurable tries, backoff, timeout, max-time
+
+**Session:**
+- Default driver: `database` (configurable via `SESSION_DRIVER` env)
+- Session table: standard Laravel `sessions` table
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Service: Custom (Laravel Breeze scaffolding)
-- Implementation: Session-based with database user provider
-- Guards: `web` guard (session + Eloquent)
-- User Model: `App\Models\User` (central and tenant-aware)
-- Multi-tenant Users: Users stored per-tenant with tenant isolation
+- Custom session-based authentication via Laravel Breeze scaffolding
+- Guard: `web` (session driver, Eloquent user provider)
+- User model: `App\Models\User` (in tenant databases)
+- Central admin: `App\Services\CentralAdminService` auto-creates superadmin on boot
+  - Config: `config/auth.php` under `central_admin` key
+  - Env: `CENTRAL_SUPERADMIN_EMAIL`, `CENTRAL_SUPERADMIN_NAME`, `CENTRAL_SUPERADMIN_PASSWORD`
 
-**Central Admin:**
-- Purpose: Superadmin account for central dashboard
-- Credentials: Via `CENTRAL_SUPERADMIN_EMAIL`, `CENTRAL_SUPERADMIN_PASSWORD`
-- Bootstrap: Auto-created via `CentralAdminService::ensureConfiguredSuperAdminExists()`
-- Access: Central domain routes only (protected by `PreventAccessFromCentralDomains` middleware)
+**Authorization:**
+- Role-based access control (RBAC) within tenants
+  - Models: `app/Models/Role.php`, `app/Models/Permission.php`
+  - Tenant seeder: `TenantRbacSeeder`
+- Policies: `app/Policies/` - `UserPolicy`, `RolePolicy`, `ModuleRequestPolicy`
+- Middleware: `EnsureTenantRole` (alias: `role`), `EnsureTenantPermission` (alias: `permission`)
+- Route-level permission strings: `user.read`, `domain.read`, `domain.create`, `domain.verify`, `domain.delete`
 
-**Role-Based Access Control:**
-- Implementation: Custom middleware (`EnsureTenantRole`, `EnsureTenantPermission`)
-- Models: `App\Models\Role`, `App\Models\Permission`
-- Granularity: Per-tenant roles with permission checks
-- Policies: `RolePolicy`, `UserPolicy`, `ModuleRequestPolicy`
+**Authentication Scaffolding:**
+- Built on Laravel Breeze (`laravel/breeze ^2.3`)
+- Auth views: `resources/views/auth/` (login, confirm-password, verify-email)
+- Controllers: `app/Http/Controllers/Auth/`
+- Profile management: `app/Http/Controllers/ProfileController.php`
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- Service: Laravel Telescope (debug dashboard)
-- Config: `config/telescope.php`
-- Access: `/telescope` endpoint on central domain
-- Storage: Database-backed
-- Status: Disabled by default (`TELESCOPE_ENABLED=false`)
+- Laravel Telescope (development diagnostics)
+  - Provider: `app/Providers/TelescopeServiceProvider.php`
+  - Config: `config/telescope.php` (disabled by default via `TELESCOPE_ENABLED=false`)
+  - Access gating: `TELESCOPE_ALLOWED_EMAILS` env var (comma-separated emails)
+  - Filters: Only logs reportable exceptions, failed requests, failed jobs, scheduled tasks, and monitored tags in non-local environments
+  - Sensitive data: CSRF tokens and cookies hidden from request data in non-local environments
 
 **Logs:**
-- Channels: Stack with daily rotation (default)
-- Tenant Context: Custom processor `AddTenantContext` adds tenant ID to all logs
-- Real-time: Laravel Pail for live log streaming during development
-- Output: `storage/logs/laravel.log`
-
-**Application Metrics:**
-- Service: Laravel Telescope watchers
-- Captures: Requests, exceptions, database queries, jobs, mail, cache, dumps
-- Performance: Query logging, slow request detection
+- Stack channel (default) with daily rotation (14 days retention)
+- Custom tenant context processor: `app/Logging/AddTenantContext.php` (adds tenant_id to all log entries)
+- Operational alert channel: `ops_alert` - Slack webhook for error-level alerts
+- Slack channel: `slack` - Critical-level log shipping to Slack
+- Papertrail channel: configured for syslog-style remote logging
+- Pail: `laravel/pail ^1.2.2` for real-time log streaming during development
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Primary Target: Laravel Cloud
-- Alternative: Docker container (DockerFile present)
-- Multi-tenant Routing: Caddy with on-demand TLS for dynamic tenant domains
-
-**Docker:**
-- Development: Laravel Sail (Docker-based dev environment)
-- Production: `docker-compose.prod.yml` available
-- Services: PHP-FPM, Caddy web server, queue worker
+- Docker Compose stack: PHP-FPM + Nginx + Caddy 2.8 + MySQL 8.0
+- Caddy: Reverse proxy with on-demand TLS for dynamic tenant domains
+- Nginx: Internal application server behind Caddy
+- Laravel Cloud: Production deployment target
 
 **CI Pipeline:**
-- Service: Not configured in repository
-- Status: No GitHub Actions or CI config detected
+- GitHub Actions: `.github/workflows/ci.yml`
+- Triggers: push to `main`, PRs targeting `main`
+- Steps: PHP 8.3 setup, Node.js 20 setup, composer validate, install deps, npm ci, npm build, key:generate, run tests
+- Test runner: `php artisan test` (PHPUnit)
+- Database: SQLite in-memory (no MySQL needed in CI)
 
-**Queue System:**
-- Driver: Database-backed (default)
-- Worker: `php artisan queue:listen` (included in dev script)
-- Jobs: Domain sync, module installation/uninstallation
-- Tenant-aware: Queue tenancy bootstrapper isolates tenant jobs
+**Container:**
+- `Dockerfile`: Multi-stage build (base -> builder -> production)
+- Base: `php:8.3-fpm` with extensions (pdo_mysql, bcmath, intl, zip, gd)
+- Builder: Installs composer + npm dependencies, builds frontend
+- Production: Copies built artifacts, removes dev files (node_modules, .git, .github, tests)
+
+**Artisan Console Commands:**
+- `domains:sync-cloudflare {domain}` - Manual Cloudflare sync for a domain (defined in `routes/console.php`)
+- Standard Laravel commands: `tenants:migrate`, `tenants:seed` (configured in `config/tenancy.php`)
 
 ## Environment Configuration
 
-**Required env vars (Critical):**
-- `APP_KEY` - Encryption key for sessions and cookies
-- `DB_CONNECTION` - Database driver (sqlite, mysql, pgsql)
-- `DB_DATABASE`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` - Database connection
-- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID` - Cloudflare integration
-- `CLOUDFLARE_ZONE_DOMAIN` - Base domain for tenant subdomains
+**Required env vars (critical):**
+- `APP_KEY` - Laravel encryption key
+- `DB_CONNECTION` - Database driver (sqlite/mysql)
+- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` - Database credentials
 - `TENANCY_CENTRAL_DOMAIN` - Central application domain
-- `CENTRAL_SUPERADMIN_EMAIL`, `CENTRAL_SUPERADMIN_PASSWORD` - Admin credentials
+- `CENTRAL_SUPERADMIN_EMAIL` / `CENTRAL_SUPERADMIN_PASSWORD` - Superadmin credentials
+- `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ZONE_ID` - Required when `CLOUDFLARE_ENABLED=true`
+- `DOMAIN_CHECK_TOKEN` - Token for Caddy on-demand TLS domain verification
 
-**Optional env vars (Pluggable):**
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` - AWS services
-- `POSTMARK_API_KEY`, `RESEND_API_KEY` - Email services
-- `SLACK_BOT_USER_OAUTH_TOKEN` - Slack notifications
-- `SCRAPINGBEE_API_KEY` - Web scraping
-- `QUEUE_CONNECTION` - Queue backend selection
-- `TELESCOPE_ENABLED` - Debug dashboard toggle
+**Optional env vars:**
+- `CLOUDFLARE_ENABLED` - Toggle Cloudflare integration (default: `false`)
+- `CLOUDFLARE_ASYNC_POLLING` - Async domain verification polling (default: `false`)
+- `SCRAPINGBEE_API_KEY` - For Shopee product scraping
+- `TELESCOPE_ENABLED` - Toggle Telescope (default: `false`)
+- `TENANCY_PROVISIONING_QUEUE` - Queue tenant provisioning jobs (default: sync)
+- `LOG_STACK` / `OPS_ALERT_SLACK_WEBHOOK_URL` / `LOG_SLACK_WEBHOOK_URL` - Logging configuration
+- `TELESCOPE_ALLOWED_EMAILS` - Comma-separated emails for Telescope access
 
-**Secrets Location:**
-- Environment variables (`.env` files)
-- Laravel Cloud: Managed environment variables
-- Docker: Docker secrets or mounted `.env`
+**Secrets location:**
+- `.env` file (local/production, gitignored)
+- Laravel Cloud environment variables (production)
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- Cloudflare Domain Validation: `/.well-known/cf-custom-hostname-challenge/{hostnameId}`
-  - Endpoint: `App\Http\Controllers\CloudflareHostnameChallengeController`
-  - Middleware: None (host-agnostic for Cloudflare validation)
-  - Rate Limit: Not explicitly set
-  - Purpose: Verify domain ownership before Cloudflare SSL provisioning
-
-- Caddy Domain Check: `/internal/domain-check`
-  - Endpoint: `App\Http\Controllers\DomainCheckController`
-  - Middleware: `throttle:120,1` (120 requests per minute)
-  - Purpose: On-demand TLS validation for Caddy
-  - Access: Internal only
+- `/.well-known/cf-custom-hostname-challenge/{hostnameId}` - Cloudflare custom hostname ownership validation
+- `/internal/domain-check` - Caddy on-demand TLS domain verification (throttled: 120/min)
 
 **Outgoing:**
-- Cloudflare API Calls (outbound):
-  - Create custom hostname: POST to Cloudflare
-  - Check hostname status: GET from Cloudflare
-  - Triggered by: Tenant domain creation workflow
-  - Jobs: `App\Jobs\SyncPendingCloudflareDomain`
+- Cloudflare Custom Hostnames API - Creates and polls hostname/SSL status
+- ScrapingBee API - Proxied web scraping requests
+- Slack webhooks - Log alerts and operational notifications
+- Lazada/Shopee direct HTTP - Product page scraping
 
-- Queue Jobs (outbound):
-  - `App\Jobs\SyncPendingCloudflareDomain` - Async domain sync to Cloudflare
-  - `App\Jobs\InstallTenantModule` - Async module installation
-  - `App\Jobs\UninstallTenantModule` - Async module uninstallation
-  - Triggered by: HTTP request → dispatched → processed by queue worker
+## Product Import Pipeline
 
-## Integration Patterns
+**Architecture:**
+- Strategy pattern: `IProductImporter` interface at `Modules/Product/app/Services/Imports/Interfaces/IProductImporter.php`
+- Resolver: `Modules\Product/app/Services/Imports/ProductImporterResolver.php` - Routes URLs to correct importer
+- Service: `Modules/Product/app/Services/Imports/ProductImportService.php` - Orchestrates import and product creation
+- DTO: `Modules/Product/app/Services/Imports/DTOs/ProductDto.php` - Transfer object between importers and service
 
-**Service Layer:**
-- Services encapsulate external API logic: `App\Services\CloudflareService`
-- Controllers delegate to services, services handle HTTP calls
-- Error handling centralized in service layer with exceptions
+**Supported Sources:**
+| Source | Importer | Scraping Method | File |
+|--------|----------|-----------------|------|
+| Lazada | `LazadaProductImporter` | Direct HTTP + JSON-LD parsing | `Modules/Product/app/Services/Imports/Importers/LazadaProductImporter.php` |
+| Shopee | `ShopeeProductImporter` | ScrapingBee proxy + Open Graph parsing | `Modules/Product/app/Services/Imports/Importers/ShopeeProductImporter.php` |
 
-**Job Queue:**
-- Long-running operations dispatched as jobs (domain sync, module install)
-- Tenant context preserved in job serialization
-- Async processing prevents HTTP timeout issues
-
-**Configuration:**
-- All integrations configurable via environment variables
-- Config files in `config/` directory with defaults
-- Feature flags via env vars (e.g., `CLOUDFLARE_ENABLED`)
+**Job Dispatch:**
+- `Modules/Product/app/Jobs/ImportProductFromUrl.php` - Queued job for background product import
 
 ---
 

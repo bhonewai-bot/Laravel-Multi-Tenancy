@@ -6,328 +6,327 @@
 
 ```
 Laravel-Multi-Tenancy/
-├── app/                          # Core Laravel application code
-│   ├── Actions/Tenants/          # Orchestrated write operations for tenant lifecycle
-│   ├── Http/Controllers/         # Central-facing controllers
-│   │   ├── Auth/                 # Breeze auth controllers (login, password, verification)
-│   │   └── Tenant/               # Tenant-scoped controllers (domain, user, role, module-request)
-│   ├── Http/Middleware/          # Custom middleware (host validation, RBAC, module checks)
-│   ├── Http/Requests/            # Form Request validation classes
-│   ├── Jobs/                     # Queued jobs (module install/uninstall, CF polling)
-│   ├── Livewire/                 # (Empty) No class-based Livewire components in core app
-│   ├── Logging/                  # Monolog processors (tenant context)
-│   ├── Models/                   # Eloquent models (Tenant, Domain, Module, User, Role, etc.)
-│   ├── Policies/                 # Authorization policies (ModuleRequest, Role, User)
-│   ├── Providers/                # Service providers (App, Telescope, Tenancy)
-│   ├── Services/                 # Business logic services (Cloudflare, module management, domain)
-│   ├── Support/                  # Support classes (HostResolver, AppHome)
-│   └── View/Components/          # Layout component classes (AppLayout, GuestLayout)
-├── Modules/                      # Installable feature modules (nwidart/laravel-modules)
-│   └── Product/                  # Product module
-│       ├── app/                  # Module-specific code
-│       │   ├── Http/Controllers/ # ProductController
-│       │   ├── Jobs/             # ImportProductFromUrl
-│       │   ├── Livewire/         # ProductTable, ProductCreateForm, ProductEditForm
-│       │   ├── Models/           # Product model
-│       │   ├── Providers/        # ProductServiceProvider, RouteServiceProvider, EventServiceProvider
-│       │   └── Services/         # Product import services (ScrapingBee, importers)
-│       ├── config/               # Module config (config.php)
-│       ├── database/
-│       │   ├── factories/        # Product factory
-│       │   ├── migrations/       # Module-scoped tenant migrations
-│       │   └── seeders/          # ProductDatabaseSeeder
-│       ├── resources/
-│       │   ├── assets/           # Module assets (JS, SASS)
-│       │   └── views/            # Module Blade views (Livewire + standard)
-│       ├── routes/               # Module routes (web.php, api.php)
-│       └── tests/                # Module tests (Feature, Unit)
-├── bootstrap/
-│   └── app.php                   # App bootstrap: routing, middleware, exceptions
-├── config/
-│   ├── tenancy.php               # Stancl tenancy configuration
-│   ├── cloudflare.php            # Cloudflare SSL for SaaS configuration
-│   ├── telescope.php             # Laravel Telescope config
-│   └── ...                       # Standard Laravel config files
+├── app/                          # Core application code (central + tenant context)
+│   ├── Actions/Tenants/          # Orchestration actions for tenant lifecycle
+│   ├── Http/
+│   │   ├── Controllers/          # Central admin controllers
+│   │   │   ├── Auth/             # Authentication controllers (Breeze)
+│   │   │   └── Tenant/           # Tenant-context controllers (domain, users, roles, modules)
+│   │   ├── Middleware/            # Custom middleware (host validation, RBAC, module checks)
+│   │   └── Requests/             # Form request validation classes
+│   │       └── Auth/             # Auth-specific form requests
+│   ├── Jobs/                     # Async queue jobs (module install/uninstall, Cloudflare sync)
+│   ├── Livewire/                 # Empty - no Livewire components in main app
+│   ├── Logging/                  # Custom logging configuration
+│   ├── Models/                   # Eloquent models (Tenant, User, Domain, Module, RBAC)
+│   ├── Policies/                 # Authorization policies
+│   ├── Providers/                # Service providers (App + Tenancy)
+│   ├── Services/                 # Business logic and external integrations
+│   ├── Support/                  # Helper classes (HostResolver, AppHome)
+│   └── View/Components/          # View component classes (AppLayout, GuestLayout)
+├── bootstrap/                    # Application bootstrap configuration
+│   └── app.php                   # Middleware, routing, exception handling
+├── config/                       # Configuration files
 ├── database/
-│   ├── factories/                # Central model factories (UserFactory)
+│   ├── factories/                # Model factories for testing
 │   ├── migrations/               # Central database migrations
-│   │   └── tenant/               # Tenant database migrations (run per-tenant)
+│   │   └── tenant/               # Tenant-scoped database migrations
 │   └── seeders/                  # Database seeders
-├── docker/                       # Docker deployment config (nginx, prod)
+├── docker/                       # Docker infrastructure configs
+│   ├── nginx/                    # Nginx reverse proxy configuration
+│   └── prod/                     # Production Docker overrides
 ├── docs/                         # Project documentation
-├── mcp-server/                   # Python MCP server (separate from Laravel)
+├── mcp-server/                   # MCP server configuration
+├── Modules/                      # Installable module packages
+│   └── Product/                  # Product module (self-contained)
+│       ├── app/
+│       │   ├── Http/Controllers/ # Module controllers
+│       │   ├── Jobs/             # Module async jobs
+│       │   ├── Livewire/         # Livewire components (ProductTable, forms)
+│       │   ├── Models/           # Module models (Product)
+│       │   ├── Providers/        # Module service providers
+│       │   └── Services/         # Module business logic (import services)
+│       ├── config/               # Module-specific config
+│       ├── database/             # Module migrations and seeders
+│       ├── resources/            # Module views, assets, JS, CSS
+│       ├── routes/               # Module route definitions
+│       └── tests/                # Module-specific tests
+├── public/                       # Web root (index.php, assets)
 ├── resources/
-│   ├── css/                      # Tailwind CSS + custom animations (app.css)
-│   ├── js/                       # Alpine.js + theme/sidebar stores (app.js)
-│   └── views/
-│       ├── auth/                 # Auth views (login, verify-email, confirm-password)
-│       ├── components/           # Blade component library (30+ components)
+│   ├── css/                      # TailwindCSS source
+│   ├── js/                       # Alpine.js + Livewire bootstrap
+│   └── views/                    # Blade templates
+│       ├── auth/                 # Login, register, password views
+│       ├── components/           # Reusable Blade components (30+ components)
+│       ├── dashboard/            # Dashboard views
 │       ├── design-system/        # Design system reference page
-│       ├── errors/               # Error pages (403, 404, 419, 500)
-│       ├── layouts/              # Layout templates (app, guest, navigation)
-│       ├── livewire/             # (Empty in core app)
-│       ├── module-requests/      # Central module request views
+│       ├── errors/               # Error pages
+│       ├── layouts/              # App layout, guest layout, navigation
+│       ├── livewire/             # Livewire component views (empty in main app)
+│       ├── module-requests/      # Central module request review
 │       ├── modules/              # Central module catalog views
-│       ├── profile/              # Profile edit views
+│       ├── profile/              # User profile views
 │       └── tenant/               # Tenant management views
-│           ├── domains/          # Tenant domain management (index, create, show)
+│           ├── domains/          # Domain CRUD and status views
 │           ├── modules/          # Tenant module request/install views
-│           ├── roles/            # Tenant role management (CRUD)
-│           └── users/            # Tenant user management (CRUD)
+│           ├── roles/            # Tenant role CRUD views
+│           └── users/            # Tenant user CRUD views
 ├── routes/
-│   ├── auth.php                  # Auth routes (Breeze)
+│   ├── auth.php                  # Authentication routes (Breeze)
 │   ├── console.php               # Artisan console routes
-│   ├── tenant.php                # Tenant-scoped routes
+│   ├── tenant.php                # Tenant-scoped routes (loaded after tenancy init)
 │   └── web.php                   # Central web routes
+├── slides/                       # Presentation materials
+├── storage/                      # Laravel storage (logs, cache, sessions)
 ├── tests/
 │   ├── Feature/                  # Feature tests
 │   │   ├── Auth/                 # Authentication tests
-│   │   └── Tenancy/              # Multi-tenancy integration tests
+│   │   └── Tenancy/              # Tenancy lifecycle and domain tests
 │   └── Unit/                     # Unit tests
-├── .claude/skills/               # Project-specific AI skills
-│   ├── multi-tenancy/            # Multi-tenancy domain skill
-│   ├── tenantsmith-design/       # Design system skill
-│   ├── livewire-development/     # Livewire patterns skill
-│   └── ...                       # Other skills
-├── .planning/                    # GSD planning documents
-│   └── codebase/                 # Codebase analysis documents
-├── CLAUDE.md                     # Project instructions for AI
+├── .claude/skills/               # Claude Code skills
+│   ├── deploying-laravel-cloud/
+│   ├── diagnose-custom-domain/
+│   ├── laravel-best-practices/
+│   ├── livewire-development/
+│   ├── mcp-development/
+│   ├── multi-tenancy/
+│   ├── tailwindcss-development/
+│   └── tenantsmith-design/
+├── .github/workflows/            # GitHub Actions CI/CD
+├── .planning/                    # Planning and codebase analysis docs
+├── docker-compose.yml            # Local development Docker stack
+├── docker-compose.prod.yml       # Production Docker stack
+├── DockerFile                    # Application Docker image
 ├── composer.json                 # PHP dependencies
-├── package.json                  # JS dependencies (Vite, Tailwind, Alpine.js)
-└── vite.config.js                # Vite build configuration
+├── package.json                  # Node.js dependencies
+├── tailwind.config.js            # TailwindCSS configuration
+├── vite.config.js                # Vite bundler configuration
+├── phpunit.xml                   # PHPUnit configuration
+├── modules_statuses.json         # Module activation states
+├── CLAUDE.md                     # Claude Code project instructions
+└── AGENTS.md                     # Agent configuration
 ```
 
 ## Directory Purposes
 
-**`app/Actions/Tenants/`:**
-- Purpose: Action classes that orchestrate multi-step write operations for tenant lifecycle
-- Contains: `CreateTenantAction`, `UpdateTenantAction`, `SyncCloudflareDomainAction`
-- Pattern: Constructor-injected services, single `execute()` method, returns model
-- Key files: `app/Actions/Tenants/CreateTenantAction.php`
-
-**`app/Http/Controllers/`:**
-- Purpose: Central-facing HTTP request handlers
-- Contains: DashboardController, TenantController, ModuleController, ModuleRequestController, ProfileController, CloudflareHostnameChallengeController, DomainCheckController
-- Pattern: Constructor-injected actions/services, return View or RedirectResponse
-- Key files: `app/Http/Controllers/TenantController.php`, `app/Http/Controllers/DashboardController.php`
+**`app/Http/Controllers/` (Central):**
+- Purpose: Controllers for the platform administration surface (central context)
+- Contains: `TenantController`, `ModuleController`, `ModuleRequestController`, `DashboardController`, `ProfileController`, and host-check endpoints
+- Key files: `app/Http/Controllers/TenantController.php`, `app/Http/Controllers/ModuleController.php`
 
 **`app/Http/Controllers/Tenant/`:**
-- Purpose: Tenant-scoped controllers that run after tenancy initialization
-- Contains: DomainController, ModuleRequestController, RoleController, UserController
-- Pattern: Authorization via `$this->authorize()`, ownership checks via `tenant()->id` comparison
-- Key files: `app/Http/Controllers/Tenant/DomainController.php`
+- Purpose: Controllers that run inside tenant request context
+- Contains: Domain management, module request/install, user/role CRUD
+- Key files: `app/Http/Controllers/Tenant/DomainController.php`, `app/Http/Controllers/Tenant/ModuleRequestController.php`
 
 **`app/Http/Middleware/`:**
-- Purpose: Request-level guards enforcing host policy, RBAC, and module installation checks
-- Contains: RejectInvalidTenantHost, EnsureModuleInstalled, EnsureTenantPermission, EnsureTenantRole
-- Pattern: Constructor-injected dependencies, `handle()` method with Closure `$next`
-- Key files: `app/Http/Middleware/RejectInvalidTenantHost.php`
+- Purpose: Request processing middleware for host validation, module gating, and RBAC enforcement
+- Contains: `RejectInvalidTenantHost`, `EnsureModuleInstalled`, `EnsureTenantRole`, `EnsureTenantPermission`
+- Key files: `app/Http/Middleware/RejectInvalidTenantHost.php`, `app/Http/Middleware/EnsureModuleInstalled.php`
 
 **`app/Http/Requests/`:**
-- Purpose: Form Request validation classes
-- Contains: LoginRequest, ProfileUpdateRequest, TenantStoreRequest, TenantUpdateRequest, RoleStoreRequest, RoleUpdateRequest, UserStoreRequest, UserUpdateRequest, TenantUserUpdateRequest
-- Pattern: Standard Laravel FormRequest with `rules()` method
+- Purpose: Form request validation classes for input validation
+- Contains: `TenantStoreRequest`, `TenantUpdateRequest`, `RoleStoreRequest`, `RoleUpdateRequest`, `UserStoreRequest`, `UserUpdateRequest`, `ProfileUpdateRequest`, `TenantUserUpdateRequest`
 - Key files: `app/Http/Requests/TenantStoreRequest.php`
 
+**`app/Actions/Tenants/`:**
+- Purpose: Orchestration actions for multi-step tenant lifecycle operations
+- Contains: `CreateTenantAction`, `UpdateTenantAction`, `SyncCloudflareDomainAction`
+- Key files: `app/Actions/Tenants/CreateTenantAction.php`
+
+**`app/Services/`:**
+- Purpose: Business logic services and external integration clients
+- Contains: Cloudflare integration, domain management, module installation/registry, admin bootstrapping, ZIP inspection
+- Key files: `app/Services/TenantModuleInstaller.php`, `app/Services/DomainCloudflareSyncService.php`, `app/Services/CloudflareService.php`
+
+**`app/Support/`:**
+- Purpose: Lightweight helper classes for routing and context resolution
+- Contains: `HostResolver` (domain lookup), `AppHome` (post-auth redirect)
+- Key files: `app/Support/HostResolver.php`
+
 **`app/Jobs/`:**
-- Purpose: Queued jobs for async operations
-- Contains: InstallTenantModule, UninstallTenantModule, SyncPendingCloudflareDomain
-- Pattern: `ShouldQueue` interface, constructor-injected data, `handle()` method, `failed()` method for error tracking
+- Purpose: Async queue jobs for long-running or tenant-scoped operations
+- Contains: `InstallTenantModule`, `UninstallTenantModule`, `SyncPendingCloudflareDomain`
 - Key files: `app/Jobs/InstallTenantModule.php`, `app/Jobs/SyncPendingCloudflareDomain.php`
 
 **`app/Models/`:**
-- Purpose: Eloquent models representing database entities
-- Contains: Tenant, Domain, Module, ModuleRequest, User, Role, Permission, Feature
-- Pattern: Stancl concerns for Tenant/Domain, `CentralConnection` trait for central-only models
-- Key files: `app/Models/Tenant.php`, `app/Models/Domain.php`, `app/Models/User.php`
+- Purpose: Eloquent models for both central and tenant-scoped entities
+- Contains: `Tenant`, `User`, `Domain`, `Module`, `ModuleRequest`, `Role`, `Permission`, `Feature`
+- Key files: `app/Models/Tenant.php`, `app/Models/User.php`, `app/Models/Domain.php`
 
-**`app/Services/`:**
-- Purpose: Business logic, external integrations, and complex operations
-- Contains: CloudflareService, DomainCloudflareSyncService, TenantDomainService, TenantModuleInstaller, TenantModuleRegistry, ModuleZipInspector, CentralAdminService
-- Pattern: Constructor-injected dependencies, descriptive method names, PHPDoc with side effects documented
-- Key files: `app/Services/DomainCloudflareSyncService.php`, `app/Services/TenantModuleInstaller.php`
-
-**`app/Support/`:**
-- Purpose: Lightweight utility classes
-- Contains: HostResolver (host classification), AppHome (post-auth redirect)
-- Pattern: Stateless or minimal state, pure logic
-- Key files: `app/Support/HostResolver.php`
+**`app/Policies/`:**
+- Purpose: Authorization policies for Gate-based access control
+- Contains: `ModuleRequestPolicy`, `UserPolicy`, `RolePolicy`
+- Key files: `app/Policies/ModuleRequestPolicy.php`
 
 **`app/Providers/`:**
-- Purpose: Service providers bootstrapping application services
-- Contains: AppServiceProvider (policies, admin bootstrap, Livewire route), TenancyServiceProvider (stancl events, routes, middleware priority), TelescopeServiceProvider
+- Purpose: Service providers that bootstrap application services
+- Contains: `AppServiceProvider` (policies, admin boot, Livewire route), `TenancyServiceProvider` (Stancl events, routes, middleware priority)
 - Key files: `app/Providers/TenancyServiceProvider.php`, `app/Providers/AppServiceProvider.php`
 
-**`Modules/`:**
-- Purpose: Self-contained feature modules installed per-tenant via the module system
-- Contains: `Product/` (the only current module)
-- Pattern: nwidart/laravel-modules structure with Controllers, Livewire, Models, Services, views, routes, migrations
-- Key files: `Modules/Product/app/Providers/ProductServiceProvider.php`, `Modules/Product/routes/web.php`
+**`Modules/Product/`:**
+- Purpose: Self-contained Product module - a complete installable module package
+- Contains: Controllers, Livewire components, models, services (import from Shopee/Lazada), routes, migrations, tests
+- Key files: `Modules/Product/module.json`, `Modules/Product/app/Livewire/ProductTable.php`, `Modules/Product/app/Services/Imports/ProductImportService.php`
 
 **`resources/views/components/`:**
-- Purpose: Reusable Blade component library (TenantSmith design system)
-- Contains: 30+ components including buttons, cards, alerts, modals, data tables, sidebar, inputs
-- Pattern: `<x-component-name>` Blade syntax, all support dark mode via custom hex values
-- Key files: `resources/views/components/primary-button.blade.php`, `resources/views/components/sidebar.blade.php`, `resources/views/components/alert.blade.php`
+- Purpose: Reusable Blade UI components following the design system
+- Contains: 30+ components including `sidebar`, `modal`, `dropdown`, `badge`, `data-table`, `stat-card`, `empty-state`, `alert`, `page-header`, `theme-toggle`, `user-menu`
+- Key files: `resources/views/components/sidebar.blade.php`, `resources/views/components/modal.blade.php`, `resources/views/components/data-table.blade.php`
+
+**`resources/views/layouts/`:**
+- Purpose: Main layout templates for authenticated and guest views
+- Contains: `app.blade.php` (sidebar + header + content), `guest.blade.php` (minimal auth layout), `navigation.blade.php`
+- Key files: `resources/views/layouts/app.blade.php`
+
+**`config/tenancy.php`:**
+- Purpose: Stancl Tenancy package configuration
+- Contains: Tenant model, domain model, database isolation settings, bootstrapper registration, migration parameters
+- Key files: `config/tenancy.php`
+
+**`config/cloudflare.php`:**
+- Purpose: Cloudflare Custom Hostnames API integration settings
+- Contains: API token, zone ID, timeout, retry settings, validation method, async polling toggle
+- Key files: `config/cloudflare.php`
 
 **`database/migrations/tenant/`:**
-- Purpose: Migrations run against each tenant database during provisioning
-- Contains: cache, jobs, roles, features, permissions, role_permissions, users tables
-- Pattern: Standard Laravel migrations, run via `php artisan tenants:migrate`
-- Key files: `database/migrations/tenant/2026_03_01_064333_create_users_table.php`
-
-**`tests/`:**
-- Purpose: PHPUnit test suite
-- Contains: Feature tests (Auth, Tenancy), Unit tests
-- Pattern: PHPUnit classes extending `Tests\TestCase`, feature tests for integration, central domain set in setUp
-- Key files: `tests/TestCase.php`, `tests/Feature/Tenancy/TenantOnboardingTest.php`
+- Purpose: Migrations that run inside each tenant database
+- Contains: Users, roles, permissions, features, role_permissions tables, plus cache/jobs tables
+- Key files: `database/migrations/tenant/2026_03_01_064405_create_roles_table.php`
 
 ## Key File Locations
 
 **Entry Points:**
-- `bootstrap/app.php`: Application bootstrap -- routing, middleware, exceptions
-- `routes/web.php`: Central domain routes
-- `routes/tenant.php`: Tenant-scoped routes (loaded by TenancyServiceProvider)
-- `Modules/Product/routes/web.php`: Product module routes
+- `bootstrap/app.php`: Application boot, middleware registration, routing configuration
+- `bootstrap/providers.php`: Service provider registration
+- `routes/web.php`: Central web routes
+- `routes/tenant.php`: Tenant-scoped web routes (loaded after tenancy initialization)
+- `routes/auth.php`: Authentication routes (Breeze)
 
 **Configuration:**
-- `config/tenancy.php`: Stancl tenancy config (central domains, DB prefix, bootstrappers)
-- `config/cloudflare.php`: Cloudflare SSL for SaaS config (enabled flag, API creds, fallback origin)
-- `config/auth.php`: Auth config including central admin credentials
+- `config/tenancy.php`: Stancl Tenancy database isolation, bootstrappers, migration params
+- `config/cloudflare.php`: Cloudflare API credentials and behavior
+- `config/database.php`: Database connections (central SQLite default, MySQL for production)
+- `config/auth.php`: Authentication guards, central admin credentials
+- `modules_statuses.json`: Module activation flags (Customer, Product, Sale)
 
 **Core Logic:**
-- `app/Support/HostResolver.php`: Host classification engine
-- `app/Services/DomainCloudflareSyncService.php`: CF sync orchestration
-- `app/Services/TenantModuleInstaller.php`: Module migration/seeding engine
-- `app/Actions/Tenants/CreateTenantAction.php`: Tenant provisioning orchestration
+- `app/Services/TenantModuleInstaller.php`: Module migration and seeding engine
+- `app/Services/DomainCloudflareSyncService.php`: Cloudflare state synchronization
+- `app/Support/HostResolver.php`: Central/tenant host resolution
+- `app/Jobs/InstallTenantModule.php`: Async module installation with tenancy context
+- `app/Http/Middleware/RejectInvalidTenantHost.php`: Host validation gate
 
 **Testing:**
-- `tests/TestCase.php`: Base test class (sets central domain, disables Vite)
-- `tests/Feature/Tenancy/`: Multi-tenancy integration tests (8 test files)
-- `tests/Feature/Auth/`: Authentication tests (5 test files)
+- `tests/Feature/Tenancy/`: Tenancy lifecycle, domain management, Cloudflare sync tests
+- `tests/Feature/Auth/`: Authentication and central admin bootstrap tests
+- `tests/TestCase.php`: Base test case
 
 ## Naming Conventions
 
 **Files:**
-- Controllers: `PascalCaseController.php` (e.g., `TenantController.php`, `DomainController.php`)
-- Models: `PascalCase.php` (e.g., `Tenant.php`, `Domain.php`, `ModuleRequest.php`)
-- Services: `PascalCaseService.php` (e.g., `CloudflareService.php`, `TenantModuleRegistry.php`)
-- Actions: `PascalCaseAction.php` (e.g., `CreateTenantAction.php`)
-- Jobs: `PascalCase.php` (e.g., `InstallTenantModule.php`, `SyncPendingCloudflareDomain.php`)
-- Middleware: `PascalCase.php` (e.g., `RejectInvalidTenantHost.php`)
-- Form Requests: `PascalCaseRequest.php` (e.g., `TenantStoreRequest.php`)
-- Blade views: `kebab-case.blade.php` (e.g., `create-tenant.blade.php`)
-- Blade components: `kebab-case.blade.php` in `resources/views/components/` (e.g., `primary-button.blade.php`)
-- Tests: `PascalCaseTest.php` (e.g., `TenantOnboardingTest.php`)
+- Models: Singular PascalCase (`Tenant.php`, `ModuleRequest.php`, `Domain.php`)
+- Controllers: PascalCase, context-prefixed (`TenantController.php` for central, `Tenant/DomainController.php` for tenant)
+- Services: PascalCase, descriptive suffix (`TenantModuleInstaller.php`, `CloudflareService.php`)
+- Actions: PascalCase with Action suffix (`CreateTenantAction.php`, `SyncCloudflareDomainAction.php`)
+- Middleware: PascalCase descriptive (`RejectInvalidTenantHost.php`, `EnsureModuleInstalled.php`)
+- Jobs: PascalCase, verb-first (`InstallTenantModule.php`, `SyncPendingCloudflareDomain.php`)
+- Policies: PascalCase with Policy suffix (`ModuleRequestPolicy.php`)
+- Requests: PascalCase with Store/Update suffix (`TenantStoreRequest.php`)
+- Blade components: kebab-case (`delete-modal.blade.php`, `page-header.blade.php`)
+- Blade views: kebab-case for components, dot-path for page views (`tenant.domains.index`)
 
 **Directories:**
-- `PascalCase/` for PHP namespaces (e.g., `Actions/`, `Controllers/`, `Middleware/`)
-- `kebab-case/` or `lowercase` for view directories (e.g., `module-requests/`, `tenant/`)
-- Tenant-specific controllers grouped under `Tenant/` subdirectory
-
-**PHP Classes:**
-- Namespace: `App\{Directory}\ClassName` (e.g., `App\Services\CloudflareService`)
-- Module namespace: `Modules\{ModuleName}\{Directory}\ClassName`
-- Class names: PascalCase, descriptive (e.g., `DomainCloudflareSyncService`, `TenantModuleRegistry`)
-
-**Methods:**
-- camelCase (e.g., `canServeTenantHost()`, `markModuleOperationRunning()`)
-- Boolean methods: `is*` or `can*` prefix (e.g., `isCentralHost()`, `shouldRetry()`)
-- Action methods: descriptive verb phrases (e.g., `ensureConfiguredSuperAdminExists()`)
+- Standard Laravel: lowercase (`app/`, `config/`, `database/`, `resources/`, `routes/`)
+- Module packages: PascalCase (`Modules/Product/`)
+- Tenant-scoped migrations: `database/migrations/tenant/`
+- Claude skills: kebab-case (`multi-tenancy/`, `laravel-best-practices/`)
 
 ## Where to Add New Code
 
-**New Central Controller:**
-- Implementation: `app/Http/Controllers/{Name}Controller.php`
+**New Central Admin Feature:**
+- Controller: `app/Http/Controllers/{FeatureName}Controller.php`
+- Form Requests: `app/Http/Requests/{Entity}StoreRequest.php`, `app/Http/Requests/{Entity}UpdateRequest.php`
 - Routes: Add to `routes/web.php` inside the `auth` middleware group
-- Tests: `tests/Feature/{Name}Test.php`
+- Views: `resources/views/{feature-name}/index.blade.php`, `create.blade.php`, `edit.blade.php`, `show.blade.php`
+- Tests: `tests/Feature/{FeatureName}Test.php`
 
-**New Tenant Controller:**
-- Implementation: `app/Http/Controllers/Tenant/{Name}Controller.php`
+**New Tenant Feature:**
+- Controller: `app/Http/Controllers/Tenant/{FeatureName}Controller.php`
 - Routes: Add to `routes/tenant.php` inside the `auth` middleware group
-- Authorization: Use `$this->authorize()` with existing or new policies
-- Tests: `tests/Feature/Tenancy/{Name}Test.php`
+- Views: `resources/views/tenant/{feature-name}/`
+- Authorization: Use `permission:resource.action` or `role:admin` middleware
+- Tests: `tests/Feature/Tenancy/{FeatureName}Test.php`
 
-**New Service:**
-- Implementation: `app/Services/{Name}Service.php`
-- Pattern: Constructor-injected dependencies, PHPDoc with side effects
-- Register: Via constructor injection (auto-resolved by container)
+**New Service/Integration:**
+- Service class: `app/Services/{ServiceName}.php`
+- Inject via constructor where needed
+- If external API: encapsulate HTTP calls behind service interface
 
-**New Action:**
-- Implementation: `app/Actions/Tenants/{Name}Action.php`
-- Pattern: Constructor-injected services, single `execute()` method
-
-**New Job:**
-- Implementation: `app/Jobs/{Name}.php`
-- Pattern: `ShouldQueue`, constructor data, `handle()` + `failed()` methods
-
-**New Middleware:**
-- Implementation: `app/Http/Middleware/{Name}.php`
-- Register: Add alias in `bootstrap/app.php` under `$middleware->alias()`
-
-**New Model:**
-- Implementation: `app/Models/{Name}.php`
-- Migration: `database/migrations/{timestamp}_create_{name}_table.php` (central) or `database/migrations/tenant/` (tenant)
-- Factory: `database/factories/{Name}Factory.php`
+**New Async Operation:**
+- Job class: `app/Jobs/{JobName}.php` implementing `ShouldQueue`
+- Always implement `failed()` callback to persist failure state
+- Use `TenantModuleRegistry` pattern for operation status tracking
 
 **New Blade Component:**
-- Implementation: `resources/views/components/{name}.blade.php`
-- Usage: `<x-{name} />` in views
-- Follow: TenantSmith design system patterns (see `.claude/skills/tenantsmith-design/SKILL.md`)
-
-**New Blade Page:**
-- Implementation: `resources/views/{section}/{name}.blade.php`
-- Layout: `<x-app-layout>` with `x-slot:header` for page header
-- Follow: Page patterns from `.claude/skills/tenantsmith-design/references/page-patterns.md`
-
-**New Policy:**
-- Implementation: `app/Policies/{Model}Policy.php`
-- Register: `Gate::policy(Model::class, ModelPolicy::class)` in `AppServiceProvider::boot()`
+- Component class: `app/View/Components/{ComponentName}.php` (if logic needed)
+- View: `resources/views/components/{kebab-name}.blade.php`
+- Reference: `resources/views/components/` for existing component patterns
 
 **New Module:**
-- Directory: `Modules/{ModuleName}/`
-- Follow: Product module structure (`Modules/Product/`)
-- Service Provider: `Modules/{ModuleName}/app/Providers/{ModuleName}ServiceProvider.php`
-- Routes: `Modules/{ModuleName}/routes/web.php` with tenancy middleware + `module:{slug}` middleware
+- Directory: `Modules/{ModuleName}/` with standard Laravel structure
+- Manifest: `Modules/{ModuleName}/module.json` (name, alias, providers)
+- Must include: `database/migrations/` for tenant-scoped migrations
+- Register: Upload ZIP via central admin or manually add to `Modules/`
+- Reference module: `Modules/Product/` for complete structure example
 
 **New Tenant Migration:**
-- Location: `database/migrations/tenant/{timestamp}_{description}.php`
-- Run: `php artisan tenants:migrate`
+- Location: `database/migrations/tenant/`
+- Naming: `YYYY_MM_DD_HHMMSS_create_{table}_table.php`
+- Run via: `php artisan tenants:migrate` or auto-runs on tenant creation
 
-**New Test:**
-- Feature: `tests/Feature/{Area}/{TestName}.php` (extends `Tests\TestCase`)
-- Unit: `tests/Unit/{TestName}.php`
-- Run: `php artisan test --compact --filter={TestName}`
+**New Authorization Policy:**
+- Policy class: `app/Policies/{Model}Policy.php`
+- Register in `app/Providers/AppServiceProvider::boot()` via `Gate::policy()`
+- Reference: `app/Policies/ModuleRequestPolicy.php`
+
+**New Form Request:**
+- Location: `app/Http/Requests/{Context}/{Entity}{Action}Request.php`
+- Use constructor property promotion for dependencies
+- Reference: `app/Http/Requests/TenantStoreRequest.php`
 
 ## Special Directories
 
 **`Modules/`:**
-- Purpose: Installable feature modules with self-contained code, views, routes, migrations
-- Generated: Yes (via ZIP upload or manual creation)
-- Committed: Yes (checked into git)
-- Note: Module ZIPs are uploaded via `ModuleZipInspector` and extracted here
+- Purpose: Installable module packages that extend tenant functionality
+- Generated: Via ZIP upload through `ModuleController::store()` or manual placement
+- Committed: Yes (module code is version-controlled alongside the main app)
 
-**`.claude/skills/`:**
-- Purpose: AI skill definitions for domain-specific guidance
-- Generated: No (manually created)
+**`storage/`:**
+- Purpose: Laravel runtime storage (logs, cache, sessions, file uploads)
+- Generated: Yes, at runtime
+- Committed: No (except `storage/app/` structure)
+
+**`bootstrap/cache/`:**
+- Purpose: Framework cached configuration and routes
+- Generated: Yes, via `php artisan config:cache`, `route:cache`
+- Committed: No
+
+**`docs/`:**
+- Purpose: Project documentation including architecture decisions and operations guides
+- Generated: No
 - Committed: Yes
-- Note: Contains multi-tenancy, tenantsmith-design, livewire-development, and other skills
+- Key files: `docs/architecture.md`, `docs/decisions.md`, `docs/operations.md`
 
 **`.planning/`:**
-- Purpose: GSD planning documents and codebase analysis
-- Generated: Yes (by GSD tools)
-- Committed: Yes
-
-**`docker/`:**
-- Purpose: Docker deployment configuration (nginx, production)
-- Generated: No (manually configured)
+- Purpose: GSD planning and codebase analysis documents
+- Generated: Yes, by codebase mapping agents
 - Committed: Yes
 
 **`mcp-server/`:**
-- Purpose: Python MCP server (separate from Laravel app)
+- Purpose: MCP server configuration for Laravel Boost integration
 - Generated: No
 - Committed: Yes
-- Note: Contains `.venv/` virtual environment
 
 ---
 

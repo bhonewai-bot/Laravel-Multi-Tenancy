@@ -5,196 +5,297 @@
 ## Test Framework
 
 **Runner:**
-- PHPUnit 11.5+ for test execution
-- Config: `phpunit.xml` in project root
-- Use Laravel's `artisan test` command wrapper
+- PHPUnit 11 (configured in `phpunit.xml`)
+- Laravel's testing wrapper (`Illuminate\Foundation\Testing\TestCase`)
 
 **Assertion Library:**
-- PHPUnit native assertions
-- Laravel test helpers: `assertDatabaseHas()`, `assertModelExists()`, `assertSessionHas()`
-- HTTP assertions: `assertRedirect()`, `assertForbidden()`, `assertOk()`
+- PHPUnit assertions + Laravel HTTP testing helpers (`assertDatabaseHas`, `assertSessionHas`, etc.)
 
 **Run Commands:**
 ```bash
-php artisan test --compact                    # Run all tests
-php artisan test --compact tests/Feature/Tenancy  # Run specific directory
-php artisan test --compact --filter=testName # Run specific test
+php artisan test --compact                              # Run all tests
+php artisan test --compact tests/Feature/AuthTest.php   # Run specific file
+php artisan test --compact --filter=testName            # Filter by test name
 ```
 
 ## Test File Organization
 
 **Location:**
+- Tests live in `tests/` directory (Laravel default)
 - Feature tests: `tests/Feature/`
 - Unit tests: `tests/Unit/`
-- Test directory structure mirrors app structure
 
 **Naming:**
-- Feature tests: `{FeatureName}Test.php` (e.g., `TenantOnboardingTest.php`)
-- Unit tests: `{ClassName}Test.php`
-- Test methods: `test_{descriptive_snake_case}` (e.g., `test_central_admin_can_create_tenant_and_domain`)
+- Files: PascalCase with `Test.php` suffix — `TenancyE2EFlowTest.php`, `AuthenticationTest.php`
+- Methods: `test_` prefix with snake_case — `test_central_admin_can_create_tenant_and_domain()`
+- Classes: PascalCase, descriptive — `TenantOnboardingTest`, `DomainCheckTest`
 
 **Structure:**
 ```
 tests/
-├── TestCase.php                    # Base test class
+├── TestCase.php                    # Base test case with setUp()
 ├── Feature/
-│   ├── Auth/                       # Authentication tests
-│   ├── Tenancy/                    # Multi-tenancy tests
-│   └── ...
+│   ├── Auth/
+│   │   ├── AuthenticationTest.php
+│   │   ├── CentralAdminBootstrapTest.php
+│   │   ├── EmailVerificationTest.php
+│   │   └── PasswordConfirmationTest.php
+│   ├── Tenancy/
+│   │   ├── TenancyE2EFlowTest.php
+│   │   ├── TenantOnboardingTest.php
+│   │   ├── TenantBootstrapSeederTest.php
+│   │   ├── DomainCheckTest.php
+│   │   ├── TenantDomainLifecycleTest.php
+│   │   ├── HostAccessPolicyTest.php
+│   │   └── CloudflareDomainStatusSyncTest.php
+│   ├── ExampleTest.php
+│   └── ProfileTest.php
 └── Unit/
     └── ExampleTest.php
 ```
 
+**Total: 16 test files, 51 test methods**
+
 ## Test Structure
 
-**Base Test Class:**
-- Custom `TestCase.php` extends `Illuminate\Foundation\Testing\TestCase`
-- Configures central domain for tenancy tests
-- Disables Vite for faster test runs
-
-**Feature Test Example:**
+**Base TestCase:**
 ```php
-<?php
-
-namespace Tests\Feature\Tenancy;
-
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-
-class TenantOnboardingTest extends TestCase
+abstract class TestCase extends BaseTestCase
 {
-    use RefreshDatabase;
-
-    public function test_central_admin_can_create_tenant_and_domain(): void
+    protected function setUp(): void
     {
-        $admin = User::factory()->create();
+        parent::setUp();
+        $this->withoutVite();
 
-        $response = $this
-            ->actingAs($admin)
-            ->post('/tenants', [
-                'tenant_id' => 't100',
-                'name' => 'Tenant 100',
-                'email' => 'tenant100@example.com',
-                'domain' => 't100.app.localhost',
-            ]);
+        $centralDomain = config('tenancy.central_domains.0')
+            ?: parse_url((string) config('app.url', 'http://localhost'), PHP_URL_HOST)
+            ?: 'localhost';
 
-        $response
-            ->assertRedirect('/tenants')
-            ->assertSessionHas('success');
-
-        $this->assertDatabaseHas('tenants', ['id' => 't100']);
-        $this->assertDatabaseHas('domains', [
-            'tenant_id' => 't100',
-            'domain' => 't100.app.localhost',
+        $this->withServerVariables([
+            'HTTP_HOST' => $centralDomain,
         ]);
     }
 }
 ```
 
-## Database Management
-
-**RefreshDatabase:**
-- Use `RefreshDatabase` trait for most tests
-- Resets database between tests for isolation
-- Preferred for feature tests
-
-**DatabaseMigrations:**
-- Use for complex scenarios needing migration structure
-- Preserves schema across tests
-- Use when testing migration-related functionality
-
-**Manual DB Setup:**
+**Suite Organization:**
 ```php
-private function insertTenantWithDomain(string $tenantId, string $domain, bool $verified): void
-{
-    DB::table('tenants')->insert([
-        'id' => $tenantId,
-        'data' => json_encode(['name' => 'Tenant '.$tenantId]),
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-    DB::table('domains')->insert([
-        'domain' => $domain,
-        'tenant_id' => $tenantId,
-        'verification_code' => $verified ? 'code' : 'pending-code',
-        'verified_at' => $verified ? now() : null,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+class TenantOnboardingTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
+
+    public function test_central_admin_can_create_tenant_and_domain(): void
+    {
+        // Arrange
+        $admin = User::factory()->create();
+
+        // Act
+        $response = $this
+            ->actingAs($admin)
+            ->post('/tenants', [...]);
+
+        // Assert
+        $response
+            ->assertRedirect('/tenants')
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('tenants', [...]);
+    }
 }
 ```
+
+**Patterns:**
+- `RefreshDatabase` trait for tests needing clean database (most tests)
+- `DatabaseMigrations` trait for tests needing schema without resetting (E2E tests)
+- `tearDown()` to close Mockery and end tenancy context
+- `actingAs()` for authentication in tests
 
 ## Mocking
 
-**Framework:** Mockery
+**Framework:** Mockery (integrated with Laravel testing)
 
 **Patterns:**
 ```php
-protected function tearDown(): void
-{
-    Mockery::close();
-    parent::tearDown();
-}
+use Mockery;
+use App\Services\CloudflareService;
 
-public function test_central_admin_auto_syncs_custom_domain_with_cloudflare(): void
-{
-    config(['cloudflare.enabled' => true]);
+// Create mock
+$cloudflare = Mockery::mock(CloudflareService::class);
 
-    $cloudflare = Mockery::mock(CloudflareService::class);
-    $cloudflare->shouldReceive('createHostname')
-        ->once()
-        ->with('rift.example.test')
-        ->andReturn(['success' => true]);
-    $cloudflare->shouldReceive('mapStatuses')
-        ->once()
-        ->andReturn([
-            'cf_hostname_id' => 'cf-central-001',
-            'cf_hostname_status' => 'pending',
-            // ...
-        ]);
+// Set expectations
+$cloudflare->shouldReceive('createHostname')
+    ->once()
+    ->with('rift.example.test')
+    ->andReturn(['success' => true]);
 
-    $this->app->instance(CloudflareService::class, $cloudflare);
+$cloudflare->shouldReceive('mapStatuses')
+    ->once()
+    ->andReturn([
+        'cf_hostname_id' => 'cf-central-001',
+        'cf_hostname_status' => 'pending',
+        // ...
+    ]);
 
-    // Test logic
-}
+// Bind to service container
+$this->app->instance(CloudflareService::class, $cloudflare);
 ```
 
 **What to Mock:**
-- External HTTP calls (Cloudflare API, third-party services)
-- Time-dependent operations
-- Event dispatches: `Event::fake([TenantCreated::class])`
-- File system operations
+- External API calls (Cloudflare, payment gateways, etc.)
+- Services with side effects (filesystem, HTTP, etc.)
+- Any dependency not under test control
 
 **What NOT to Mock:**
-- Database operations (use RefreshDatabase instead)
-- Business logic in Actions and Services (test them directly)
-- Configuration values (use `config([...])` helper)
+- Eloquent models (use factories instead)
+- Database operations
+- Internal Laravel services
+- The class under test
 
-## HTTP Testing
+**Teardown Pattern:**
+```php
+protected function tearDown(): void
+{
+    tenancy()->end();
+    Mockery::close();
+    parent::tearDown();
+}
+```
 
-**Request Pattern:**
+## Fixtures and Factories
+
+**Test Data:**
+- Use model factories — `User::factory()->create()`
+- Custom factory states for variations — `$this->unverified()` on UserFactory
+- Manual creation when factories don't exist — `Module::create([...])`
+
+**Factory Pattern:**
+```php
+use Database\Factories\UserFactory;
+
+class UserFactory extends Factory
+{
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+        ];
+    }
+
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
+    }
+}
+```
+
+**Manual Creation (for models without factories):**
+```php
+$tenant = Tenant::create([
+    'id' => 't100',
+    'name' => 'Tenant 100',
+    'email' => 'tenant100@example.com',
+]);
+
+$domain = $tenant->domains()->create([
+    'domain' => 't100.app.localhost',
+    'verification_code' => null,
+    'verified_at' => now(),
+]);
+```
+
+**Helper Methods in Tests:**
+```php
+private function createTenantWithPrimaryDomain(string $tenantId): Tenant
+{
+    $tenant = Event::fakeFor(fn () => Tenant::create([
+        'id' => $tenantId,
+        'name' => "Tenant {$tenantId}",
+        'email' => "{$tenantId}@example.com",
+    ]));
+
+    $tenant->domains()->create([
+        'domain' => "{$tenantId}.app.localhost",
+        'verification_code' => null,
+        'verified_at' => now(),
+    ]);
+
+    return $tenant->fresh();
+}
+```
+
+**Location:**
+- Factory classes: `database/factories/`
+- Test helpers: Private methods within test classes
+
+## Coverage
+
+**Requirements:** None enforced (no coverage thresholds)
+
+**View Coverage:**
+```bash
+php artisan test --coverage --min=80  # If needed
+```
+
+**PHPUnit Config:**
+- Source directory: `app/` (in `phpunit.xml`)
+- Testing environment: SQLite in-memory (`:memory:`)
+
+## Test Types
+
+**Unit Tests:**
+- Location: `tests/Unit/`
+- Scope: Single class methods, isolated
+- Status: Minimal (only `ExampleTest`)
+
+**Feature Tests:**
+- Location: `tests/Feature/`
+- Scope: HTTP requests, controller logic, middleware
+- Most common type in codebase
+
+**E2E Tests:**
+- Location: `tests/Feature/Tenancy/`
+- Examples: `TenancyE2EFlowTest`
+- Scope: Multi-step flows (onboarding → provisioning → module install)
+- Use `DatabaseMigrations` instead of `RefreshDatabase`
+- Manual tenant initialization/teardown
+
+## Common Patterns
+
+**Auth Testing:**
+```php
+$user = User::factory()->create();
+
+$response = $this
+    ->actingAs($user)
+    ->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+$this->assertAuthenticated();
+$response->assertRedirect(AppHome::path());
+```
+
+**HTTP Request Testing:**
 ```php
 $response = $this
     ->actingAs($admin)
-    ->post('http://app.localhost/tenants', [
-        'tenant_id' => 't100',
-        'name' => 'Tenant 100',
-    ]);
-
-$response
-    ->assertRedirect('/tenants')
-    ->assertSessionHas('success');
-```
-
-**Multi-Tenant Requests:**
-```php
-$tenantHost = "{$tenant->id}.app.localhost";
-
-$response = $this
-    ->actingAs($tenantAdmin)
-    ->from("http://{$tenantHost}/modules")
+    ->from("http://app.localhost/modules")
     ->post("http://{$tenantHost}/modules/request", [
         'module_id' => $module->id,
     ]);
@@ -202,140 +303,169 @@ $response = $this
 $response->assertSessionHas('success');
 ```
 
-**Assertions:**
-- `assertStatus(200)`, `assertRedirect()`, `assertForbidden()`
-- `assertSessionHas('success')`, `assertSessionHasErrors()`
-- `assertDatabaseHas()`, `assertDatabaseMissing()`
-- `assertAuthenticated()`, `assertGuest()`
-- `assertSeeText()`, `assertSeeInOrder()`
+**Database Assertion Testing:**
+```php
+$this->assertDatabaseHas('tenants', ['id' => $tenantId]);
+$this->assertDatabaseHas('domains', [
+    'tenant_id' => $tenantId,
+    'domain' => $tenantDomain,
+]);
+$this->assertDatabaseMissing('tenants', ['id' => 'deleted']);
+```
 
-## Event Testing
-
+**Event Testing:**
 ```php
 use Illuminate\Support\Facades\Event;
+use Stancl\Tenancy\Events\TenantCreated;
 
 Event::fake([TenantCreated::class]);
 
-// Perform action
+// ... perform action ...
 
 Event::assertDispatched(TenantCreated::class);
 ```
 
-## Testing Helpers
-
-**Custom Helpers in Tests:**
+**Session/Flash Message Testing:**
 ```php
-private function makeTenantId(string $prefix): string
-{
-    return $prefix . Str::random(10);
-}
-
-private function createTenantAndSeedAdmin(string $tenantId): array
-{
-    // Setup tenant and admin user
-    return [$tenant, $tenantAdmin];
-}
+$response->assertSessionHas('success');
+$response->assertSessionHas('error');
+$response->assertSessionHasErrors(['email']);
 ```
 
-**PHPUnit Assert Methods:**
+**Tenancy Testing:**
 ```php
-$this->assertSame('expected', $actual);
-$this->assertNull($value);
-$this->assertNotNull($value);
-$this->assertTrue($condition);
-$this->assertContains('item', $array);
-$this->assertStringContainsString('needle', 'haystack');
-```
+use Stancl\Tenancy\Facades\Tenancy;
 
-## Test Coverage
-
-**Coverage Requirements:**
-- Not enforced via CI configuration
-- Recommended to run coverage reports locally before finalizing
-
-**View Coverage:**
-```bash
-php artisan test --compact --coverage
-```
-
-**Priority Areas:**
-- Core tenancy logic (tenant creation, domain verification)
-- Security-critical paths (authentication, authorization)
-- External integrations (Cloudflare API, module installation)
-- Form Request validation
-
-## Test Types
-
-**Unit Tests:**
-- Test individual methods and classes in isolation
-- No database or HTTP layer
-- Fast execution
-
-**Feature Tests:**
-- Test full request lifecycle through HTTP layer
-- Use RefreshDatabase for state management
-- Test authentication, authorization, and validation
-
-**End-to-End Tests:**
-- Multi-step workflows spanning multiple requests
-- Test tenant provisioning and module installation flows
-- Use DatabaseMigrations for consistent schema
-
-**Example - End-to-End Flow:**
-```php
-public function test_request_approve_install_flow_updates_install_state(): void
-{
-    [$tenant, $tenantAdmin] = $this->createTenantAndSeedAdmin($this->makeTenantId('ri'));
-
-    // Step 1: Tenant requests module
-    $requestResponse = $this
-        ->actingAs($tenantAdmin)
-        ->from("http://{$tenantHost}/modules")
-        ->post("http://{$tenantHost}/modules/request", ['module_id' => $module->id]);
-
-    // Step 2: Admin approves request
-    $centralAdmin = User::factory()->create();
-    $approveResponse = $this
-        ->actingAs($centralAdmin)
-        ->post("http://app.localhost/module-requests/{$moduleRequest->id}/approve");
-
-    // Step 3: Tenant installs module
-    $installResponse = $this
-        ->actingAs($tenantAdmin)
-        ->post("http://{$tenantHost}/modules/install", ['module_id' => $module->id]);
-
-    // Assert state changes
-    $installedModules = $tenant->fresh()->getAttribute('installed_modules') ?? [];
-    $this->assertContains('product', $installedModules);
-}
-```
-
-## Common Testing Patterns
-
-**Config Override:**
-```php
-config(['cloudflare.enabled' => true]);
-```
-
-**Environment Variables:**
-```php
-putenv('DOMAIN_CHECK_TOKEN=testing-domain-token');
-$_ENV['DOMAIN_CHECK_TOKEN'] = 'testing-domain-token';
-$_SERVER['DOMAIN_CHECK_TOKEN'] = 'testing-domain-token';
-```
-
-**Tenancy Context:**
-```php
+// Initialize tenant context
 tenancy()->initialize($tenant);
-// Perform tenant-specific action
+
+// Run tenant operations...
+
+// Always clean up
 tenancy()->end();
 ```
 
-**Fake Timers:**
+**Module Guard Testing (E2E):**
 ```php
-$this->travel(5)->minutes();
-// Test time-dependent logic
-$this->travelBack();
+// Test guard blocks access
+$blocked = $this
+    ->actingAs($tenantAdmin)
+    ->get("http://{$tenantHost}/_e2e/module-guard-probe");
+$blocked->assertForbidden();
+tenancy()->end();
+
+// Install module and retry
+$tenant->setAttribute('installed_modules', ['customer']);
+$tenant->save();
+
+$allowed = $this
+    ->actingAs($tenantAdmin)
+    ->get("http://{$tenantHost}/_e2e/module-guard-probe");
+$allowed->assertOk();
+tenancy()->end();
+```
+
+**Async Job Testing:**
+```php
+use App\Jobs\InstallTenantModule;
+
+// Dispatch and test state changes
+dispatch(new InstallTenantModule($tenant->id, $module->id));
+
+// Verify registry state
+$installedModules = $tenant->fresh()->getAttribute('installed_modules') ?? [];
+$this->assertContains('product', $installedModules);
+```
+
+**Custom Route Definition in Tests:**
+```php
+if (! Route::has('tenant.module.guard.probe')) {
+    Route::middleware([
+        'web',
+        InitializeTenancyByDomain::class,
+        PreventAccessFromCentralDomains::class,
+        EnsureVerifiedTenantDomain::class,
+        'auth',
+        'module:customer',
+    ])->get('/_e2e/module-guard-probe', fn () => response('OK', 200))
+        ->name('tenant.module.guard.probe');
+}
+```
+
+## PHPUnit Configuration
+
+**Environment Variables (phpunit.xml):**
+```xml
+<env name="APP_ENV" value="testing"/>
+<env name="APP_URL" value="http://app.localhost"/>
+<env name="TENANCY_CENTRAL_DOMAIN" value="app.localhost"/>
+<env name="DOMAIN_CHECK_TOKEN" value="testing-domain-token"/>
+<env name="DB_CONNECTION" value="sqlite"/>
+<env name="DB_DATABASE" value=":memory:"/>
+<env name="CACHE_STORE" value="array"/>
+<env name="QUEUE_CONNECTION" value="sync"/>
+<env name="SESSION_DRIVER" value="array"/>
+<env name="PULSE_ENABLED" value="false"/>
+<env name="TELESCOPE_ENABLED" value="false"/>
+```
+
+**Key Points:**
+- In-memory SQLite for speed
+- Sync queue for synchronous job execution
+- Array cache/session for isolation
+- Disabled monitoring in tests
+
+## Test Data Setup
+
+**Central vs Tenant Databases:**
+```php
+private function createTenantAndSeedAdmin(string $tenantId): array
+{
+    // Create tenant in central database
+    $tenant = $this->createTenantWithPrimaryDomain($tenantId);
+
+    // Initialize tenancy context
+    tenancy()->initialize($tenant);
+
+    // Migrate tenant database
+    Artisan::call('migrate', [
+        '--database' => 'tenant',
+        '--path' => database_path('migrations/tenant'),
+        '--realpath' => true,
+        '--force' => true,
+    ]);
+
+    // Seed tenant data
+    app(TenantBootstrapSeeder::class)->run();
+
+    // Get tenant admin user
+    $tenantAdmin = User::query()
+        ->where('email', 'admin@example.com')
+        ->firstOrFail();
+
+    // End tenancy context
+    tenancy()->end();
+
+    return [$tenant->fresh(), $tenantAdmin];
+}
+```
+
+## Running Specific Test Suites
+
+**By Directory:**
+```bash
+php artisan test --compact tests/Feature/Auth/
+php artisan test --compact tests/Feature/Tenancy/
+```
+
+**By Class:**
+```bash
+php artisan test --compact tests/Feature/Tenancy/TenantOnboardingTest.php
+```
+
+**By Method:**
+```bash
+php artisan test --compact --filter=test_central_admin_can_create_tenant_and_domain
 ```
 
 ---
