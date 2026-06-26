@@ -21,8 +21,12 @@ class CloudflareDomainStatusSyncTest extends TestCase
     protected function tearDown(): void
     {
         tenancy()->end();
-        Mockery::close();
-        parent::tearDown();
+
+        try {
+            Mockery::close();
+        } finally {
+            parent::tearDown();
+        }
     }
 
     public function test_store_saves_cloudflare_pending_statuses_for_new_domain(): void
@@ -107,6 +111,8 @@ class CloudflareDomainStatusSyncTest extends TestCase
 
     public function test_check_status_creates_cloudflare_hostname_when_domain_predates_cloudflare_linkage(): void
     {
+        config(['cloudflare.enabled' => true]);
+
         $tenant = $this->insertTenant('t943');
 
         $domainId = (int) DB::table('domains')->insertGetId([

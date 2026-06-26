@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Tenancy;
 
-use App\Http\Middleware\EnsureVerifiedTenantDomain;
+use App\Http\Middleware\RejectInvalidTenantHost;
 use App\Models\Domain;
 use App\Models\Module;
 use App\Models\ModuleRequest;
@@ -29,8 +29,12 @@ class TenancyE2EFlowTest extends TestCase
     protected function tearDown(): void
     {
         tenancy()->end();
-        Mockery::close();
-        parent::tearDown();
+
+        try {
+            Mockery::close();
+        } finally {
+            parent::tearDown();
+        }
     }
 
     public function test_tenant_provisioning_flow_from_central_route(): void
@@ -40,7 +44,7 @@ class TenancyE2EFlowTest extends TestCase
         $tenantId = $this->makeTenantId('tp');
         $tenantDomain = "{$tenantId}.app.localhost";
 
-        $centralAdmin = User::factory()->create();
+        $centralAdmin = User::factory()->create(['email' => config('auth.central_admin.email')]);
 
         $response = $this
             ->actingAs($centralAdmin)
@@ -94,7 +98,7 @@ class TenancyE2EFlowTest extends TestCase
 
         $this->assertSame('pending', $moduleRequest->status);
 
-        $centralAdmin = User::factory()->create();
+        $centralAdmin = User::factory()->create(['email' => config('auth.central_admin.email')]);
 
         $approveResponse = $this
             ->actingAs($centralAdmin)
@@ -118,7 +122,7 @@ class TenancyE2EFlowTest extends TestCase
         $this->assertStringContainsString('watch_module_id='.$module->id, $installRedirect);
         $this->assertStringContainsString('watch_action=install', $installRedirect);
 
-        $installedModules = $tenant->fresh()->getAttribute('installed_modules') ?? [];
+        $installedModules = app(TenantModuleRegistry::class)->getInstalledModules($tenant->fresh());
         $this->assertContains('product', $installedModules);
     }
 
@@ -133,7 +137,7 @@ class TenancyE2EFlowTest extends TestCase
                 'web',
                 InitializeTenancyByDomain::class,
                 PreventAccessFromCentralDomains::class,
-                EnsureVerifiedTenantDomain::class,
+                RejectInvalidTenantHost::class,
                 'auth',
                 'module:customer',
             ])->get('/_e2e/module-guard-probe', fn () => response('OK', 200))
@@ -147,10 +151,17 @@ class TenancyE2EFlowTest extends TestCase
         $blocked->assertForbidden();
         tenancy()->end();
 
+        $customerModule = Module::create([
+            'name' => 'Customer',
+            'slug' => 'customer',
+            'version' => '1.0.0',
+            'is_active' => true,
+            'price' => 0,
+        ]);
+
         $tenant = Tenant::query()->findOrFail($tenant->id);
-        $tenant->setAttribute('installed_modules', ['customer']);
-        $tenant->save();
-        $this->assertContains('customer', Tenant::query()->findOrFail($tenant->id)->getAttribute('installed_modules') ?? []);
+        app(TenantModuleRegistry::class)->markInstalled($tenant, 'customer');
+        $this->assertContains('customer', app(TenantModuleRegistry::class)->getInstalledModules($tenant));
 
         $allowed = $this
             ->actingAs($tenantAdmin)
@@ -162,6 +173,8 @@ class TenancyE2EFlowTest extends TestCase
 
     public function test_custom_domain_add_and_verify_flow_with_domain_check_gate(): void
     {
+        config(['cloudflare.enabled' => true]);
+
         [$tenant, $tenantAdmin] = $this->createTenantAndSeedAdmin($this->makeTenantId('cd'));
         $tenantHost = "{$tenant->id}.app.localhost";
         $customHost = "shop.{$tenant->id}.example.test";
@@ -280,8 +293,8 @@ class TenancyE2EFlowTest extends TestCase
             ->assertSeeText("Module '{$module->name}' installed successfully.")
             ->assertDontSee('setTimeout(() => {', false);
 
-        $operations = Tenant::query()->findOrFail($tenant->id)->getAttribute('module_operations') ?? [];
-        $this->assertArrayNotHasKey($module->slug, $operations);
+        $operation = app(TenantModuleRegistry::class)->getModuleOperation($tenant->fresh(), $module->slug);
+        $this->assertNull($operation);
     }
 
     private function createTenantWithPrimaryDomain(string $tenantId): Tenant

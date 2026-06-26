@@ -31,8 +31,9 @@ class VerifyDomainAction
             throw new RuntimeException('Domain does not belong to this tenant.');
         }
 
-        // Cloudflare-managed domains use status polling.
-        if ($domain->cf_hostname_id) {
+        // Cloudflare-managed domains use status polling. When CF is enabled,
+        // also handle domains that predate CF linkage by creating a hostname.
+        if ($domain->cf_hostname_id || config('cloudflare.enabled')) {
             return $this->verifyViaCloudflare($domain);
         }
 
