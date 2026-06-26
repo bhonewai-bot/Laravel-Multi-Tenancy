@@ -58,26 +58,44 @@ class User extends Authenticatable
         return strtolower($this->role?->name ?? '') === strtolower($roleName);
     }
 
-    // supports "product.read", "user.manage", etc
+    /** @var array<string, bool> Per-request permission cache to avoid repeated lookups. */
+    private static array $permissionCache = [];
+
+    /**
+     * Check whether the user's role grants a specific permission.
+     *
+     * Supports dot notation: "feature.permission" (e.g. "domain.read").
+     * Results are cached per user + permission key for the request lifecycle.
+     */
     public function hasPermission(string $permissionKey): bool
     {
         if (! $this->role) {
             return false;
         }
 
+        $cacheKey = $this->id.':'.$permissionKey;
+
+        if (array_key_exists($cacheKey, self::$permissionCache)) {
+            return self::$permissionCache[$cacheKey];
+        }
+
         $this->loadMissing('role.permissions.feature');
 
         if (! str_contains($permissionKey, '.')) {
-            return $this->role->permissions->contains(function (Permission $permission) use ($permissionKey) {
+            $result = $this->role->permissions->contains(function (Permission $permission) use ($permissionKey) {
                 return strtolower($permission->name) === strtolower($permissionKey);
             });
+
+            return self::$permissionCache[$cacheKey] = $result;
         }
 
         [$featureName, $permissionName] = explode('.', $permissionKey, 2);
 
-        return $this->role->permissions->contains(function (Permission $permission) use ($featureName, $permissionName) {
+        $result = $this->role->permissions->contains(function (Permission $permission) use ($featureName, $permissionName) {
             return strtolower($permission->name) === strtolower($permissionName)
                 && strtolower($permission->feature?->name ?? '') === strtolower($featureName);
         });
+
+        return self::$permissionCache[$cacheKey] = $result;
     }
 }

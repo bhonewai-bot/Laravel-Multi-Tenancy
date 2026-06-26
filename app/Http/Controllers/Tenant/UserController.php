@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $users = User::latest()->paginate(15);
+        $users = User::with('role.permissions.feature')->latest()->paginate(15);
 
         return view('tenant.users.index', compact('users'));
     }
