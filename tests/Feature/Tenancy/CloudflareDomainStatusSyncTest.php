@@ -6,7 +6,6 @@ use App\Http\Controllers\Tenant\DomainController;
 use App\Models\Domain;
 use App\Models\Tenant;
 use App\Services\CloudflareService;
-use App\Services\TenantDomainService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +35,6 @@ class CloudflareDomainStatusSyncTest extends TestCase
         $request = Request::create("http://{$tenant->id}.app.localhost/domains", 'POST', [
             'domain' => "shop.{$tenant->id}.example.test",
         ]);
-
         $this->app->instance('request', $request);
 
         $cloudflare = Mockery::mock(CloudflareService::class);
@@ -48,8 +46,9 @@ class CloudflareDomainStatusSyncTest extends TestCase
             'cf_error' => null,
             'cf_payload' => ['result' => ['id' => 'cf-host-001']],
         ]);
+        $this->app->instance(CloudflareService::class, $cloudflare);
 
-        $controller = new DomainController(app(TenantDomainService::class), $cloudflare);
+        $controller = $this->app->make(DomainController::class);
         $response = $controller->store($request);
 
         $this->assertSame(302, $response->getStatusCode());
@@ -97,8 +96,9 @@ class CloudflareDomainStatusSyncTest extends TestCase
             'cf_error' => null,
             'cf_payload' => ['result' => ['id' => 'cf-host-live']],
         ]);
+        $this->app->instance(CloudflareService::class, $cloudflare);
 
-        $controller = new DomainController(app(TenantDomainService::class), $cloudflare);
+        $controller = $this->app->make(DomainController::class);
         $response = $controller->checkStatus(Domain::query()->findOrFail($domainId));
 
         $this->assertSame(302, $response->getStatusCode());
@@ -136,8 +136,9 @@ class CloudflareDomainStatusSyncTest extends TestCase
             'cf_error' => null,
             'cf_payload' => ['result' => ['id' => 'cf-host-created']],
         ]);
+        $this->app->instance(CloudflareService::class, $cloudflare);
 
-        $controller = new DomainController(app(TenantDomainService::class), $cloudflare);
+        $controller = $this->app->make(DomainController::class);
         $response = $controller->checkStatus(Domain::query()->findOrFail($domainId));
 
         $this->assertSame(302, $response->getStatusCode());
@@ -181,8 +182,9 @@ class CloudflareDomainStatusSyncTest extends TestCase
             'cf_error' => null,
             'cf_payload' => ['result' => ['id' => 'cf-host-pending']],
         ]);
+        $this->app->instance(CloudflareService::class, $cloudflare);
 
-        $controller = new DomainController(app(TenantDomainService::class), $cloudflare);
+        $controller = $this->app->make(DomainController::class);
         $response = $controller->checkStatus(Domain::query()->findOrFail($domainId));
 
         $this->assertSame(302, $response->getStatusCode());
@@ -224,8 +226,9 @@ class CloudflareDomainStatusSyncTest extends TestCase
             'cf_error' => null,
             'cf_payload' => ['result' => ['id' => 'cf-host-logs']],
         ]);
+        $this->app->instance(CloudflareService::class, $cloudflare);
 
-        $controller = new DomainController(app(TenantDomainService::class), $cloudflare);
+        $controller = $this->app->make(DomainController::class);
         $controller->checkStatus(Domain::query()->findOrFail($domainId));
 
         $domain = Domain::query()->findOrFail($domainId);
