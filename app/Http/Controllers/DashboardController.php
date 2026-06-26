@@ -6,6 +6,7 @@ use App\Models\Module;
 use App\Models\ModuleRequest;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantModuleRegistry;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -45,8 +46,9 @@ class DashboardController extends Controller
     private function tenantDashboard(): \Illuminate\View\View
     {
         $tenant = tenant();
+        $registry = app(TenantModuleRegistry::class);
         $teamMembers = User::count();
-        $installedModules = count($tenant->getAttribute('installed_modules') ?? []);
+        $installedModules = count($registry->getInstalledModules($tenant));
         $totalDomains = $tenant->domains()->count();
         $pendingRequests = ModuleRequest::where('tenant_id', $tenant->id)
             ->where('status', 'pending')

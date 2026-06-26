@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CloudflareHostnameChallengeController;
 use App\Http\Controllers\DomainCheckController;
+use App\Http\Middleware\EnsureCentralAdmin;
 use App\Http\Middleware\EnsureModuleInstalled;
 use App\Http\Middleware\EnsureTenantPermission;
 use App\Http\Middleware\EnsureTenantRole;
@@ -42,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'central.admin' => EnsureCentralAdmin::class,
             'module' => EnsureModuleInstalled::class,
             'role' => EnsureTenantRole::class,
             'permission' => EnsureTenantPermission::class,

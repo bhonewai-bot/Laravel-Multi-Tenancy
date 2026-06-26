@@ -11,6 +11,16 @@ use ZipArchive;
 class ModuleZipInspector
 {
     /**
+     * File extensions that must never appear anywhere in a module ZIP.
+     */
+    private const DANGEROUS_EXTENSIONS = ['php3', 'php4', 'php5', 'phtml', 'phar', 'sh', 'exe', 'bat', 'cgi', 'pl'];
+
+    /**
+     * File extensions allowed during extraction.
+     */
+    private const ALLOWED_EXTENSIONS = ['php', 'blade.php', 'json', 'xml', 'env', 'css', 'js', 'map', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'woff', 'woff2', 'ttf', 'eot', 'md', 'txt'];
+
+    /**
      * Inspect the uploaded archive before we move anything into Modules/.
      */
     public function inspect(UploadedFile $file)
@@ -39,12 +49,10 @@ class ModuleZipInspector
                 throw new RuntimeException("Invalid ZIP path detected: {$filePath}");
             }
 
-            $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-            if (in_array($extension, ['php', 'phtml', 'sh', 'exe', 'bat', 'cgi'], true)) {
-                // allow php only inside a valid module package; do not block here
-            }
+            // Scan every entry — do not break early so dangerous files are always caught.
+            $this->guardAgainstDangerousFile($filePath);
 
-            if (basename($filePath) === 'module.json') {
+            if (basename($filePath) === 'module.json' && ! $foundModuleJson) {
                 $foundModuleJson = true;
                 $moduleJsonPathInZip = $filePath;
 
@@ -55,8 +63,6 @@ class ModuleZipInspector
                 } elseif ($moduleRootInZip !== '') {
                     $moduleRootInZip .= '/';
                 }
-
-                break;
             }
         }
 
@@ -147,6 +153,10 @@ class ModuleZipInspector
 
             // Only extract the validated package subtree rooted at module.json.
             if ($moduleRootInZip === '' || Str::startsWith($filePath, $moduleRootInZip)) {
+                $relativePath = $moduleRootInZip !== '' && Str::startsWith($filePath, $moduleRootInZip)
+                    ? substr($filePath, strlen($moduleRootInZip))
+                    : $filePath;
+                $this->guardAgainstDisallowedFile($relativePath);
                 $filesToExtract[] = $filePath;
             }
         }
@@ -176,5 +186,48 @@ class ModuleZipInspector
         File::deleteDirectory($tempExtractPath);
 
         return $destinationPath;
+    }
+
+    /**
+     * Reject any file whose extension is on the dangerous blocklist.
+     */
+    private function guardAgainstDangerousFile(string $filePath): void
+    {
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        if (in_array($extension, self::DANGEROUS_EXTENSIONS, true)) {
+            throw new RuntimeException("Blocked dangerous file type: {$filePath}");
+        }
+    }
+
+    /**
+     * Reject any file whose extension is not on the safe allowlist,
+     * and enforce directory constraints for PHP files.
+     */
+    private function guardAgainstDisallowedFile(string $filePath): void
+    {
+        if (Str::endsWith(strtolower($filePath), '.blade.php')) {
+            return;
+        }
+
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        if (! in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            throw new RuntimeException("Blocked disallowed file type: {$filePath}");
+        }
+
+        // PHP files are only allowed in well-known module directories.
+        if ($extension === 'php') {
+            $allowedPrefixes = ['database/', 'config/', 'routes/'];
+            $lowerPath = strtolower($filePath);
+
+            foreach ($allowedPrefixes as $prefix) {
+                if (Str::startsWith($lowerPath, $prefix)) {
+                    return;
+                }
+            }
+
+            throw new RuntimeException("Blocked disallowed file type: {$filePath}");
+        }
     }
 }

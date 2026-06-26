@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\TenantModuleRegistry;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -12,6 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureModuleInstalled
 {
+    public function __construct(
+        private TenantModuleRegistry $registry
+    ) {}
+
     /**
      * Ensure the requested module is present in the tenant's installed module list.
      *
@@ -28,18 +33,7 @@ class EnsureModuleInstalled
             abort(404, 'Tenant context is required.');
         }
 
-        $installedModules = $tenant->getAttribute('installed_modules') ?? [];
-
-        if (! is_array($installedModules)) {
-            $installedModules = [];
-        }
-
-        // The array is normalized before comparison so route parameters can stay case-insensitive.
-        $installedModules = array_map(
-            fn ($item) => $item,
-            $installedModules
-        );
-
+        $installedModules = $this->registry->getInstalledModules($tenant);
         $targetModule = Str::lower($module);
 
         if (! in_array($targetModule, $installedModules, true)) {

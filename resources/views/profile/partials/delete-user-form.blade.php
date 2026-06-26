@@ -18,7 +18,7 @@
     >{{ __('Delete Account') }}</x-danger-button>
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
-        <form method="post" action="{{ route($profileDestroyRoute, absolute: false) }}" class="p-6">
+        <form method="post" action="{{ route($profileDestroyRoute, absolute: false) }}" class="p-6" x-data="{ submitting: false }" @submit="submitting = true">
             @csrf
             @method('delete')
 
@@ -49,8 +49,9 @@
                     {{ __('Cancel') }}
                 </x-secondary-button>
 
-                <x-danger-button class="ms-3">
-                    {{ __('Delete Account') }}
+                <x-danger-button x-bind:disabled="submitting" type="submit" class="ms-3">
+                    <span x-show="!submitting">{{ __('Delete Account') }}</span>
+                    <span x-show="submitting" x-cloak>{{ __('Deleting...') }}</span>
                 </x-danger-button>
             </div>
         </form>

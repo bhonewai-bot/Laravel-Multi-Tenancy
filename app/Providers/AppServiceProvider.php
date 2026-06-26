@@ -39,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('access-central-admin', function (User $user) {
+            return $user->email === config('auth.central_admin.email');
+        });
+
         Gate::policy(ModuleRequest::class, ModuleRequestPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
@@ -46,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         // This runs after policy registration so the admin bootstrap can access guarded routes immediately.
         app(CentralAdminService::class)->ensureConfiguredSuperAdminExists();
 
+        // Why livewire here?
         Livewire::setUpdateRoute(function ($handle) {
             return Route::post('/livewire/update', $handle)->middleware([
                 'web',

@@ -18,8 +18,13 @@
                 <x-alert variant="error">{{ session('error') }}</x-alert>
             </div>
         @endif
+        @if ($errors->any())
+            <div class="mb-6">
+                <x-alert variant="error">Please fix the errors below.</x-alert>
+            </div>
+        @endif
 
-            <x-card>
+        <x-card>
                 <form method="POST" action="{{ route('modules.store') }}" enctype="multipart/form-data" class="space-y-6" x-data="{ submitting: false }" @submit="submitting = true">
                     @csrf
 

@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
-current_phase_name: Central Admin Authorization
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-06-25T15:44:50.694Z"
-last_activity: 2026-06-25
-last_activity_desc: Roadmap created with 3 phases covering 12 requirements
+current_phase: 3
+current_phase_name: Module State Persistence
+status: implemented
+stopped_at: All 3 phases implemented, ready for commit
+last_updated: "2026-06-26T03:29:00.000Z"
+last_activity: 2026-06-26
+last_activity_desc: All 3 security hardening phases implemented and tested
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 3
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 100
 ---
 
 # Project State
@@ -24,16 +24,38 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-25)
 
 **Core value:** Every tenant database and module operation is properly authorized and isolated. No unauthorized user can provision tenants or execute code.
-**Current focus:** Phase 1: Central Admin Authorization
+**Current focus:** All phases implemented — ready for commit
 
 ## Current Position
 
-Phase: 1 of 3 (Central Admin Authorization)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-06-25 -- Roadmap created with 3 phases covering 12 requirements
+Phase: 3 of 3 (Module State Persistence) — IMPLEMENTED
+Status: All phases implemented, 41 tests passing
+Last activity: 2026-06-26 — Phase 3 completed
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
+
+## Phase Summary
+
+### Phase 1: Central Admin Authorization — DONE
+- `EnsureCentralAdmin` middleware + `access-central-admin` Gate
+- Central routes behind `['auth', 'central.admin']`
+- `TenantStoreRequest::authorize()` uses Gate
+- 13 tests passing
+
+### Phase 2: Module Upload Security — DONE
+- `ModuleZipInspector` blocks dangerous extensions (.phar, .sh, .exe, .bat, etc.)
+- Safe file allowlist enforced during extraction (directory-based PHP validation)
+- `ModuleController::store()` catches RuntimeException, logs details, shows generic error
+- 12 tests passing
+
+### Phase 3: Module State Persistence — DONE
+- `module_installations` table replaces JSON blob for installed modules
+- `module_operations` table replaces JSON blob for operation tracking
+- All reads/writes use DB::transaction()
+- Data migration from JSON blobs to new tables
+- `TenantModuleRegistry` fully rewritten to use Eloquent models
+- `EnsureModuleInstalled` and `DashboardController` updated
+- 16 tests passing
 
 ## Performance Metrics
 
@@ -49,30 +71,22 @@ Progress: [░░░░░░░░░░] 0%
 |-------|-------|-------|----------|
 | - | - | - | - |
 
-**Recent Trend:**
-
-- Last 5 plans: -
-- Trend: -
-
-*Updated after each plan completion*
-
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [Roadmap]: 3 phases, one per critical fix (C1 -> C2 -> C3 dependency chain)
-- [Roadmap]: Each phase is a vertical security slice, not a horizontal layer
+- [Phase 1]: Gate defined in AppServiceProvider, middleware as dual enforcement layer
+- [Phase 2]: Directory-based PHP validation (not flat extension blocklist) since .php is needed for migrations/seeders
+- [Phase 3]: `module_installations` uses module_id FK (not slug), `module_operations` uses module_slug (current operation per tenant-module)
+- [Phase 3]: Data migration extracted to `TenantModuleRegistry::migrateFromJsonBlobs()` static method for testability
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Deferred Items
 
@@ -84,6 +98,5 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-25T15:44:50.684Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-central-admin-authorization/01-CONTEXT.md
+Last session: 2026-06-26T03:29:00.000Z
+Stopped at: All 3 phases implemented, ready for commit

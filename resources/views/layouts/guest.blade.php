@@ -201,7 +201,7 @@
                 <div class="lg:hidden flex items-center justify-between px-6 pt-6">
                     <div class="flex items-center gap-2">
                         <x-application-logo class="w-8 h-8" />
-                        <span class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100 translate-y-[4px]">TenantSmith</span>
+                        <span class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100 translate-y-[0.5px]">TenantSmith</span>
                     </div>
                     <x-theme-toggle />
                 </div>

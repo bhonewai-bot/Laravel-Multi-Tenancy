@@ -4,7 +4,7 @@
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Ensure your account is using a long, random password to stay secure.</p>
     </x-slot>
 
-    <form method="post" action="{{ route('password.update', absolute: false) }}" class="space-y-5">
+    <form method="post" action="{{ route('password.update', absolute: false) }}" class="space-y-5" x-data="{ submitting: false }" @submit="submitting = true">
         @csrf
         @method('put')
 
@@ -27,7 +27,10 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+            <x-primary-button x-bind:disabled="submitting" type="submit">
+                <span x-show="!submitting">{{ __('Save') }}</span>
+                <span x-show="submitting" x-cloak>{{ __('Saving...') }}</span>
+            </x-primary-button>
 
             @if (session('status') === 'password-updated')
                 <p

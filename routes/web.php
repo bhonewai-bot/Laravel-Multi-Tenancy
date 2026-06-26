@@ -17,6 +17,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Design System (dev reference)
+    Route::get('/design-system', fn () => view('design-system.index'))->name('design-system');
+});
+
+Route::middleware(['auth', 'central.admin'])->group(function () {
     Route::resource('tenants', TenantController::class);
 
     Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
@@ -27,11 +32,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/module-requests', [ModuleRequestController::class, 'index'])->name('module-requests.index');
     Route::post('/module-requests/{moduleRequest}/approve', [ModuleRequestController::class, 'approve'])->name('module-requests.approve');
     Route::post('/module-requests/{moduleRequest}/reject', [ModuleRequestController::class, 'reject'])->name('module-requests.reject');
-
-    // Domain
-
-    // Design System (dev reference)
-    Route::get('/design-system', fn () => view('design-system.index'))->name('design-system');
 });
 
 require __DIR__.'/auth.php';

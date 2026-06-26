@@ -30,3 +30,7 @@ Thumbs.db
 
 AI-Integration.md
 mcp-server/.venv/
+
+.claude/settings.local.json
+.claude/gsd-migration-journal/
+.claude/commands

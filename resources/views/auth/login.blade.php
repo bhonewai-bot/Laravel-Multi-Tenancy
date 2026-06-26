@@ -25,6 +25,8 @@
     <form
         method="POST"
         action="{{ route('login', absolute: false) }}"
+        x-data="{ submitting: false }"
+        @submit="submitting = true"
         class="space-y-5"
     >
         @csrf
