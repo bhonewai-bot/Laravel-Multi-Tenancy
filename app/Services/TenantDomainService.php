@@ -23,6 +23,19 @@ class TenantDomainService
     }
 
     /**
+     * Return configured central domains in normalized form.
+     *
+     * @return array<int, string>
+     */
+    public function centralDomains(): array
+    {
+        return array_map(
+            fn (string $domain) => $this->normalize($domain),
+            array_filter((array) config('tenancy.central_domains'))
+        );
+    }
+
+    /**
      * Normalize hostnames before persistence or comparison.
      */
     public function normalize(string $domain): string
