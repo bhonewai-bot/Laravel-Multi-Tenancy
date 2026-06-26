@@ -22,7 +22,7 @@ class DomainCheckController extends Controller
      */
     public function __invoke(Request $request, TenantDomainService $domainService): Response
     {
-        $configuredToken = (string) env('DOMAIN_CHECK_TOKEN', '');
+        $configuredToken = (string) config('domain-check.token', '');
         $providedToken = (string) ($request->query('token') ?: $request->header('X-Domain-Check-Token', ''));
 
         if ($configuredToken === '') {
