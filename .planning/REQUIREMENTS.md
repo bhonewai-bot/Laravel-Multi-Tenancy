@@ -63,37 +63,35 @@ All v1 requirements are validated and complete:
 
 ## Traceability
 
-_Filled by roadmap after phase assignment._
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DOCKER-01 | — | Pending |
-| DOCKER-02 | — | Pending |
-| DOCKER-03 | — | Pending |
-| DOCKER-04 | — | Pending |
-| DOCKER-05 | — | Pending |
-| DOCKER-06 | — | Pending |
-| NGINX-01 | — | Pending |
-| NGINX-02 | — | Pending |
-| NGINX-03 | — | Pending |
-| NGINX-04 | — | Pending |
-| NGINX-05 | — | Pending |
-| NGINX-06 | — | Pending |
-| COMPOSE-01 | — | Pending |
-| COMPOSE-02 | — | Pending |
-| COMPOSE-03 | — | Pending |
-| COMPOSE-04 | — | Pending |
-| COMPOSE-05 | — | Pending |
-| OPCACHE-01 | — | Pending |
-| OPCACHE-02 | — | Pending |
-| CI-01 | — | Pending |
-| CI-02 | — | Pending |
-| CI-03 | — | Pending |
+| DOCKER-01 | Phase 4 | Pending |
+| DOCKER-02 | Phase 4 | Pending |
+| DOCKER-03 | Phase 4 | Pending |
+| DOCKER-04 | Phase 4 | Pending |
+| DOCKER-05 | Phase 4 | Pending |
+| DOCKER-06 | Phase 4 | Pending |
+| NGINX-01 | Phase 5 | Pending |
+| NGINX-02 | Phase 5 | Pending |
+| NGINX-03 | Phase 5 | Pending |
+| NGINX-04 | Phase 5 | Pending |
+| NGINX-05 | Phase 5 | Pending |
+| NGINX-06 | Phase 5 | Pending |
+| COMPOSE-01 | Phase 6 | Pending |
+| COMPOSE-02 | Phase 6 | Pending |
+| COMPOSE-03 | Phase 6 | Pending |
+| COMPOSE-04 | Phase 6 | Pending |
+| COMPOSE-05 | Phase 6 | Pending |
+| OPCACHE-01 | Phase 7 | Pending |
+| OPCACHE-02 | Phase 7 | Pending |
+| CI-01 | Phase 8 | Pending |
+| CI-02 | Phase 8 | Pending |
+| CI-03 | Phase 8 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 22 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 22
+- Mapped to phases: 22
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-27*
