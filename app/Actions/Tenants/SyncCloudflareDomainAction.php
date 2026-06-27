@@ -7,6 +7,7 @@ use App\Models\Domain;
 use App\Models\Tenant;
 use App\Services\DomainCloudflareSyncService;
 use App\Services\TenantDomainService;
+use Illuminate\Support\Carbon;
 
 /**
  * Synchronize central domain metadata with Cloudflare hostname state.
@@ -55,7 +56,7 @@ class SyncCloudflareDomainAction
         } catch (\Throwable $e) {
             // Domain failures are kept as recoverable metadata so operators can retry without recreating the tenant.
             $domain->forceFill([
-                'cf_last_checked_at' => now(),
+                'cf_last_checked_at' => Carbon::now(),
                 'cf_error' => $e->getMessage(),
                 'verified_at' => null,
             ])->save();

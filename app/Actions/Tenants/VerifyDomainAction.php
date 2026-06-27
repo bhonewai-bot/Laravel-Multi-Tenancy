@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\Tenant;
 use App\Services\DomainCloudflareSyncService;
 use App\Services\TenantDomainService;
+use Illuminate\Support\Carbon;
 use RuntimeException;
 
 /**
@@ -60,7 +61,7 @@ class VerifyDomainAction
         } catch (\Throwable $e) {
             $domain->update([
                 'cf_error' => $e->getMessage(),
-                'cf_last_checked_at' => now(),
+                'cf_last_checked_at' => Carbon::now(),
             ]);
 
             logger()->error('cloudflare.hostname.status_check_failed', [
@@ -99,7 +100,7 @@ class VerifyDomainAction
             return ['status' => 'error', 'message' => "DNS TXT not matched. Expected: {$record} = {$domain->verification_code}"];
         }
 
-        $domain->verified_at = now();
+        $domain->verified_at = Carbon::now();
         $domain->save();
 
         return ['status' => 'success', 'message' => "Domain {$domain->domain} verified successfully."];

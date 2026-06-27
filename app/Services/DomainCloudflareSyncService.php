@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Domain;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -44,8 +45,8 @@ class DomainCloudflareSyncService
                 : throw new \RuntimeException('Cloudflare hostname ID is missing.'));
 
         $domain->fill($this->cloudflareService->mapStatuses($cf));
-        $domain->cf_last_checked_at = now();
-        $domain->verified_at = $this->shouldMarkVerified($domain) ? now() : null;
+        $domain->cf_last_checked_at = Carbon::now();
+        $domain->verified_at = $this->shouldMarkVerified($domain) ? Carbon::now() : null;
         $domain->save();
 
         $this->logCloudflareSync('info', 'cloudflare.hostname.sync_completed', $domain, [

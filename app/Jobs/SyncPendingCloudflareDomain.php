@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Carbon;
 use Throwable;
 
 /**
@@ -75,7 +76,7 @@ class SyncPendingCloudflareDomain implements ShouldQueue
         if ($domain && ! $domain->verified_at) {
             $domain->update([
                 'cf_error' => $exception->getMessage(),
-                'cf_last_checked_at' => now(),
+                'cf_last_checked_at' => Carbon::now(),
             ]);
         }
 

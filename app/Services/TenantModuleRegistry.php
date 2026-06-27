@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Module;
 use App\Models\ModuleInstallation;
 use App\Models\ModuleOperation;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -60,7 +61,7 @@ class TenantModuleRegistry
         DB::transaction(function () use ($tenant, $module) {
             ModuleInstallation::updateOrCreate(
                 ['tenant_id' => $tenant->getTenantKey(), 'module_id' => $module->id],
-                ['installed_at' => now()]
+                ['installed_at' => Carbon::now()]
             );
         });
     }
@@ -219,7 +220,7 @@ class TenantModuleRegistry
                 foreach ($moduleIds as $slug => $moduleId) {
                     DB::table('module_installations')->updateOrInsert(
                         ['tenant_id' => $tenant->id, 'module_id' => $moduleId],
-                        ['installed_at' => now(), 'updated_at' => now()]
+                        ['installed_at' => Carbon::now(), 'updated_at' => Carbon::now()]
                     );
                 }
             }
@@ -237,8 +238,8 @@ class TenantModuleRegistry
                             'action' => $operation['action'] ?? 'install',
                             'status' => $operation['status'] ?? 'unknown',
                             'message' => $operation['message'] ?? '',
-                            'updated_at' => $operation['updated_at'] ?? now(),
-                            'created_at' => $operation['updated_at'] ?? now(),
+                            'updated_at' => $operation['updated_at'] ?? Carbon::now(),
+                            'created_at' => $operation['updated_at'] ?? Carbon::now(),
                         ]
                     );
                 }

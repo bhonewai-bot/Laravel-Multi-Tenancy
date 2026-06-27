@@ -7,6 +7,7 @@ use App\Models\Domain;
 use App\Models\Tenant;
 use App\Services\DomainCloudflareSyncService;
 use App\Services\TenantDomainService;
+use Illuminate\Support\Carbon;
 use RuntimeException;
 
 /**
@@ -62,7 +63,7 @@ class StoreDomainAction
         } catch (\Throwable $e) {
             $domain->update([
                 'cf_error' => $e->getMessage(),
-                'cf_last_checked_at' => now(),
+                'cf_last_checked_at' => Carbon::now(),
             ]);
 
             logger()->error('cloudflare.hostname.create_failed', [

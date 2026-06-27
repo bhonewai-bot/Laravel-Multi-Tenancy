@@ -23,27 +23,33 @@ This milestone hardens critical security gaps discovered during a codebase audit
 - ✓ Design system with Blade components, dark mode, mobile sidebar
 - ✓ Auth system (Laravel Breeze) with login/logout, profile management
 
-### Active
+### Validated
 
-- [ ] **C1**: Central admin authorization — only super-admin can access tenant/module CRUD routes
-- [ ] **C2**: Module ZIP upload security — restrict to admin, prevent arbitrary PHP execution
-- [ ] **C3**: Module state persistence — move `installed_modules` and `module_operations` from JSON blob on tenant record to dedicated database table
+- ✓ **C1**: Central admin authorization — `EnsureCentralAdmin` middleware + `access-central-admin` Gate
+- ✓ **C2**: Module ZIP upload security — blocks dangerous extensions, safe file allowlist
+- ✓ **C3**: Module state persistence — `module_installations` + `module_operations` tables with transactions
+- ✓ **MAJOR-01**: Duplicate host verification consolidated — `HostResolver` delegates to `TenantDomainService`
+- ✓ **MAJOR-02**: `EnsureModuleInstalled` identity-map fixed — uses `Str::lower()` for comparison
+- ✓ **MAJOR-03**: `CreateTenantAction` wrapped in `DB::transaction()`
+- ✓ **MAJOR-04**: `Tenant` model has relationships, accessors, and scopes
+- ✓ **MAJOR-05**: Repair migration is idempotent (no code change needed)
+- ✓ **MODERATE-1**: N+1 trap eliminated — per-request cache + eager loading
+- ✓ **MODERATE-2**: `domains:recover-stuck` command for stuck domain recovery
+- ✓ **MODERATE-3**: `ModuleController` catches specific exceptions, logs full error
+- ✓ **MODERATE-4**: `DomainCheckController` uses `config()` instead of `env()`
+- ✓ **MODERATE-5+6**: `StoreDomainAction` + `VerifyDomainAction` extracted, Action pattern consistent
+- ✓ **Duplicate routes**: `dashboard` and auth routes prefixed with `tenant.` — `route:cache` works
 
 ### Out of Scope (this milestone)
 
-- Major issues from audit (duplicate host verification, EnsureModuleInstalled fix, CreateTenantAction transaction, Tenant model, repair migration) — next milestone
-- Moderate/minor issues (N+1 traps, god controller refactor, nginx hardening, Docker fixes) — future milestones
+- INFRA issues (Docker hardening, nginx security headers, OPcache, scheduler service) — future milestone
 - VPS public IP / custom domain deployment — ignored per user request
 
 ## Context
 
-Brownfield project. Sole developer (Bhone Wai), 63 commits. The codebase audit (`docs/audit-2026-06-25.md`) identified 3 critical security issues that block any public deployment:
+Brownfield project. Sole developer (Bhone Wai). The codebase audit (`docs/audit-2026-06-25.md`) identified 3 critical, 5 major, 6 moderate, and 3 minor issues. All critical, major, and moderate issues are now resolved. 96 tests passing (233 assertions). `route:cache` works in production.
 
-1. **No central admin authorization** — `routes/web.php:14` wraps all central routes in `auth` middleware only. `TenantStoreRequest::authorize()` returns `(bool) $this->user()`. Any authenticated user can create tenants or upload modules.
-2. **ZIP module upload is RCE** — `ModuleZipInspector` detects dangerous files but does not block them. ZIPs are extracted directly into `base_path('Modules/')` within the web root.
-3. **Module state race condition** — `TenantModuleRegistry` stores install status as JSON in the tenant `data` column using read-modify-write cycles. Docblock admits: "This is last-write-wins state."
-
-The user wants to fix these, deploy, then tackle major issues in a follow-up phase as a learning exercise.
+Remaining: INFRA issues (Docker hardening, nginx security headers, OPcache, scheduler service) are deferred to a future milestone.
 
 Codebase map exists at `.planning/codebase/` (1,933 lines across 7 documents).
 
@@ -58,10 +64,14 @@ Codebase map exists at `.planning/codebase/` (1,933 lines across 7 documents).
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Central auth via Gate + middleware | Simpler than a full role system at this stage; single super-admin is the current need | — Pending |
-| Module ZIP: admin-only gate + content allowlist | Addresses both the auth gap and the extraction risk without rebuilding the module system | — Pending |
-| Module state: dedicated `module_installations` pivot table | Database-level constraints prevent race conditions; simpler than distributed locking | — Pending |
-| Fix order: C1 → C2 → C3 | C1 is foundational (all central routes depend on it), C2 depends on C1 being fixed first | — Pending |
+| Central auth via Gate + middleware | Simpler than a full role system at this stage; single super-admin is the current need | ✓ Implemented |
+| Module ZIP: admin-only gate + content allowlist | Addresses both the auth gap and the extraction risk without rebuilding the module system | ✓ Implemented |
+| Module state: dedicated `module_installations` pivot table | Database-level constraints prevent race conditions; simpler than distributed locking | ✓ Implemented |
+| Fix order: C1 → C2 → C3 | C1 is foundational (all central routes depend on it), C2 depends on C1 being fixed first | ✓ Completed |
+| Consolidate host verification on TenantDomainService | HostResolver delegates to TenantDomainService — eliminates divergent logic | ✓ Implemented |
+| Wrap CreateTenantAction in DB::transaction | Prevents orphaned tenants if domain creation fails mid-sequence | ✓ Implemented |
+| Extract domain actions (StoreDomainAction, VerifyDomainAction) | Consistent Action pattern across all write operations | ✓ Implemented |
+| Prefix tenant routes with `tenant.` | Eliminates duplicate route names, enables `route:cache` in production | ✓ Implemented |
 
 ## Evolution
 
@@ -81,4 +91,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-25 after initialization*
+*Last updated: 2026-06-27 after audit remediation complete*

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ModuleRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 /**
@@ -43,7 +44,7 @@ class ModuleRequestController extends Controller
 
         $moduleRequest->update([
             'status' => 'approved',
-            'reviewed_at' => now(),
+            'reviewed_at' => Carbon::now(),
             'review_note' => null,
         ]);
 
@@ -64,7 +65,7 @@ class ModuleRequestController extends Controller
 
         $moduleRequest->update([
             'status' => 'rejected',
-            'reviewed_at' => now(),
+            'reviewed_at' => Carbon::now(),
             'review_note' => null,
         ]);
 
