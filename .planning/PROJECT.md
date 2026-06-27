@@ -1,14 +1,27 @@
-# TenantSmith — Security Hardening
+# TenantSmith — INFRA Hardening
 
 ## What This Is
 
 TenantSmith is a Laravel multi-tenancy platform that lets a central admin provision tenant organizations, upload module packages, and manage domain verification via Cloudflare. Each tenant gets isolated databases with role-based access control.
 
-This milestone hardens critical security gaps discovered during a codebase audit — blocking issues that prevent production deployment.
+This milestone hardens the Docker infrastructure, nginx configuration, and CI pipeline to make the platform production-ready.
 
 ## Core Value
 
-**Every tenant database and module operation is properly authorized and isolated.** No unauthorized user can provision tenants or execute code.
+**The Docker infrastructure is secure, performant, and production-ready.** Containers run as non-root, secrets stay out of image layers, nginx serves assets with proper caching and security headers, and the CI pipeline validates builds.
+
+## Current Milestone: v1.1 INFRA Hardening
+
+**Goal:** Production-ready Docker infrastructure with security headers, caching, OPcache, scheduler, and CI hardening.
+
+**Target features:**
+- Docker security: .dockerignore, non-root user, remove bind-mount, wire entrypoint, resource limits
+- Nginx hardening: security headers, gzip compression, static asset caching
+- OPcache extension for PHP-FPM throughput
+- Scheduler service for Laravel scheduled tasks
+- Queue worker health check
+- CI pipeline: Docker build validation, Pint, composer audit
+- Minor: rename Dockerfile, env var for Caddy domain
 
 ## Requirements
 
@@ -42,8 +55,9 @@ This milestone hardens critical security gaps discovered during a codebase audit
 
 ### Out of Scope (this milestone)
 
-- INFRA issues (Docker hardening, nginx security headers, OPcache, scheduler service) — future milestone
 - VPS public IP / custom domain deployment — ignored per user request
+- Application-level changes (no new features, no model/controller changes)
+- Test fixes beyond what's needed to verify INFRA changes
 
 ## Context
 
