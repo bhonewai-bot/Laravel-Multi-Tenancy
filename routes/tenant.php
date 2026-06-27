@@ -31,13 +31,12 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     Route::get('/', function () {
-        return redirect('dashboard');
+        return redirect()->route('tenant.dashboard');
     });
 
     Route::middleware('auth')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', fn () => view('dashboard'))
+            ->name('tenant.dashboard');
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('tenant.profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('tenant.profile.update');
@@ -85,5 +84,7 @@ Route::middleware([
             ->name('tenant.domains.destroy');
     });
 
-    require __DIR__.'/auth.php';
+    Route::name('tenant.')->group(function () {
+        require __DIR__.'/auth.php';
+    });
 });

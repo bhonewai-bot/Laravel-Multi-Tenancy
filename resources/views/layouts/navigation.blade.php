@@ -3,7 +3,7 @@
     $profileUrl = $isTenant ? route('tenant.profile.edit', absolute: false) : route('profile.edit', absolute: false);
     $navLinks = $isTenant
         ? [
-            ['label' => 'Dashboard', 'href' => route('dashboard', absolute: false), 'active' => request()->routeIs('dashboard')],
+            ['label' => 'Dashboard', 'href' => route('tenant.dashboard', absolute: false), 'active' => request()->routeIs('tenant.dashboard')],
             ['label' => 'Modules', 'href' => route('tenant.modules.index', absolute: false), 'active' => request()->routeIs('tenant.modules.*')],
         ]
         : [
@@ -51,10 +51,10 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
-                        <form method="POST" action="{{ route('logout', absolute: false) }}">
+                        <form method="POST" action="{{ $isTenant ? route('tenant.logout', absolute: false) : route('logout', absolute: false) }}">
                             @csrf
 
-                            <x-dropdown-link :href="route('logout', absolute: false)"
+                            <x-dropdown-link :href="$isTenant ? route('tenant.logout', absolute: false) : route('logout', absolute: false)"
                                 onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
@@ -94,10 +94,10 @@
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
-                <form method="POST" action="{{ route('logout', absolute: false) }}">
+                <form method="POST" action="{{ $isTenant ? route('tenant.logout', absolute: false) : route('logout', absolute: false) }}">
                     @csrf
 
-                    <x-responsive-nav-link :href="route('logout', absolute: false)"
+                    <x-responsive-nav-link :href="$isTenant ? route('tenant.logout', absolute: false) : route('logout', absolute: false)"
                         onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>

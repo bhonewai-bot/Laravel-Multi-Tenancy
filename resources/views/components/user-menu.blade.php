@@ -30,9 +30,9 @@
 
         <div class="border-t border-gray-100 dark:border-[#262632] my-1"></div>
 
-        <form method="POST" action="{{ route('logout', absolute: false) }}">
+        <form method="POST" action="{{ $isTenant ? route('tenant.logout', absolute: false) : route('logout', absolute: false) }}">
             @csrf
-            <x-dropdown-link :href="route('logout', absolute: false)"
+            <x-dropdown-link :href="$isTenant ? route('tenant.logout', absolute: false) : route('logout', absolute: false)"
                 onclick="event.preventDefault(); this.closest('form').submit();"
                 class="flex items-center gap-2">
                 <x-heroicon-o-arrow-left-start-on-rectangle class="w-4 h-4 text-gray-400" />

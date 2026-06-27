@@ -8,7 +8,7 @@
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Update your account's profile information and email address.</p>
     </x-slot>
 
-    <form id="send-verification" method="post" action="{{ route('verification.send', absolute: false) }}">
+    <form id="send-verification" method="post" action="{{ tenant() ? route('tenant.verification.send', absolute: false) : route('verification.send', absolute: false) }}">
         @csrf
     </form>
 

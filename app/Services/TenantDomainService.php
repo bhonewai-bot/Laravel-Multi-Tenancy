@@ -15,14 +15,6 @@ use Illuminate\Support\Str;
 class TenantDomainService
 {
     /**
-     * Create a new service instance.
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
      * Return configured central domains in normalized form.
      *
      * @return array<int, string>

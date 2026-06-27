@@ -4,7 +4,7 @@
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Ensure your account is using a long, random password to stay secure.</p>
     </x-slot>
 
-    <form method="post" action="{{ route('password.update', absolute: false) }}" class="space-y-5" x-data="{ submitting: false }" @submit="submitting = true">
+    <form method="post" action="{{ tenant() ? route('tenant.password.update', absolute: false) : route('password.update', absolute: false) }}" class="space-y-5" x-data="{ submitting: false }" @submit="submitting = true">
         @csrf
         @method('put')
 

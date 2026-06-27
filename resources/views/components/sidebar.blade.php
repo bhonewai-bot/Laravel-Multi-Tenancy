@@ -1,5 +1,5 @@
 @php
-    $homeUrl = route('dashboard', absolute: false);
+    $homeUrl = tenant() ? route('tenant.dashboard', absolute: false) : route('dashboard', absolute: false);
 @endphp
 
 {{-- Mobile overlay — separate from flex container to avoid layout conflicts --}}

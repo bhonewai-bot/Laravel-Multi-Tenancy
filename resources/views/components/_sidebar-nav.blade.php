@@ -143,10 +143,10 @@
             <p class="px-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-400 dark:text-gray-500">Overview</p>
         @endif
 
-        <a href="{{ route('dashboard', absolute: false) }}"
-            class="flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-[#181820] {{ request()->routeIs('dashboard') ? 'bg-gray-100 dark:bg-[#181820] text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100' }}"
+        <a href="{{ route('tenant.dashboard', absolute: false) }}"
+            class="flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-[#181820] {{ request()->routeIs('tenant.dashboard') ? 'bg-gray-100 dark:bg-[#181820] text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100' }}"
             @if (! $isMobile) :title="$store.sidebar.collapsed ? 'Dashboard' : ''" @endif>
-            <x-heroicon-o-building-office-2 class="w-5 h-5 shrink-0 {{ request()->routeIs('dashboard') ? 'text-brand-500 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500' }}" />
+            <x-heroicon-o-building-office-2 class="w-5 h-5 shrink-0 {{ request()->routeIs('tenant.dashboard') ? 'text-brand-500 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500' }}" />
             @if (! $isMobile)
                 <span x-show="!$store.sidebar.collapsed" x-cloak class="whitespace-nowrap">Dashboard</span>
             @else
