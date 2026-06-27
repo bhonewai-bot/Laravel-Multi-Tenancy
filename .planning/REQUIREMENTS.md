@@ -1,73 +1,100 @@
-# Requirements: TenantSmith Security Hardening
+# Requirements — v1.1 INFRA Hardening
 
-**Defined:** 2026-06-25
-**Core Value:** Every tenant database and module operation is properly authorized and isolated. No unauthorized user can provision tenants or execute code.
+**Defined:** 2026-06-27
+**Core Value:** The Docker infrastructure is secure, performant, and production-ready.
 
-## v1 Requirements
+## Validated (v1.0 — Security Hardening)
 
-### Authorization
+All v1 requirements are validated and complete:
 
-- [ ] **AUTH-01**: Only the configured super-admin (matching `CENTRAL_SUPERADMIN_EMAIL`) can access central CRUD routes (tenants, modules, module-requests)
-- [ ] **AUTH-02**: Non-admin authenticated users receive a 403 Forbidden response on central routes
-- [ ] **AUTH-03**: The `TenantStoreRequest::authorize()` method checks admin status instead of `(bool) $this->user()`
-- [ ] **AUTH-04**: Central admin Gate is defined in `AppServiceProvider` and reusable across middleware, requests, and views
+- **AUTH-01 to AUTH-04**: Central admin authorization — `EnsureCentralAdmin` middleware + Gate
+- **UPLOAD-01 to UPLOAD-04**: Module upload security — ZIP sanitization, extension blocklist
+- **STATE-01 to STATE-04**: Module state persistence — `module_installations` + `module_operations` tables
 
-### Upload Security
+## v1.1 Requirements
 
-- [ ] **UPLOAD-01**: Module upload route is gated behind admin authorization (inherits from AUTH-01)
-- [ ] **UPLOAD-02**: `ModuleZipInspector` blocks ZIPs containing PHP files (`.php`, `.phtml`, `.php3`, `.php4`, `.php5`, `.phar`) or other executable content (`.sh`, `.exe`, `.bat`, `.cgi`, `.pl`)
-- [ ] **UPLOAD-03**: Extracted module files are validated against an allowlist of safe file types before being written to disk (config, migrations, seeders, views, routes)
-- [ ] **UPLOAD-04**: `ModuleController::store()` catches specific exceptions only — not `\Throwable` — and logs full errors while showing generic messages to users
+### Dockerfile & Build Context
 
-### Module State
+- [ ] **DOCKER-01**: A `.dockerignore` file excludes `.env`, `.git/`, `vendor/`, `node_modules/`, `docker/`, `tests/`, and other non-production files from the Docker build context
+- [ ] **DOCKER-02**: The production Dockerfile stage runs as non-root user (`www-data`) using a `USER` directive after entrypoint execution
+- [ ] **DOCKER-03**: The existing `docker/prod/entrypoint.sh` is wired into the Dockerfile via `ENTRYPOINT` so it executes on container start (handles storage permissions and gosu privilege drop)
+- [ ] **DOCKER-04**: The OPcache PHP extension is installed in the Dockerfile via `docker-php-ext-install opcache`
+- [ ] **DOCKER-05**: Production `docker-compose.prod.yml` does not bind-mount the application directory — code is baked into the image via multi-stage build
+- [ ] **DOCKER-06**: The Dockerfile is named `Dockerfile` (not `DockerFile`) and all compose file references are updated to match — fixes Linux CI builds
 
-- [ ] **STATE-01**: `installed_modules` moves from tenant `data` JSON column to a dedicated `module_installations` pivot table (`tenant_id`, `module_id`, `installed_at`)
-- [ ] **STATE-02**: `module_operations` moves from tenant `data` JSON column to a dedicated `module_operations` table (`tenant_id`, `module_slug`, `action`, `status`, `message`, `created_at`, `updated_at`)
-- [ ] **STATE-03**: All module state reads and writes use database transactions — each mutation is an atomic INSERT/UPDATE, never a read-modify-write on the tenant record
-- [ ] **STATE-04**: `TenantModuleRegistry` is updated to read/write from the new tables, and existing JSON data is migrated in a migration `up()` method
+### Nginx Hardening
 
-## v2 Requirements
+- [ ] **NGINX-01**: Nginx adds Content-Security-Policy header with `script-src 'self' 'unsafe-inline' 'unsafe-eval'` compatible with Livewire 4 and Alpine.js
+- [ ] **NGINX-02**: Nginx adds `Strict-Transport-Security` header (HSTS) with appropriate max-age
+- [ ] **NGINX-03**: Nginx adds `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin` headers
+- [ ] **NGINX-04**: Nginx enables gzip compression for text/html, text/css, application/javascript, application/json, and image/svg+xml
+- [ ] **NGINX-05**: Nginx caches Vite-hashed static assets (JS, CSS, images) with 1-year expiry and immutable directive
+- [ ] **NGINX-06**: Nginx disables `server_tokens` to hide version information
 
-Deferred to next milestone.
+### Docker Compose Security & Services
 
-- **MAJOR-01**: Consolidate `HostResolver` and `TenantDomainService` into one host verification implementation
-- **MAJOR-02**: Fix `EnsureModuleInstalled` identity-map — change `fn($item) => $item` to `strtolower`
-- **MAJOR-03**: Wrap `CreateTenantAction::execute()` in `DB::transaction()`
-- **MAJOR-04**: Add accessors, scopes, and relationships to `Tenant` model
-- **MAJOR-05**: Resolve repair migration issue — document root cause and add CI migration validation
+- [ ] **COMPOSE-01**: All containers use `cap_drop: [ALL]` to remove unnecessary Linux capabilities
+- [ ] **COMPOSE-02**: All containers use `security_opt: [no-new-privileges]` to block privilege escalation
+- [ ] **COMPOSE-03**: Resource limits are set for all services (app: 512M/1.0 CPU, nginx: 128M/0.5 CPU, queue: 512M/1.0 CPU, scheduler: 256M/0.5 CPU, mysql: 1G/1.0 CPU)
+- [ ] **COMPOSE-04**: A `scheduler` service is added running `php artisan schedule:work` using the same Docker image as the app
+- [ ] **COMPOSE-05**: The `queue` service has a health check that monitors worker responsiveness
+
+### OPcache & Performance
+
+- [ ] **OPCACHE-01**: An OPcache configuration file (`docker/php/conf.d/opcache.ini`) is created with production settings: `validate_timestamps=0`, `max_accelerated_files=10000`, `memory_consumption=128`
+- [ ] **OPCACHE-02**: OPcache JIT is configured with `opcache.jit=1255` for PHP 8.3 tracing JIT
+
+### CI Pipeline
+
+- [ ] **CI-01**: CI pipeline runs `vendor/bin/pint --test` to enforce code style — fails the build on violations
+- [ ] **CI-02**: CI pipeline runs `composer audit` to check for known vulnerabilities in dependencies
+- [ ] **CI-03**: CI pipeline validates that `docker build` succeeds — catches Dockerfile errors before merge
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Full role-based central admin (multiple admins) | Single super-admin is sufficient for current scale |
-| Module code signing / registry | Over-engineering for a solo developer — allowlist validation is adequate |
-| Docker/infrastructure hardening | Separate milestone |
-| Moderate/minor audit issues | Separate milestone |
+| Hadolint Dockerfile linting | Defer to when team grows |
+| Trivy container scanning | Defer to compliance milestone |
+| PHPStan static analysis | Defer to codebase complexity milestone |
+| CI dependency caching | Optimize later when pipeline feels slow |
+| Scheduled Cloudflare domain sweep | Defer to v2 |
 | VPS public IP / custom domain deployment | Deferred per user request |
 
 ## Traceability
 
+_Filled by roadmap after phase assignment._
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| UPLOAD-01 | Phase 2 | Pending |
-| UPLOAD-02 | Phase 2 | Pending |
-| UPLOAD-03 | Phase 2 | Pending |
-| UPLOAD-04 | Phase 2 | Pending |
-| STATE-01 | Phase 3 | Pending |
-| STATE-02 | Phase 3 | Pending |
-| STATE-03 | Phase 3 | Pending |
-| STATE-04 | Phase 3 | Pending |
+| DOCKER-01 | — | Pending |
+| DOCKER-02 | — | Pending |
+| DOCKER-03 | — | Pending |
+| DOCKER-04 | — | Pending |
+| DOCKER-05 | — | Pending |
+| DOCKER-06 | — | Pending |
+| NGINX-01 | — | Pending |
+| NGINX-02 | — | Pending |
+| NGINX-03 | — | Pending |
+| NGINX-04 | — | Pending |
+| NGINX-05 | — | Pending |
+| NGINX-06 | — | Pending |
+| COMPOSE-01 | — | Pending |
+| COMPOSE-02 | — | Pending |
+| COMPOSE-03 | — | Pending |
+| COMPOSE-04 | — | Pending |
+| COMPOSE-05 | — | Pending |
+| OPCACHE-01 | — | Pending |
+| OPCACHE-02 | — | Pending |
+| CI-01 | — | Pending |
+| CI-02 | — | Pending |
+| CI-03 | — | Pending |
 
 **Coverage:**
-- v1 requirements: 12 total
-- Mapped to phases: 12
-- Unmapped: 0
+- v1.1 requirements: 22 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 22
 
 ---
-*Requirements defined: 2026-06-25*
-*Last updated: 2026-06-25 after roadmap creation*
+*Requirements defined: 2026-06-27*
+*Last updated: 2026-06-27*
