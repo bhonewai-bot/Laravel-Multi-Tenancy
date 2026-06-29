@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     restart: unless-stopped
     working_dir: /var/www
     volumes:
@@ -89,7 +89,7 @@ services:
   queue:
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     restart: unless-stopped
     working_dir: /var/www
     command: >
