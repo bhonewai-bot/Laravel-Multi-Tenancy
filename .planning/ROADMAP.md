@@ -81,7 +81,7 @@ Plans:
 - [x] 04-01-PLAN.md
 - [x] 04-02-PLAN.md
 - [x] 04-01: Dockerfile hardening — .dockerignore, gosu install, OPcache extension, layer caching, ENTRYPOINT wiring, Dockerfile rename
-- [ ] 04-02: Docker Compose prod updates — remove app/queue bind-mounts, fix Dockerfile references in both compose files
+- [x] 04-02: Docker Compose prod updates — remove app/queue bind-mounts, fix Dockerfile references in both compose files
 
 ### Phase 5: Nginx Hardening
 
