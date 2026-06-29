@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     nodejs \
     npm \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -21,7 +22,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     bcmath \
     intl \
     zip \
-    gd
+    gd \
+    opcache
 
 WORKDIR /var/www
 
@@ -29,10 +31,14 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 FROM base AS builder
 
-COPY . .
-
+COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-RUN npm install && npm run build
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
 
 FROM base AS production
 
@@ -40,4 +46,5 @@ COPY --from=builder /var/www /var/www
 
 RUN rm -rf node_modules .git .github tests
 
+ENTRYPOINT ["/var/www/docker/prod/entrypoint.sh"]
 CMD ["php-fpm"]
