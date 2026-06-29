@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: INFRA Hardening
-current_phase: 4
-current_phase_name: Dockerfile & Build Context
-status: roadmap
+current_phase: 04
+current_phase_name: dockerfile-build-context
+status: executing
 stopped_at: Phase 4 context gathered
-last_updated: "2026-06-29T04:34:59.446Z"
-last_activity: 2026-06-27
-last_activity_desc: v1.1 roadmap created (5 phases, 22 requirements)
+last_updated: "2026-06-29T06:39:15.144Z"
+last_activity: 2026-06-29
+last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-27)
 
 **Core value:** The Docker infrastructure is secure, performant, and production-ready.
-**Current focus:** v1.1 INFRA Hardening — roadmap complete, ready to plan Phase 4
+**Current focus:** Phase 04 — dockerfile-build-context
 
 ## Current Position
 
-Phase: 4 of 8 (Dockerfile & Build Context)
-Plan: — of — in current phase
-Status: Roadmap complete — ready to plan
-Last activity: 2026-06-27 — v1.1 roadmap created (5 phases, 22 requirements)
+Phase: 04 (dockerfile-build-context) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-06-29 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,6 +59,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 2]: Directory-based PHP validation (not flat extension blocklist) since .php is needed for migrations/seeders
 - [Phase 3]: `module_installations` uses module_id FK (not slug), `module_operations` uses module_slug
 - [Phase 3]: Data migration extracted to `TenantModuleRegistry::migrateFromJsonBlobs()` static method for testability
+- [Phase ?]: Layer caching optimized
+- [Phase ?]: Entrypoint privilege drop pattern
+- [Phase ?]: Absolute ENTRYPOINT path
 
 ### Pending Todos
 
@@ -85,5 +88,5 @@ Items acknowledged and carried forward:
 
 **Resume file:** .planning/phases/04-dockerfile-build-context/04-CONTEXT.md
 
-Last session: 2026-06-29T04:34:59.433Z
+Last session: 2026-06-29T06:38:45.192Z
 Stopped at: Phase 4 context gathered
