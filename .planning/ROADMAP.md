@@ -115,12 +115,12 @@ Plans:
   3. A `scheduler` service exists that runs `php artisan schedule:work` using the same Docker image as the app
   4. The `queue` service has a health check that monitors worker responsiveness and reports unhealthy if the worker stops processing
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Security hardening (cap_drop, no-new-privileges) + resource limits + queue health check for existing services
+- [ ] 06-02-PLAN.md — Scheduler service (php artisan schedule:work) with security constraints and resource limits
 
 ### Phase 7: OPcache & Performance
 
