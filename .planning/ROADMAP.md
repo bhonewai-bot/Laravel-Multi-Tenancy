@@ -64,11 +64,11 @@ Plans:
   3. The existing `docker/prod/entrypoint.sh` executes on container start, handling storage permissions and gosu privilege drop
   4. The OPcache PHP extension is available in the production container (verified via `php -m | grep opcache`)
   5. Production `docker-compose.prod.yml` bakes application code into the image via multi-stage build with no host bind-mount of the application directory
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01: Dockerfile hardening — .dockerignore, gosu install, OPcache extension, layer caching, ENTRYPOINT wiring, Dockerfile rename
+- [ ] 04-02: Docker Compose prod updates — remove app/queue bind-mounts, fix Dockerfile references in both compose files
 
 ### Phase 5: Nginx Hardening
 **Goal**: Nginx serves responses with security headers, compresses text assets, caches static files, and hides version information
