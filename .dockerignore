@@ -1,0 +1,13 @@
+.env
+.env.*
+.git/
+.github/
+vendor/
+node_modules/
+docker/
+tests/
+Modules/
+.planning/
+.claude/
+.editorconfig
+*.md
