@@ -19,7 +19,7 @@ All v1 requirements are validated and complete:
 - [x] **DOCKER-02**: The production Dockerfile stage runs as non-root user (`www-data`) using a `USER` directive after entrypoint execution
 - [x] **DOCKER-03**: The existing `docker/prod/entrypoint.sh` is wired into the Dockerfile via `ENTRYPOINT` so it executes on container start (handles storage permissions and gosu privilege drop)
 - [x] **DOCKER-04**: The OPcache PHP extension is installed in the Dockerfile via `docker-php-ext-install opcache`
-- [ ] **DOCKER-05**: Production `docker-compose.prod.yml` does not bind-mount the application directory — code is baked into the image via multi-stage build
+- [x] **DOCKER-05**: Production `docker-compose.prod.yml` does not bind-mount the application directory — code is baked into the image via multi-stage build
 - [x] **DOCKER-06**: The Dockerfile is named `Dockerfile` (not `DockerFile`) and all compose file references are updated to match — fixes Linux CI builds
 
 ### Nginx Hardening
@@ -69,7 +69,7 @@ All v1 requirements are validated and complete:
 | DOCKER-02 | Phase 4 | Complete |
 | DOCKER-03 | Phase 4 | Complete |
 | DOCKER-04 | Phase 4 | Complete |
-| DOCKER-05 | Phase 4 | Pending |
+| DOCKER-05 | Phase 4 | Complete |
 | DOCKER-06 | Phase 4 | Complete |
 | NGINX-01 | Phase 5 | Pending |
 | NGINX-02 | Phase 5 | Pending |

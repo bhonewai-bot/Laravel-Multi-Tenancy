@@ -53,7 +53,7 @@ Plans:
 
 **Milestone Goal:** Production-ready Docker infrastructure with security headers, caching, OPcache, scheduler, and CI hardening.
 
-- [ ] **Phase 4: Dockerfile & Build Context** - Secure the Dockerfile with .dockerignore, non-root user, wired entrypoint, OPcache extension, bind-mount removal, and consistent naming
+- [x] **Phase 4: Dockerfile & Build Context** - Secure the Dockerfile with .dockerignore, non-root user, wired entrypoint, OPcache extension, bind-mount removal, and consistent naming (completed 2026-06-29)
 - [ ] **Phase 5: Nginx Hardening** - Add security headers (CSP, HSTS, X-Content-Type-Options, Referrer-Policy), gzip compression, static asset caching, and disable server_tokens
 - [ ] **Phase 6: Docker Compose Security & Services** - Drop capabilities, block privilege escalation, set resource limits, add scheduler service, and add queue worker health check
 - [ ] **Phase 7: OPcache & Performance** - Configure OPcache with production settings and PHP 8.3 tracing JIT for 30-50% throughput improvement
@@ -74,12 +74,12 @@ Plans:
   4. The OPcache PHP extension is available in the production container (verified via `php -m | grep opcache`)
   5. Production `docker-compose.prod.yml` bakes application code into the image via multi-stage build with no host bind-mount of the application directory
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 
 - [x] 04-01-PLAN.md
-- [ ] 04-02-PLAN.md
+- [x] 04-02-PLAN.md
 - [x] 04-01: Dockerfile hardening — .dockerignore, gosu install, OPcache extension, layer caching, ENTRYPOINT wiring, Dockerfile rename
 - [ ] 04-02: Docker Compose prod updates — remove app/queue bind-mounts, fix Dockerfile references in both compose files
 
@@ -165,7 +165,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 | 1. Central Admin Authorization | v1.0 | 2/2 | Done | 2026-06-26 |
 | 2. Module Upload Security | v1.0 | 2/2 | Done | 2026-06-26 |
 | 3. Module State Persistence | v1.0 | 2/2 | Done | 2026-06-27 |
-| 4. Dockerfile & Build Context | v1.1 | 1/2 | In Progress|  |
+| 4. Dockerfile & Build Context | v1.1 | 2/2 | Complete   | 2026-06-29 |
 | 5. Nginx Hardening | v1.1 | 0/2 | Not started | - |
 | 6. Docker Compose Security & Services | v1.1 | 0/2 | Not started | - |
 | 7. OPcache & Performance | v1.1 | 0/1 | Not started | - |
