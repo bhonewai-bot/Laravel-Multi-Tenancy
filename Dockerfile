@@ -32,12 +32,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 FROM base AS builder
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts
 
 COPY package*.json ./
 RUN npm ci
 
 COPY . .
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 RUN npm run build
 
 FROM base AS production
