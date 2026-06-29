@@ -122,6 +122,20 @@ No new security surface introduced beyond what the plan's threat model already c
 - Ready for Plan 02 (DOCKER-05: remove bind-mounts from `docker-compose.prod.yml`, update compose references)
 - `.dockerignore` prevents secrets from reaching the build context on every future `docker build`
 
+## Self-Check: PASSED
+
+All created files exist:
+- FOUND: `.dockerignore`
+- FOUND: `Dockerfile`
+- FOUND: `docker/prod/entrypoint.sh`
+- FOUND: `.planning/phases/04-dockerfile-build-context/04-01-SUMMARY.md`
+
+All commits exist:
+- FOUND: `7782ca3` (Task 1: create .dockerignore, rename, entrypoint chmod)
+- FOUND: `a8bf6d6` (Task 2: rewrite Dockerfile)
+- FOUND: `bc7fac7` (Auto-fix: entrypoint execute permission)
+- FOUND: `bd86342` (docs: complete plan metadata)
+
 ---
 *Phase: 04-dockerfile-build-context*
 *Completed: 2026-06-29*

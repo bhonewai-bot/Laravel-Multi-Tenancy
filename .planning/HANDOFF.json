@@ -33,6 +33,6 @@
     "tests/Feature/Tenancy/TenantDomainLifecycleTest.php",
     "tests/Feature/Tenancy/TenantOnboardingTest.php"
   ],
-  "next_action": "All 3 security hardening phases complete, 96 tests passing. Commit changes, then tackle deferred MAJOR-01 through MAJOR-05 from the audit in the next milestone.",
-  "context_notes": "Milestone v1.0 (Security Hardening) is complete. All 3 critical issues fixed: C1 central admin auth, C2 module ZIP upload security, C3 module state persistence. Test suite went from 42 failures to 0. The 42 failures were caused by cascading issues from the action class refactoring (1364ec9) — stale middleware references, missing CF config, Mockery teardown cascade, and Phase 3 data model changes not reflected in E2E tests. All fixed. Ready to commit and move to next milestone."
+  "next_action": "All architecture audit issues resolved (CRITICAL, MAJOR, MODERATE, MINOR). Next milestone: INFRA (Docker hardening, nginx security headers, OPcache, scheduler).",
+  "context_notes": "Milestone v1.0 (Security Hardening) is complete. All 3 critical issues fixed: C1 central admin auth, C2 module ZIP upload security, C3 module state persistence. All MAJOR issues fixed: MAJOR-01 host verification consolidated, MAJOR-02 EnsureModuleInstalled identity-map fixed, MAJOR-03 CreateTenantAction wrapped in DB::transaction, MAJOR-04 Tenant model has relationships/accessors/scopes, MAJOR-05 repair migration is idempotent. All MODERATE issues fixed: N+1 trap eliminated, domains:recover-stuck command, ModuleController catches specific exceptions, config() instead of env(), domain actions extracted. All MINOR issues cleaned up. 96 tests passing (233 assertions). Only INFRA remains."
 }
