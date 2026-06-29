@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
@@ -11,8 +11,6 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     command: ["php-fpm"]
-    volumes:
-      - ./:/var/www
     depends_on:
       mysql:
         condition: service_healthy
@@ -37,7 +35,7 @@ services:
   queue:
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
@@ -56,8 +54,6 @@ services:
         --timeout="${QUEUE_WORKER_TIMEOUT:-120}"
         --sleep="${QUEUE_WORKER_SLEEP:-3}"
         --max-time="${QUEUE_WORKER_MAX_TIME:-3600}"
-    volumes:
-      - ./:/var/www
     depends_on:
       mysql:
         condition: service_healthy
