@@ -15,6 +15,8 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     command: ["php-fpm"]
+    volumes:
+      - ./docker/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -77,6 +79,8 @@ services:
         --timeout="${QUEUE_WORKER_TIMEOUT:-120}"
         --sleep="${QUEUE_WORKER_SLEEP:-3}"
         --max-time="${QUEUE_WORKER_MAX_TIME:-3600}"
+    volumes:
+      - ./docker/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini:ro
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f 'queue:work'"]
       interval: 30s
