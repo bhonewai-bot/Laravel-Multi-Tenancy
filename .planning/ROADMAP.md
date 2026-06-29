@@ -96,12 +96,12 @@ Plans:
   4. Vite-hashed static assets (JS, CSS, images) are served with `Cache-Control` headers containing a 1-year max-age and `immutable` directive
   5. Nginx does not expose version information in response headers or error pages (`server_tokens` is off)
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Security headers (CSP-Report-Only, HSTS, nosniff, Referrer-Policy) and server_tokens off for both dev and prod configs
+- [ ] 05-02-PLAN.md — Gzip compression and static asset caching (Vite-hashed 1-year immutable, non-hashed 1-day, PHP no-cache) for both configs
 
 ### Phase 6: Docker Compose Security & Services
 
@@ -165,8 +165,8 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 | 1. Central Admin Authorization | v1.0 | 2/2 | Done | 2026-06-26 |
 | 2. Module Upload Security | v1.0 | 2/2 | Done | 2026-06-26 |
 | 3. Module State Persistence | v1.0 | 2/2 | Done | 2026-06-27 |
-| 4. Dockerfile & Build Context | v1.1 | 2/2 | Complete   | 2026-06-29 |
-| 5. Nginx Hardening | v1.1 | 0/2 | Not started | - |
+| 4. Dockerfile & Build Context | v1.1 | 2/2 | Verified ✅ | 2026-06-29 |
+| 5. Nginx Hardening | v1.1 | 0/2 | Planned | - |
 | 6. Docker Compose Security & Services | v1.1 | 0/2 | Not started | - |
 | 7. OPcache & Performance | v1.1 | 0/1 | Not started | - |
 | 8. CI Pipeline | v1.1 | 0/1 | Not started | - |
