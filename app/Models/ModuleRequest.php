@@ -9,7 +9,7 @@ use Stancl\Tenancy\Database\Concerns\CentralConnection;
 class ModuleRequest extends Model
 {
     use CentralConnection;
-    
+
     protected $fillable = [
         'tenant_id',
         'module_id',

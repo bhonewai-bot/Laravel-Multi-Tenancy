@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Models\Domain as ModelsDomain;
-use App\Models\Tenant as ModelsTenant;
+use App\Models\Domain;
+use App\Models\Tenant;
 
 return [
-    'tenant_model' => ModelsTenant::class,
+    'tenant_model' => Tenant::class,
     'id_generator' => Stancl\Tenancy\UUIDGenerator::class,
 
-    'domain_model' => ModelsDomain::class,
+    'domain_model' => Domain::class,
 
-/**
+    /**
      * The list of domains hosting your central app.
      *
      * Only relevant if you're using the domain or subdomain identification middleware.

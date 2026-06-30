@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Role extends Model
 {
     protected $fillable = [
-        'name'
+        'name',
     ];
 
     public function permissions(): BelongsToMany

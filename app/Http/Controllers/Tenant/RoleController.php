@@ -17,8 +17,6 @@ class RoleController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
-     * @return View
      */
     public function index(): View
     {
@@ -35,8 +33,6 @@ class RoleController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -53,9 +49,6 @@ class RoleController extends Controller
      * Side effects:
      * - Writes to the tenant roles table.
      * - Syncs permissions in the tenant database.
-     *
-     * @param  RoleStoreRequest  $request
-     * @return RedirectResponse
      */
     public function store(RoleStoreRequest $request): RedirectResponse
     {
@@ -74,9 +67,6 @@ class RoleController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param  Role  $role
-     * @return View
      */
     public function show(Role $role): View
     {
@@ -89,9 +79,6 @@ class RoleController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param  Role  $role
-     * @return View
      */
     public function edit(Role $role): View
     {
@@ -109,10 +96,6 @@ class RoleController extends Controller
      * Side effects:
      * - Writes to the tenant roles table.
      * - Syncs permissions in the tenant database.
-     *
-     * @param  RoleUpdateRequest  $request
-     * @param  Role  $role
-     * @return RedirectResponse
      */
     public function update(RoleUpdateRequest $request, Role $role): RedirectResponse
     {
@@ -134,9 +117,6 @@ class RoleController extends Controller
      *
      * Side effects:
      * - Deletes a tenant role when business rules allow it.
-     *
-     * @param  Role  $role
-     * @return RedirectResponse
      */
     public function destroy(Role $role): RedirectResponse
     {

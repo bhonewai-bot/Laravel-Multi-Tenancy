@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('feature_id')->constrained('features')->cascadeOnDelete();
             $table->string('name');
             $table->timestamps();
-        
+
             $table->unique(['feature_id', 'name']);
         });
     }

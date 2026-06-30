@@ -17,8 +17,6 @@ class ConfirmablePasswordController extends Controller
 {
     /**
      * Show the confirm password view.
-     *
-     * @return View
      */
     public function show(): View
     {
@@ -30,9 +28,6 @@ class ConfirmablePasswordController extends Controller
      *
      * Side effects:
      * - Writes the password confirmation timestamp into the session.
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {

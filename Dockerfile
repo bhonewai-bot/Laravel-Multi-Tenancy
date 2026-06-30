@@ -1,0 +1,51 @@
+FROM php:8.3-fpm AS base
+
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    zip \
+    libzip-dev \
+    libicu-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    default-mysql-client \
+    nodejs \
+    npm \
+    gosu \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    pdo_mysql \
+    bcmath \
+    intl \
+    zip \
+    gd \
+    opcache
+
+WORKDIR /var/www
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+FROM base AS builder
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN npm run build
+
+FROM base AS production
+
+COPY --from=builder /var/www /var/www
+
+RUN rm -rf node_modules .git .github tests
+
+ENTRYPOINT ["/var/www/docker/prod/entrypoint.sh"]
+CMD ["php-fpm"]

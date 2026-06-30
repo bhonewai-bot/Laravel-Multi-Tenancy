@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Domain;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -26,10 +27,6 @@ class DomainCloudflareSyncService
      * Side effects:
      * - Calls Cloudflare.
      * - Writes Cloudflare status fields and verification state to the central domains table.
-     *
-     * @param  Domain  $domain
-     * @param  bool  $createWhenMissing
-     * @return Domain
      */
     public function sync(Domain $domain, bool $createWhenMissing = false): Domain
     {
@@ -48,8 +45,8 @@ class DomainCloudflareSyncService
                 : throw new \RuntimeException('Cloudflare hostname ID is missing.'));
 
         $domain->fill($this->cloudflareService->mapStatuses($cf));
-        $domain->cf_last_checked_at = now();
-        $domain->verified_at = $this->shouldMarkVerified($domain) ? now() : null;
+        $domain->cf_last_checked_at = Carbon::now();
+        $domain->verified_at = $this->shouldMarkVerified($domain) ? Carbon::now() : null;
         $domain->save();
 
         $this->logCloudflareSync('info', 'cloudflare.hostname.sync_completed', $domain, [
@@ -62,9 +59,6 @@ class DomainCloudflareSyncService
 
     /**
      * Determine whether background polling should continue for the domain.
-     *
-     * @param  Domain  $domain
-     * @return bool
      */
     public function shouldRetry(Domain $domain): bool
     {
@@ -75,9 +69,6 @@ class DomainCloudflareSyncService
 
     /**
      * Determine whether the current Cloudflare state is strong enough to trust the domain.
-     *
-     * @param  Domain  $domain
-     * @return bool
      */
     private function shouldMarkVerified(Domain $domain): bool
     {
@@ -87,12 +78,6 @@ class DomainCloudflareSyncService
 
     /**
      * Emit structured Cloudflare sync logs for operational debugging.
-     *
-     * @param  string  $level
-     * @param  string  $message
-     * @param  Domain  $domain
-     * @param  array  $context
-     * @return void
      */
     private function logCloudflareSync(string $level, string $message, Domain $domain, array $context = []): void
     {

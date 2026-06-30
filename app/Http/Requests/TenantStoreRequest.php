@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class TenantStoreRequest extends FormRequest
@@ -12,7 +13,7 @@ class TenantStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return (bool) $this->user();
+        return Gate::allows('access-central-admin');
     }
 
     /**
@@ -30,7 +31,7 @@ class TenantStoreRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
-    
+
     public function messages(): array
     {
         return [

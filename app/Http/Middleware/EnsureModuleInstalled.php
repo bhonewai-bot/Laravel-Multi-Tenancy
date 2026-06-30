@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\TenantModuleRegistry;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -12,6 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureModuleInstalled
 {
+    public function __construct(
+        private TenantModuleRegistry $registry
+    ) {}
+
     /**
      * Ensure the requested module is present in the tenant's installed module list.
      *
@@ -19,34 +24,19 @@ class EnsureModuleInstalled
      * module access checks could read the wrong tenant metadata.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  Request  $request
-     * @param  Closure  $next
-     * @param  string  $module
-     * @return Response
      */
     public function handle(Request $request, Closure $next, string $module): Response
     {
         $tenant = tenant();
 
-        if (!$tenant) {
+        if (! $tenant) {
             abort(404, 'Tenant context is required.');
         }
 
-        $installedModules = $tenant->getAttribute('installed_modules') ?? [];
-
-        if (!is_array($installedModules)) {
-            $installedModules = [];
-        }
-
-        // The array is normalized before comparison so route parameters can stay case-insensitive.
-        $installedModules = array_map(
-            fn ($item) => $item,
-            $installedModules
-        );
-
+        $installedModules = $this->registry->getInstalledModules($tenant);
         $targetModule = Str::lower($module);
 
-        if (!in_array($targetModule, $installedModules, true)) {
+        if (! in_array($targetModule, $installedModules, true)) {
             abort(403, "Access denied. You have not installed the '{$targetModule}' module.");
         }
 

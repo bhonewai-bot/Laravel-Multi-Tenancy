@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use Modules\Product\Http\Requests\ProductStoreRequest;
-use Modules\Product\Http\Requests\ProductUpdateRequest;
 use Modules\Product\Models\Product;
 
 class ProductController extends Controller

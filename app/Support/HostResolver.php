@@ -3,17 +3,20 @@
 namespace App\Support;
 
 use App\Models\Domain;
+use App\Services\TenantDomainService;
 
 class HostResolver
 {
+    public function __construct(
+        private TenantDomainService $domainService
+    ) {}
+
     /**
      * Determine whether the incoming host belongs to the central app.
      */
     public function isCentralHost(string $host): bool
     {
-        $host = $this->normalize($host);
-
-        return in_array($host, $this->centralDomains(), true);
+        return $this->domainService->isCentralDomain($host);
     }
 
     /**
@@ -25,7 +28,7 @@ class HostResolver
      */
     public function findTenantDomain(string $host): ?Domain
     {
-        $host = $this->normalize($host);
+        $host = $this->domainService->normalize($host);
 
         return Domain::query()
             ->where('domain', $host)
@@ -60,33 +63,12 @@ class HostResolver
 
     protected function isPrimarySubDomain(Domain $domain): bool
     {
-        foreach ($this->centralDomains() as $centralDomain) {
-            if (str_ends_with($domain->domain, '.' . $centralDomain)) {
+        foreach ($this->domainService->centralDomains() as $centralDomain) {
+            if (str_ends_with($domain->domain, '.'.$centralDomain)) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    /**
-     * Normalize host values before comparing them.
-     */
-    protected function normalize(string $host): string
-    {
-        return strtolower(rtrim(trim($host), '.'));
-    }
-
-    /**
-     * Return configured central domains in normalized form.
-     *
-     * @return array<int, string>
-     */
-    protected function centralDomains(): array
-    {
-        return array_map(
-            fn (string $domain) => $this->normalize($domain),
-            array_filter((array) config('tenancy.central_domains'))
-        );
     }
 }

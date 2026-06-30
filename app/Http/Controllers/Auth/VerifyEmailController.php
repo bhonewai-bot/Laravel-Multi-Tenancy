@@ -19,9 +19,6 @@ class VerifyEmailController extends Controller
      * Side effects:
      * - Marks the user as verified.
      * - Dispatches the Verified event when the state changes.
-     *
-     * @param  EmailVerificationRequest  $request
-     * @return RedirectResponse
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {

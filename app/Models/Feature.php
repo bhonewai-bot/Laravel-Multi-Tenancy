@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Feature extends Model
 {
     protected $fillable = [
-        'name'
+        'name',
     ];
 
     public function permissions(): HasMany

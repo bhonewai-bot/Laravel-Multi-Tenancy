@@ -1,49 +1,58 @@
 @php($errors = $errors ?? new \Illuminate\Support\ViewErrorBag)
 
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    {{-- Header --}}
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Welcome back
+        </h1>
+        <p class="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+            @if (tenant())
+                Sign in to your workspace
+            @else
+                Sign in to your account to continue
+            @endif
+        </p>
+    </div>
 
-    <form method="POST" action="{{ route('login', absolute: false) }}">
+    {{-- Session Status --}}
+    @if (session('status'))
+        <div class="mb-6 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+            <p class="text-sm text-green-700 dark:text-green-400">{{ session('status') }}</p>
+        </div>
+    @endif
+
+    <form
+        method="POST"
+        action="{{ route('login', absolute: false) }}"
+        x-data="{ submitting: false }"
+        @submit="submitting = true"
+        class="space-y-5"
+    >
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        {{-- Email --}}
+        <x-auth-input
+            name="email"
+            type="email"
+            label="Email address"
+            :required="true"
+            :autofocus="true"
+            autocomplete="username"
+        />
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        {{-- Password --}}
+        <x-auth-input
+            name="password"
+            type="password"
+            label="Password"
+            :required="true"
+            autocomplete="current-password"
+        />
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request', absolute: false) }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+        {{-- Submit --}}
+        <div class="pt-1">
+            <x-auth-button>Sign in</x-auth-button>
         </div>
     </form>
 </x-guest-layout>

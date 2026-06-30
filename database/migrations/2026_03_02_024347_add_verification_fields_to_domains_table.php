@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('domains', 'verification_code') || !Schema::hasColumn('domains', 'verified_at')) {
+        if (! Schema::hasColumn('domains', 'verification_code') || ! Schema::hasColumn('domains', 'verified_at')) {
             Schema::table('domains', function (Blueprint $table) {
-                if (!Schema::hasColumn('domains', 'verification_code')) {
+                if (! Schema::hasColumn('domains', 'verification_code')) {
                     $table->string('verification_code', 64)->nullable()->after('tenant_id');
                 }
 
-                if (!Schema::hasColumn('domains', 'verified_at')) {
+                if (! Schema::hasColumn('domains', 'verified_at')) {
                     $table->timestamp('verified_at')->nullable()->after('verification_code');
                 }
             });

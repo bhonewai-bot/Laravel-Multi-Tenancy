@@ -20,7 +20,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Product Module',
                 'icon_path' => null,
                 'price' => 0,
-                'is_active' => true
+                'is_active' => true,
             ]
         );
     }

@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Module;
 use App\Services\ModuleZipInspector;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -16,19 +19,16 @@ class ModuleController extends Controller
 {
     /**
      * Display the paginated module catalog.
-     *
-     * @return View
      */
     public function index(): View
     {
         $modules = Module::latest()->paginate(15);
+
         return view('modules.index', compact('modules'));
     }
 
     /**
      * Show the module creation form.
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -40,14 +40,11 @@ class ModuleController extends Controller
      *
      * Side effects:
      * - Writes to the modules table.
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
      */
     public function store(Request $request, ModuleZipInspector $inspector): RedirectResponse
     {
         $request->validate([
-            'module_file' => ['required', 'file', 'mimes:zip']
+            'module_file' => ['required', 'file', 'mimes:zip'],
         ]);
 
         try {
@@ -73,8 +70,12 @@ class ModuleController extends Controller
 
             return redirect()->route('modules.index')->with('success', "Module '{$inspection['module_name']}' uploaded successfully.");
 
-        } catch (\Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (RuntimeException $e) {
+            Log::error('Module upload failed.', ['error' => $e->getMessage()]);
+
+            return back()->withInput()->with('error', 'Module upload failed. Please check the package and try again.');
         }
     }
 
@@ -83,13 +84,10 @@ class ModuleController extends Controller
      *
      * Side effects:
      * - Writes to the modules table.
-     *
-     * @param  Module  $module
-     * @return RedirectResponse
      */
     public function toggleStatus(Module $module): RedirectResponse
     {
-        $module->is_active = !$module->is_active;
+        $module->is_active = ! $module->is_active;
         $module->save();
 
         return back()->with('success', "Module '{$module->name}' updated successfully.");

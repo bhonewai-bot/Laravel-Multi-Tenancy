@@ -18,8 +18,6 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
-    'allow_registration' => env('CENTRAL_ALLOW_PUBLIC_REGISTRATION', true),
-
     'central_admin' => [
         'email' => env('CENTRAL_SUPERADMIN_EMAIL', 'superadmin@example.com'),
         'name' => env('CENTRAL_SUPERADMIN_NAME', 'Super Admin'),

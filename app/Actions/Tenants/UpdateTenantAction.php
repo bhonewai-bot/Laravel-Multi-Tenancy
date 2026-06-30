@@ -11,10 +11,9 @@ class UpdateTenantAction
     public function __construct(
         private TenantDomainService $domainService,
         private SyncCloudflareDomainAction $syncCloudflareDomainAction,
-    )
-    {}
+    ) {}
 
-    public function execute(array $data, Tenant $tenant): Tenant 
+    public function execute(array $data, Tenant $tenant): Tenant
     {
         return DB::transaction(function () use ($data, $tenant) {
             $normalizedDomain = $this->domainService->normalize($data['domain']);
@@ -23,7 +22,7 @@ class UpdateTenantAction
             $tenant->update([
                 'name' => $data['name'],
                 'email' => $data['email'],
-                'description' => $data['description'] ?? null
+                'description' => $data['description'] ?? null,
             ]);
 
             // Update Domain

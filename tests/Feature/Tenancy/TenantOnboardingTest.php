@@ -17,15 +17,18 @@ class TenantOnboardingTest extends TestCase
 
     protected function tearDown(): void
     {
-        Mockery::close();
-        parent::tearDown();
+        try {
+            Mockery::close();
+        } finally {
+            parent::tearDown();
+        }
     }
 
     public function test_central_admin_can_create_tenant_and_domain(): void
     {
         Event::fake([TenantCreated::class]);
 
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['email' => config('auth.central_admin.email')]);
 
         $response = $this
             ->actingAs($admin)
@@ -69,7 +72,7 @@ class TenantOnboardingTest extends TestCase
         ]);
         $this->app->instance(CloudflareService::class, $cloudflare);
 
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['email' => config('auth.central_admin.email')]);
 
         $response = $this
             ->actingAs($admin)

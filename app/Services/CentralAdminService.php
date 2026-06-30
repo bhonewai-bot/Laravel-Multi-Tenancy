@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
@@ -23,8 +24,6 @@ class CentralAdminService
      * - Reads central auth configuration.
      * - Writes to the central users table.
      * - Emits operational log entries when the bootstrap is skipped or completed.
-     *
-     * @return void
      */
     public function ensureConfiguredSuperAdminExists(): void
     {
@@ -67,7 +66,7 @@ class CentralAdminService
         $user->forceFill([
             'name' => $name !== '' ? $name : 'Super Admin',
             'password' => $password,
-            'email_verified_at' => now(),
+            'email_verified_at' => Carbon::now(),
         ])->save();
 
         Log::info('central_admin.ensured', [

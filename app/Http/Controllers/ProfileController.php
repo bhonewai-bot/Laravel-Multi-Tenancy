@@ -16,9 +16,6 @@ class ProfileController extends Controller
 {
     /**
      * Display the user's profile form.
-     *
-     * @param  Request  $request
-     * @return View
      */
     public function edit(Request $request): View
     {
@@ -32,9 +29,6 @@ class ProfileController extends Controller
      *
      * Side effects:
      * - Writes to the authenticated user's record.
-     *
-     * @param  ProfileUpdateRequest  $request
-     * @return RedirectResponse
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -58,9 +52,6 @@ class ProfileController extends Controller
      * Side effects:
      * - Deletes the authenticated user record.
      * - Invalidates the active session.
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse
     {

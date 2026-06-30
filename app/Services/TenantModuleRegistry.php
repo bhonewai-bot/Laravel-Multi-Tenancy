@@ -2,118 +2,144 @@
 
 namespace App\Services;
 
+use App\Models\Module;
+use App\Models\ModuleInstallation;
+use App\Models\ModuleOperation;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+
 /**
  * Persists tenant module install state and long-running operation status.
  *
- * The registry stores metadata on the central tenant record so the back office can
- * observe tenant module progress without opening the tenant database directly.
+ * All reads and writes go through dedicated database tables with atomic transactions,
+ * replacing the previous JSON blob read-modify-write on the central tenant record.
  */
 class TenantModuleRegistry
 {
     public const ACTION_INSTALL = 'install';
+
     public const ACTION_UNINSTALL = 'uninstall';
 
     public const OP_STATUS_QUEUED = 'queued';
+
     public const OP_STATUS_RUNNING = 'running';
+
     public const OP_STATUS_SUCCESS = 'success';
+
     public const OP_STATUS_FAILED = 'failed';
 
     /**
-     * Return the normalized list of modules installed for the tenant.
+     * Return the normalized list of module slugs installed for the tenant.
      *
      * @param  mixed  $tenant
-     * @return array
      */
     public function getInstalledModules($tenant): array
     {
-        $installed = $tenant->getAttribute('installed_modules') ?? [];
-
-        if (!is_array($installed)) {
-            return [];
-        }
-
-        return array_values(array_filter($installed, fn ($slug) => is_string($slug) && $slug !== ''));
+        return ModuleInstallation::query()
+            ->where('tenant_id', $tenant->getTenantKey())
+            ->join('modules', 'module_installations.module_id', '=', 'modules.id')
+            ->pluck('modules.slug')
+            ->all();
     }
 
     /**
      * Mark a module as installed for the tenant.
      *
      * Side effects:
-     * - Writes to the central tenant record.
+     * - Writes to the module_installations table.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return void
      */
     public function markInstalled($tenant, string $slug): void
     {
-        // Refresh reduces the chance of clobbering module state written by another request or worker.
-        $tenant->refresh();
-        $installed = $this->getInstalledModules($tenant);
-        if (! in_array($slug, $installed, true)) {
-            $installed[] = $slug;
+        $module = Module::where('slug', $slug)->first();
+
+        if (! $module) {
+            return;
         }
 
-        $this->saveInstalledModules($tenant, $installed);
+        DB::transaction(function () use ($tenant, $module) {
+            ModuleInstallation::updateOrCreate(
+                ['tenant_id' => $tenant->getTenantKey(), 'module_id' => $module->id],
+                ['installed_at' => Carbon::now()]
+            );
+        });
     }
 
     /**
      * Remove a module from the tenant's installed list.
      *
      * Side effects:
-     * - Writes to the central tenant record.
+     * - Deletes from the module_installations table.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return void
      */
     public function markUninstalled($tenant, string $slug): void
     {
-        $tenant->refresh();
-        $installed = array_values(array_filter(
-            $this->getInstalledModules($tenant),
-            fn (string $item) => $item !== $slug
-        ));
+        $module = Module::where('slug', $slug)->first();
 
-        $this->saveInstalledModules($tenant, $installed);
+        if (! $module) {
+            return;
+        }
+
+        DB::transaction(function () use ($tenant, $module) {
+            ModuleInstallation::query()
+                ->where('tenant_id', $tenant->getTenantKey())
+                ->where('module_id', $module->id)
+                ->delete();
+        });
     }
 
     /**
-     * Return all module operation records tracked for the tenant.
+     * Return all module operation records tracked for the tenant, keyed by slug.
      *
      * @param  mixed  $tenant
-     * @return array
+     * @return array<string, array{action: string, status: string, message: string, updated_at: string}>
      */
     public function getModuleOperations($tenant): array
     {
-        $operations = $tenant->getAttribute('module_operations') ?? [];
-
-        return is_array($operations) ? $operations : [];
+        return ModuleOperation::query()
+            ->where('tenant_id', $tenant->getTenantKey())
+            ->get()
+            ->mapWithKeys(fn (ModuleOperation $op) => [
+                $op->module_slug => [
+                    'action' => $op->action,
+                    'status' => $op->status,
+                    'message' => $op->message,
+                    'updated_at' => $op->updated_at?->toDateTimeString() ?? '',
+                ],
+            ])
+            ->all();
     }
 
     /**
      * Return the operation state for a single module slug.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return array|null
      */
     public function getModuleOperation($tenant, string $slug): ?array
     {
-        $operations = $this->getModuleOperations($tenant);
+        $op = ModuleOperation::query()
+            ->where('tenant_id', $tenant->getTenantKey())
+            ->where('module_slug', $slug)
+            ->first();
 
-        $operation = $operations[$slug] ?? null;
-        return is_array($operation) ? $operation : null;
+        if (! $op) {
+            return null;
+        }
+
+        return [
+            'action' => $op->action,
+            'status' => $op->status,
+            'message' => $op->message,
+            'updated_at' => $op->updated_at?->toDateTimeString() ?? '',
+        ];
     }
 
     /**
      * Record that a module operation has been queued.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function startModuleOperation($tenant, string $slug, string $action, string $message = ''): void
     {
@@ -124,10 +150,6 @@ class TenantModuleRegistry
      * Record that a queued module operation is actively running.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function markModuleOperationRunning($tenant, string $slug, string $action, string $message = ''): void
     {
@@ -138,10 +160,6 @@ class TenantModuleRegistry
      * Record that a module operation completed successfully.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function markModuleOperationSucceeded($tenant, string $slug, string $action, string $message): void
     {
@@ -152,10 +170,6 @@ class TenantModuleRegistry
      * Record that a module operation failed.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $message
-     * @return void
      */
     public function markModuleOperationFailed($tenant, string $slug, string $action, string $message): void
     {
@@ -166,28 +180,75 @@ class TenantModuleRegistry
      * Remove the tracked operation state for a module after the UI has acknowledged it.
      *
      * Side effects:
-     * - Writes to the central tenant record.
+     * - Deletes from the module_operations table.
      *
      * @param  mixed  $tenant
-     * @param  string  $slug
-     * @return void
      */
     public function clearModuleOperation($tenant, string $slug): void
     {
-        $tenant->refresh();
+        DB::transaction(function () use ($tenant, $slug) {
+            ModuleOperation::query()
+                ->where('tenant_id', $tenant->getTenantKey())
+                ->where('module_slug', $slug)
+                ->delete();
+        });
+    }
 
-        $operations = $this->getModuleOperations($tenant);
-        unset($operations[$slug]);
+    /**
+     * Migrate legacy JSON blob data into the dedicated module tables.
+     *
+     * Called by the data migration. Reads installed_modules and module_operations
+     * from the tenant data column and inserts them into module_installations and module_operations.
+     */
+    public static function migrateFromJsonBlobs(): void
+    {
+        $tenants = DB::table('tenants')->select('id', 'data')->get();
 
-        $tenant->setAttribute('module_operations', $operations);
-        $tenant->save();
+        foreach ($tenants as $tenant) {
+            $data = json_decode((string) $tenant->data, true);
+
+            if (! is_array($data)) {
+                continue;
+            }
+
+            $installed = $data['installed_modules'] ?? [];
+            if (is_array($installed)) {
+                $moduleIds = DB::table('modules')
+                    ->whereIn('slug', $installed)
+                    ->pluck('id', 'slug');
+
+                foreach ($moduleIds as $slug => $moduleId) {
+                    DB::table('module_installations')->updateOrInsert(
+                        ['tenant_id' => $tenant->id, 'module_id' => $moduleId],
+                        ['installed_at' => Carbon::now(), 'updated_at' => Carbon::now()]
+                    );
+                }
+            }
+
+            $operations = $data['module_operations'] ?? [];
+            if (is_array($operations)) {
+                foreach ($operations as $slug => $operation) {
+                    if (! is_array($operation)) {
+                        continue;
+                    }
+
+                    DB::table('module_operations')->updateOrInsert(
+                        ['tenant_id' => $tenant->id, 'module_slug' => $slug],
+                        [
+                            'action' => $operation['action'] ?? 'install',
+                            'status' => $operation['status'] ?? 'unknown',
+                            'message' => $operation['message'] ?? '',
+                            'updated_at' => $operation['updated_at'] ?? Carbon::now(),
+                            'created_at' => $operation['updated_at'] ?? Carbon::now(),
+                        ]
+                    );
+                }
+            }
+        }
     }
 
     /**
      * Determine whether the operation status is final.
-     *
-     * @param  string|null  $status
-     * @return bool
      */
     public function isTerminalStatus(?string $status): bool
     {
@@ -196,9 +257,6 @@ class TenantModuleRegistry
 
     /**
      * Determine whether the operation is still in progress.
-     *
-     * @param  string|null  $status
-     * @return bool
      */
     public function isProcessingStatus(?string $status): bool
     {
@@ -206,45 +264,17 @@ class TenantModuleRegistry
     }
 
     /**
-     * Persist the installed module list back to the central tenant record.
+     * Upsert a tenant module operation snapshot atomically.
      *
      * @param  mixed  $tenant
-     * @param  array  $installed
-     * @return void
-     */
-    private function saveInstalledModules($tenant, array $installed): void
-    {
-        $tenant->setAttribute('installed_modules', $installed);
-        $tenant->save();
-    }
-
-    /**
-     * Upsert a tenant module operation snapshot.
-     *
-     * WARNING: This is last-write-wins state. Refreshing first reduces stale writes, but
-     * concurrent updates for different operations can still overwrite each other if callers
-     * bypass the surrounding locking conventions.
-     *
-     * @param  mixed  $tenant
-     * @param  string  $slug
-     * @param  string  $action
-     * @param  string  $status
-     * @param  string  $message
-     * @return void
      */
     private function upsertModuleOperation($tenant, string $slug, string $action, string $status, string $message): void
     {
-        $tenant->refresh();
-
-        $operations = $this->getModuleOperations($tenant);
-        $operations[$slug] = [
-            'action' => $action,
-            'status' => $status,
-            'message' => $message,
-            'updated_at' => now()->toDateTimeString(),
-        ];
-
-        $tenant->setAttribute('module_operations', $operations);
-        $tenant->save();
+        DB::transaction(function () use ($tenant, $slug, $action, $status, $message) {
+            ModuleOperation::updateOrCreate(
+                ['tenant_id' => $tenant->getTenantKey(), 'module_slug' => $slug],
+                ['action' => $action, 'status' => $status, 'message' => $message]
+            );
+        });
     }
 }

@@ -10,7 +10,6 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
-use Stancl\Tenancy\Events\TenantCreated;
 use Tests\TestCase;
 
 class HostAccessPolicyTest extends TestCase
@@ -164,6 +163,6 @@ class HostAccessPolicyTest extends TestCase
 
     private function makeTenantId(string $prefix): string
     {
-        return strtolower('t' . $prefix . Str::random(6));
+        return strtolower('t'.$prefix.Str::random(6));
     }
 }

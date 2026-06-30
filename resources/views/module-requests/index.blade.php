@@ -1,90 +1,180 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Module Requests</h2>
-            <a href="{{ route('modules.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">Back to modules</a>
+    <div class="animate-fade-up">
+
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Module Requests</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $moduleRequests->total() }} requests from tenants</p>
+            </div>
+            <a href="{{ route('modules.index') }}">
+                <x-secondary-button type="button">Back to Modules</x-secondary-button>
+            </a>
         </div>
-    </x-slot>
 
-    <div class="py-8">
-        <div class="w-full px-4 sm:px-6 lg:px-8">
-            @if (session('success'))
-                <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700 border border-green-200">{{ session('success') }}</div>
-            @endif
-            @if (session('error'))
-                <div class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 border border-red-200">{{ session('error') }}</div>
-            @endif
+        {{-- Flash Messages --}}
+        @if (session('success'))
+            <div class="mb-6">
+                <x-alert variant="success">{{ session('success') }}</x-alert>
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="mb-6">
+                <x-alert variant="error">{{ session('error') }}</x-alert>
+            </div>
+        @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <div class="overflow-x-auto">
-                        <table class="w-full table-fixed divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="w-[14%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
-                                    <th class="w-[18%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Module</th>
-                                    <th class="w-[18%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested</th>
-                                    <th class="w-[30%] px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+        @if ($moduleRequests->isEmpty())
+            <div class="rounded-xl border border-gray-200 dark:border-[#262632] bg-white dark:bg-[#101016] p-12 text-center">
+                <div class="mx-auto w-12 h-12 rounded-full bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center mb-4">
+                    <x-heroicon-o-inbox class="w-6 h-6 text-brand-600 dark:text-brand-400" />
+                </div>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">No requests yet</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Module requests from tenants will appear here.</p>
+            </div>
+        @else
+            {{-- Table Container --}}
+            <div class="rounded-xl border border-gray-200 dark:border-[#262632] bg-white dark:bg-[#101016] overflow-hidden">
+
+                {{-- Desktop Table --}}
+                <div class="hidden lg:block overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-[#262632] bg-gray-50/50 dark:bg-[#0e0e15]/50">
+                                <th class="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Tenant</th>
+                                <th class="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Module</th>
+                                <th class="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                                <th class="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Requested</th>
+                                <th class="px-5 py-3.5 text-right text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[140px]"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-[#181820]">
+                            @foreach ($moduleRequests as $request)
+                                <tr class="group hover:bg-gray-50/70 dark:hover:bg-[#181820]/70 transition-all duration-150">
+                                    {{-- Tenant --}}
+                                    <td class="px-5 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-9 h-9 rounded-lg bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 flex items-center justify-center shrink-0">
+                                                <span class="text-sm font-semibold text-brand-600 dark:text-brand-400">{{ strtoupper(substr($request->tenant_id ?? 'T', 0, 1)) }}</span>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $request->tenant_id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- Module --}}
+                                    <td class="px-5 py-4">
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ $request->module->name ?? '-' }}</span>
+                                    </td>
+
+                                    {{-- Status --}}
+                                    <td class="px-5 py-4">
+                                        @if ($request->status === 'approved')
+                                            <x-badge variant="success" label="Approved" />
+                                        @elseif ($request->status === 'rejected')
+                                            <x-badge variant="danger" label="Rejected" />
+                                        @else
+                                            <x-badge variant="warning" label="Pending" />
+                                        @endif
+                                    </td>
+
+                                    {{-- Requested --}}
+                                    <td class="px-5 py-4">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ optional($request->created_at)->format('M d, Y H:i') }}</span>
+                                    </td>
+
+                                    {{-- Actions --}}
+                                    <td class="px-5 py-4 text-right">
+                                        @if ($request->status === 'pending')
+                                            <div class="flex items-center justify-end gap-2">
+                                                <form method="POST" action="{{ route('module-requests.approve', $request) }}" x-data="{ approving: false }" @submit="approving = true">
+                                                    @csrf
+                                                    <button type="submit" :disabled="approving"
+                                                        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                                        <span x-show="!approving">APPROVE</span>
+                                                        <span x-show="approving" x-cloak>APPROVING...</span>
+                                                    </button>
+                                                </form>
+
+                                                <form method="POST" action="{{ route('module-requests.reject', $request) }}" x-data="{ rejecting: false }" @submit="rejecting = true">
+                                                    @csrf
+                                                    <button type="submit" :disabled="rejecting"
+                                                        class="inline-flex items-center px-4 py-2 bg-gradient-to-b from-red-500 to-red-600 border border-red-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] hover:from-red-500 hover:to-red-700 active:from-red-600 active:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                                                        <span x-show="!rejecting">REJECT</span>
+                                                        <span x-show="rejecting" x-cloak>REJECTING...</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @else
+                                            <span class="text-sm text-gray-400 dark:text-gray-500">-</span>
+                                        @endif
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse ($moduleRequests as $request)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $request->tenant_id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $request->module->name ?? '-' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            @if ($request->status === 'approved')
-                                                <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
-                                                    Approved
-                                                </span>
-                                            @elseif ($request->status === 'rejected')
-                                                <span class="inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
-                                                    Rejected
-                                                </span>
-                                            @else
-                                                <span class="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
-                                                    Pending
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ optional($request->created_at)->format('Y-m-d H:i') }}</td>
-                                        <td class="px-6 py-4 text-sm">
-                                            @if ($request->status === 'pending')
-                                                <div class="ms-auto flex w-full max-w-[360px] items-center justify-end gap-2">
-                                                    <form method="POST" action="{{ route('module-requests.approve', $request) }}" class="inline-flex">
-                                                        @csrf
-                                                        <button type="submit"
-                                                            class="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-green-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-green-500">
-                                                            Approve
-                                                        </button>
-                                                    </form>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-                                                    <form method="POST" action="{{ route('module-requests.reject', $request) }}" class="inline-flex">
-                                                        @csrf
-                                                        <button type="submit"
-                                                            class="inline-flex w-full items-center justify-center rounded-md border border-red-600 bg-red-600 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-red-500">
-                                                            Reject
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            @else
-                                                <span class="block text-right text-gray-400">-</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-sm text-gray-500">No requests found.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                {{-- Mobile Cards --}}
+                <div class="lg:hidden divide-y divide-gray-100 dark:divide-[#181820]">
+                    @foreach ($moduleRequests as $request)
+                        <div class="p-4 hover:bg-gray-50/50 dark:hover:bg-[#181820]/50 transition-colors duration-150">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-lg bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 flex items-center justify-center shrink-0">
+                                        <span class="text-sm font-semibold text-brand-600 dark:text-brand-400">{{ strtoupper(substr($request->tenant_id ?? 'T', 0, 1)) }}</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $request->tenant_id }}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ $request->module->name ?? '-' }}</div>
+                                    </div>
+                                </div>
+                                @if ($request->status === 'approved')
+                                    <x-badge variant="success" label="Approved" />
+                                @elseif ($request->status === 'rejected')
+                                    <x-badge variant="danger" label="Rejected" />
+                                @else
+                                    <x-badge variant="warning" label="Pending" />
+                                @endif
+                            </div>
 
-                    <div class="mt-4">{{ $moduleRequests->links() }}</div>
+                            <div class="flex items-center gap-4 text-sm mb-3">
+                                <span class="text-gray-500 dark:text-gray-400">{{ optional($request->created_at)->format('M d, Y H:i') }}</span>
+                            </div>
+
+                            @if ($request->status === 'pending')
+                                <div class="flex items-center gap-2">
+                                    <form method="POST" action="{{ route('module-requests.approve', $request) }}" x-data="{ approving: false }" @submit="approving = true" class="flex-1">
+                                        @csrf
+                                        <button type="submit" :disabled="approving"
+                                            class="inline-flex w-full items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-glow-brand-strong hover:from-brand-500 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] active:from-brand-600 active:to-brand-800 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                            <span x-show="!approving">APPROVE</span>
+                                            <span x-show="approving" x-cloak>APPROVING...</span>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('module-requests.reject', $request) }}" x-data="{ rejecting: false }" @submit="rejecting = true" class="flex-1">
+                                        @csrf
+                                        <button type="submit" :disabled="rejecting"
+                                            class="inline-flex w-full items-center px-4 py-2 bg-gradient-to-b from-red-500 to-red-600 border border-red-400/20 rounded-lg font-semibold text-xs text-white uppercase tracking-widest shadow-card hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] hover:from-red-500 hover:to-red-700 active:from-red-600 active:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#08080c] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                                            <span x-show="!rejecting">REJECT</span>
+                                            <span x-show="rejecting" x-cloak>REJECTING...</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             </div>
-        </div>
+
+            {{-- Pagination --}}
+            @if ($moduleRequests->hasPages())
+                <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                    <span>Showing {{ $moduleRequests->firstItem() }} to {{ $moduleRequests->lastItem() }} of {{ $moduleRequests->total() }} requests</span>
+                    <div>{{ $moduleRequests->links() }}</div>
+                </div>
+            @endif
+        @endif
     </div>
 </x-app-layout>

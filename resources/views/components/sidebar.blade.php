@@ -1,180 +1,78 @@
 @php
-    $isTenant = (bool) tenant();
-    $homeUrl = $isTenant ? route('dashboard', absolute: false) : route('tenants.index', absolute: false);
-    $tenantUser = auth()->user();
-    $canViewUsers = $isTenant && $tenantUser && ($tenantUser->hasRole('admin') || $tenantUser->hasPermission('user.read'));
-    $canViewRoles = $isTenant && $tenantUser && ($tenantUser->hasRole('admin') || $tenantUser->hasPermission('role.read'));
+    $homeUrl = tenant() ? route('tenant.dashboard', absolute: false) : route('dashboard', absolute: false);
 @endphp
 
-<aside class="hidden w-64 shrink-0 border-r border-gray-200 bg-white text-gray-700 md:flex md:flex-col">
-    <!-- <div class="flex h-16 items-center border-b border-gray-200 px-4">
-        <a href="{{ $homeUrl }}" class="flex items-center gap-3">
-            <x-application-logo class="h-8 w-8 fill-current text-gray-800" />
-            <span class="text-sm font-semibold tracking-wide text-gray-800">
-                {{ $isTenant ? 'Tenant Panel' : 'Central Panel' }}
-            </span>
-        </a>
-    </div> -->
+{{-- Mobile overlay — separate from flex container to avoid layout conflicts --}}
+<div
+    x-show="$store.sidebar.mobileOpen"
+    x-cloak
+    class="fixed inset-0 z-50 md:hidden"
+    aria-modal="true"
+>
+    {{-- Backdrop --}}
+    <div
+        class="absolute inset-0 bg-black/50"
+        x-show="$store.sidebar.mobileOpen"
+        x-transition:enter="transition-opacity ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="$store.sidebar.closeMobile()"
+    ></div>
 
-    <nav class="flex-1 space-y-6 overflow-y-auto px-4 py-4">
-        @if (! $isTenant)
-            <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">Central</p>
-                <div x-data="{ open: {{ request()->routeIs('tenants.*') ? 'true' : 'false' }} }" class="space-y-1">
-                    <button type="button"
-                        class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        @click="open = ! open">
-                        <span>Tenants</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform"
-                            :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div x-show="open" class="space-y-1 ps-6 text-sm">
-                        <a href="{{ route('tenants.index', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenants.index') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>Tenant List</span>
-                        </a>
-                        <a href="{{ route('tenants.create', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenants.create') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>Add Tenant</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">Platform</p>
-                <div x-data="{ open: {{ request()->routeIs('modules.*') || request()->routeIs('module-requests.*') ? 'true' : 'false' }} }" class="space-y-1">
-                    <button type="button"
-                        class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        @click="open = ! open">
-                        <span>Modules</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform"
-                            :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div x-show="open" class="space-y-1 ps-6 text-sm">
-                        <a href="{{ route('modules.index', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('modules.index') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>Module List</span>
-                        </a>
-                        <a href="{{ route('modules.create', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('modules.create') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>Add Module</span>
-                        </a>
-                        <a href="{{ route('module-requests.index', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('module-requests.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>Module Requests</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        @else
-            <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">Platform</p>
-                <div x-data="{ open: {{ request()->routeIs('tenant.modules.*') ? 'true' : 'false' }} }" class="space-y-1">
-                    <button type="button"
-                        class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        @click="open = ! open">
-                        <span>Modules</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform"
-                            :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div x-show="open" class="space-y-1 ps-6 text-sm">
-                        <a href="{{ route('tenant.modules.index', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.modules.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>Available Modules</span>
-                        </a>
-                    </div>
-                </div>
-
-                @if ($canViewUsers || $canViewRoles)
-                    <div x-data="{ open: {{ request()->routeIs('tenant.users.*') || request()->routeIs('tenant.roles.*') ? 'true' : 'false' }} }" class="space-y-1">
-                        <button type="button"
-                            class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            @click="open = ! open">
-                            <span>User & Role</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform"
-                                :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        <div x-show="open" class="space-y-1 ps-6 text-sm">
-                            @if ($canViewUsers)
-                                <a href="{{ route('tenant.users.index', absolute: false) }}"
-                                    class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.users.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                                    <span class="text-gray-400">•</span>
-                                    <span>Users</span>
-                                </a>
-                            @endif
-                            @if ($canViewRoles)
-                                <a href="{{ route('tenant.roles.index', absolute: false) }}"
-                                    class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.roles.*') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                                    <span class="text-gray-400">•</span>
-                                    <span>Roles</span>
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-                <div x-data="{ open: {{ request()->routeIs('tenant.domains.*') ? 'true' : 'false' }} }" class="space-y-1">
-                    <button type="button"
-                        class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        @click="open = ! open">
-                        <span>Custom Domains</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform"
-                            :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div x-show="open" class="space-y-1 ps-6 text-sm">
-                        <a href="{{ route('tenant.domains.index', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.domains.index') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>My Domains</span>
-                        </a>
-                        <a href="{{ route('tenant.domains.create', absolute: false) }}"
-                            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('tenant.domains.create') ? 'bg-gray-100 font-medium text-gray-900' : '' }}">
-                            <span class="text-gray-400">•</span>
-                            <span>Add Domain</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        @endif
-    </nav>
-
-    <div class="space-y-1 border-t border-gray-200 p-4">
-        <a href="{{ $isTenant ? route('tenant.profile.edit', absolute: false) : route('profile.edit', absolute: false) }}"
-            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-8 10a6 6 0 1112 0H8z" />
-            </svg>
-            <span>Profile</span>
-        </a>
-
-        <form method="POST" action="{{ route('logout', absolute: false) }}">
-            @csrf
-            <button type="submit"
-                class="inline-flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-7.5A2.25 2.25 0 003.75 5.25v13.5A2.25 2.25 0 006 21h7.5a2.25 2.25 0 002.25-2.25V15m-6-3h10.5m0 0l-3-3m3 3l-3 3" />
-                </svg>
-                <span>Log Out</span>
+    {{-- Slide-in panel --}}
+    <div
+        class="fixed inset-y-0 left-0 flex w-64 flex-col border-r border-gray-200 dark:border-[#262632] bg-white dark:bg-[#101016] text-gray-700 dark:text-gray-200 shadow-xl"
+        x-show="$store.sidebar.mobileOpen"
+        x-transition:enter="transition-transform ease-out duration-300"
+        x-transition:enter-start="-translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition-transform ease-in duration-200"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="-translate-x-full"
+        @click.stop=""
+    >
+        <div class="flex items-center h-16 border-b border-gray-200 dark:border-[#262632] px-4">
+            <a href="{{ $homeUrl }}" class="flex items-center gap-2">
+                <x-application-logo class="w-6 h-6 shrink-0" />
+                <span class="text-[13px] font-bold tracking-tight text-gray-800 dark:text-gray-100">TenantSmith</span>
+            </a>
+            <button
+                @click="$store.sidebar.closeMobile()"
+                class="ml-auto p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#181820] transition-colors shrink-0"
+            >
+                <x-heroicon-o-x-mark class="w-5 h-5" />
             </button>
-        </form>
+        </div>
+        <nav class="flex-1 space-y-4 overflow-y-auto px-3 py-3" @click="$store.sidebar.closeMobile()">
+            @include('components._sidebar-nav', ['mobile' => true])
+        </nav>
     </div>
+</div>
+
+{{-- Desktop sidebar --}}
+<aside
+    x-data
+    class="hidden md:flex md:flex-col shrink-0 border-r border-gray-200 dark:border-[#262632] bg-white dark:bg-[#101016] text-gray-700 dark:text-gray-200 transition-all duration-300"
+    :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'"
+>
+    <div class="flex items-center h-16 border-b border-gray-200 dark:border-[#262632] px-4">
+        <a href="{{ $homeUrl }}" class="flex items-center gap-2 overflow-hidden">
+            <x-application-logo class="w-6 h-6 shrink-0" />
+            <span x-show="!$store.sidebar.collapsed" x-cloak class="text-[13px] font-bold tracking-tight text-gray-800 dark:text-gray-100 whitespace-nowrap translate-y-[0.5px]">TenantSmith</span>
+        </a>
+        <button
+            @click="$store.sidebar.toggle()"
+            class="ml-auto p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#181820] transition-colors shrink-0"
+            :aria-label="$store.sidebar.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        >
+            <x-heroicon-o-chevron-double-left x-show="!$store.sidebar.collapsed" class="w-4 h-4" />
+            <x-heroicon-o-chevron-double-right x-show="$store.sidebar.collapsed" x-cloak class="w-4 h-4" />
+        </button>
+    </div>
+    <nav class="flex-1 space-y-4 overflow-y-auto px-3 py-3">
+        @include('components._sidebar-nav', ['mobile' => false])
+    </nav>
 </aside>

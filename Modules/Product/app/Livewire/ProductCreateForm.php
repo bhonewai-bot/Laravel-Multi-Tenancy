@@ -11,10 +11,15 @@ class ProductCreateForm extends Component
     use WithFileUploads;
 
     public string $name = '';
+
     public string $sku = '';
+
     public string $price = '';
+
     public string $quantity = '';
+
     public string $description = '';
+
     public $image = null;
 
     protected function rules(): array
@@ -36,7 +41,7 @@ class ProductCreateForm extends Component
         if ($this->image) {
             $validated['image'] = $this->image->store('products', 'public');
         }
-        
+
         Product::query()->create($validated);
 
         session()->flash('success', 'Product created successfully.');

@@ -22,7 +22,7 @@ class ProductImportService
             'price' => $data->price,
             'quantity' => $data->quantity,
             'description' => $data->description,
-            'image' => $data->image
+            'image' => $data->image,
         ]);
     }
 }

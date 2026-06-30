@@ -2,7 +2,7 @@
 name: subsystem-explorer
 description: Explores and maps complex Laravel subsystems by tracing execution paths across models, middleware, services, jobs, controllers, config, and tests. Returns a structured map of all files, data flows, and architectural patterns.
 tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, Bash, Task
-model: sonnet
+model: inherit
 color: blue
 ---
 

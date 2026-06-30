@@ -18,9 +18,6 @@ class PasswordController extends Controller
      *
      * Side effects:
      * - Writes a new password hash to the authenticated user's record.
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
      */
     public function update(Request $request): RedirectResponse
     {

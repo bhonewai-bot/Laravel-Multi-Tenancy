@@ -7,18 +7,19 @@ use App\Models\Domain;
 use App\Models\Tenant;
 use App\Services\DomainCloudflareSyncService;
 use App\Services\TenantDomainService;
+use Illuminate\Support\Carbon;
 
 /**
-     * Synchronize central domain metadata with Cloudflare hostname state.
-     *
-     * Side effects:
-     * - May call Cloudflare.
-     * - Writes Cloudflare status fields to the central domains table.
-     *
-     * @param  Tenant  $tenant
-     * @param  Domain  $domain
-     * @return void
-     */
+ * Synchronize central domain metadata with Cloudflare hostname state.
+ *
+ * Side effects:
+ * - May call Cloudflare.
+ * - Writes Cloudflare status fields to the central domains table.
+ *
+ * @param  Tenant  $tenant
+ * @param  Domain  $domain
+ * @return void
+ */
 class SyncCloudflareDomainAction
 {
     public function __construct(
@@ -26,7 +27,8 @@ class SyncCloudflareDomainAction
         private DomainCloudflareSyncService $domainSyncService
     ) {}
 
-    public function execute(Tenant $tenant, Domain $domain): void {
+    public function execute(Tenant $tenant, Domain $domain): void
+    {
         if (! config('cloudflare.enabled') || $this->domainService->isPrimarySubDomain($tenant, $domain->domain)) {
             // Platform-managed subdomains are trusted by convention and do not need custom-hostname status.
             $domain->forceFill([
@@ -54,9 +56,9 @@ class SyncCloudflareDomainAction
         } catch (\Throwable $e) {
             // Domain failures are kept as recoverable metadata so operators can retry without recreating the tenant.
             $domain->forceFill([
-                'cf_last_checked_at' => now(),
+                'cf_last_checked_at' => Carbon::now(),
                 'cf_error' => $e->getMessage(),
-                'verified_at' => null
+                'verified_at' => null,
             ])->save();
         }
     }

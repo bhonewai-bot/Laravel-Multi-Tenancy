@@ -9,7 +9,7 @@ use Stancl\Tenancy\Database\Concerns\CentralConnection;
 class Module extends Model
 {
     use CentralConnection;
-    
+
     protected $fillable = [
         'name',
         'slug',
@@ -17,7 +17,7 @@ class Module extends Model
         'description',
         'icon_path',
         'price',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [

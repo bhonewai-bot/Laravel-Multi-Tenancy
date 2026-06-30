@@ -24,10 +24,6 @@ class ModuleRequestController extends Controller
 {
     /**
      * Display available modules together with request and operation state for the tenant.
-     *
-     * @param  Request  $request
-     * @param  TenantModuleRegistry  $registry
-     * @return View
      */
     public function index(Request $request, TenantModuleRegistry $registry): View
     {
@@ -67,10 +63,6 @@ class ModuleRequestController extends Controller
      *
      * Side effects:
      * - Writes to the central module_requests table.
-     *
-     * @param  Request  $request
-     * @param  TenantModuleRegistry  $registry
-     * @return RedirectResponse
      */
     public function request(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
@@ -117,10 +109,6 @@ class ModuleRequestController extends Controller
      * Side effects:
      * - Writes queued state to the central tenant record.
      * - Dispatches a queued install job.
-     *
-     * @param  Request  $request
-     * @param  TenantModuleRegistry  $registry
-     * @return RedirectResponse
      */
     public function install(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
@@ -158,10 +146,6 @@ class ModuleRequestController extends Controller
      * Side effects:
      * - Writes queued state to the central tenant record.
      * - Dispatches a queued uninstall job.
-     *
-     * @param  Request  $request
-     * @param  TenantModuleRegistry  $registry
-     * @return RedirectResponse
      */
     public function uninstall(Request $request, TenantModuleRegistry $registry): RedirectResponse
     {
@@ -186,10 +170,6 @@ class ModuleRequestController extends Controller
 
     /**
      * Redirect to the module list with watch parameters so the UI can poll job progress.
-     *
-     * @param  Module  $module
-     * @param  string  $action
-     * @return RedirectResponse
      */
     private function redirectToWatch(Module $module, string $action): RedirectResponse
     {
@@ -203,12 +183,7 @@ class ModuleRequestController extends Controller
     /**
      * Resolve the current watch state from query parameters and persisted operation metadata.
      *
-     * @param  Request  $request
-     * @param  TenantModuleRegistry  $registry
      * @param  mixed  $tenant
-     * @param  Collection  $modules
-     * @param  array  $moduleOperations
-     * @return array
      */
     private function resolveWatchState(
         Request $request,
@@ -256,13 +231,6 @@ class ModuleRequestController extends Controller
 
     /**
      * Build the per-module view model consumed by the tenant modules page.
-     *
-     * @param  Collection  $modules
-     * @param  Collection  $requestModules
-     * @param  array  $installedModules
-     * @param  array  $moduleOperations
-     * @param  TenantModuleRegistry  $registry
-     * @return Collection
      */
     private function buildModuleRows(
         Collection $modules,
@@ -284,7 +252,7 @@ class ModuleRequestController extends Controller
                 'is_processing' => $isProcessing,
                 'is_queued_install' => $isProcessing && $operationAction === TenantModuleRegistry::ACTION_INSTALL,
                 'is_queued_uninstall' => $isProcessing && $operationAction === TenantModuleRegistry::ACTION_UNINSTALL,
-                'open_route_name' => Route::has($module->slug . '.index') ? $module->slug . '.index' : null,
+                'open_route_name' => Route::has($module->slug.'.index') ? $module->slug.'.index' : null,
             ];
         });
     }
