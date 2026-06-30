@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    cap_drop:
-      - ALL
     security_opt:
       - no-new-privileges
     env_file:
@@ -30,8 +28,6 @@ services:
 
   nginx:
     image: nginx:alpine
-    cap_drop:
-      - ALL
     security_opt:
       - no-new-privileges
     restart: unless-stopped
@@ -57,8 +53,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    cap_drop:
-      - ALL
     security_opt:
       - no-new-privileges
     env_file:
@@ -102,8 +96,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    cap_drop:
-      - ALL
     security_opt:
       - no-new-privileges
     env_file:
@@ -127,8 +119,6 @@ services:
 
   mysql:
     image: mysql:8.0
-    cap_drop:
-      - ALL
     security_opt:
       - no-new-privileges
     restart: unless-stopped
