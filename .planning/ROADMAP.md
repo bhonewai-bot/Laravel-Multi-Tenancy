@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 Security Hardening** - Phases 1-3 (shipped 2026-06-27)
-- [ ] **v1.1 INFRA Hardening** - Phases 4-8 (in progress)
+- [x] **v1.1 INFRA Hardening** - Phases 4-8 (shipped 2026-06-29)
 
 ## Phases
 
@@ -49,15 +49,15 @@ Plans:
 
 </details>
 
-### v1.1 INFRA Hardening (In Progress)
+### v1.1 INFRA Hardening (Shipped 2026-06-29)
 
 **Milestone Goal:** Production-ready Docker infrastructure with security headers, caching, OPcache, scheduler, and CI hardening.
 
 - [x] **Phase 4: Dockerfile & Build Context** - Secure the Dockerfile with .dockerignore, non-root user, wired entrypoint, OPcache extension, bind-mount removal, and consistent naming (completed 2026-06-29)
-- [ ] **Phase 5: Nginx Hardening** - Add security headers (CSP, HSTS, X-Content-Type-Options, Referrer-Policy), gzip compression, static asset caching, and disable server_tokens
-- [ ] **Phase 6: Docker Compose Security & Services** - Drop capabilities, block privilege escalation, set resource limits, add scheduler service, and add queue worker health check
-- [ ] **Phase 7: OPcache & Performance** - Configure OPcache with production settings and PHP 8.3 tracing JIT for 30-50% throughput improvement
-- [ ] **Phase 8: CI Pipeline** - Validate Docker builds, enforce code style with Pint, and audit dependencies for known vulnerabilities
+- [x] **Phase 5: Nginx Hardening** - Add security headers (CSP, HSTS, X-Content-Type-Options, Referrer-Policy), gzip compression, static asset caching, and disable server_tokens (completed 2026-06-29)
+- [x] **Phase 6: Docker Compose Security & Services** - Drop capabilities, block privilege escalation, set resource limits, add scheduler service, and add queue worker health check (completed 2026-06-29)
+- [x] **Phase 7: OPcache & Performance** - Configure OPcache with production settings and PHP 8.3 tracing JIT for 30-50% throughput improvement (completed 2026-06-29)
+- [x] **Phase 8: CI Pipeline** - Validate Docker builds, enforce code style with Pint, and audit dependencies for known vulnerabilities (completed 2026-06-29)
 
 ## Phase Details
 
@@ -96,12 +96,12 @@ Plans:
   4. Vite-hashed static assets (JS, CSS, images) are served with `Cache-Control` headers containing a 1-year max-age and `immutable` directive
   5. Nginx does not expose version information in response headers or error pages (`server_tokens` is off)
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans complete
 
 Plans:
 
-- [ ] 05-01-PLAN.md — Security headers (CSP-Report-Only, HSTS, nosniff, Referrer-Policy) and server_tokens off for both dev and prod configs
-- [ ] 05-02-PLAN.md — Gzip compression and static asset caching (Vite-hashed 1-year immutable, non-hashed 1-day, PHP no-cache) for both configs
+- [x] 05-01-PLAN.md — Security headers (CSP-Report-Only, HSTS, nosniff, Referrer-Policy) and server_tokens off for both dev and prod configs
+- [x] 05-02-PLAN.md — Gzip compression and static asset caching (Vite-hashed 1-year immutable, non-hashed 1-day, PHP no-cache) for both configs
 
 ### Phase 6: Docker Compose Security & Services
 
@@ -115,12 +115,12 @@ Plans:
   3. A `scheduler` service exists that runs `php artisan schedule:work` using the same Docker image as the app
   4. The `queue` service has a health check that monitors worker responsiveness and reports unhealthy if the worker stops processing
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans complete
 
 Plans:
 
-- [ ] 06-01-PLAN.md — Security hardening (cap_drop, no-new-privileges) + resource limits + queue health check for existing services
-- [ ] 06-02-PLAN.md — Scheduler service (php artisan schedule:work) with security constraints and resource limits
+- [x] 06-01-PLAN.md — Security hardening (cap_drop, no-new-privileges) + resource limits + queue health check for existing services
+- [x] 06-02-PLAN.md — Scheduler service (php artisan schedule:work) with security constraints and resource limits
 
 ### Phase 7: OPcache & Performance
 
@@ -132,11 +132,11 @@ Plans:
   1. An OPcache configuration file (`docker/php/conf.d/opcache.ini`) is loaded with `validate_timestamps=0`, `max_accelerated_files=10000`, and `memory_consumption=128`
   2. OPcache JIT is configured with `opcache.jit=1255` (PHP 8.3 tracing JIT) and `opcache.jit_buffer_size=128M`
 
-**Plans**: TBD
+**Plans**: 1/1 plans complete
 
 Plans:
 
-- [ ] 07-01: TBD
+- [x] 07-01-PLAN.md — OPcache configuration with production settings and PHP 8.3 tracing JIT
 
 ### Phase 8: CI Pipeline
 
@@ -149,11 +149,11 @@ Plans:
   2. A push or PR triggers `composer audit` in CI and the build fails if any dependency has a known security vulnerability
   3. A push or PR triggers `docker build` in CI and the build fails if the Dockerfile has errors or the image does not build cleanly
 
-**Plans**: TBD
+**Plans**: 1/1 plans complete
 
 Plans:
 
-- [ ] 08-01: TBD
+- [x] 08-01-PLAN.md — CI pipeline with Docker build validation, Pint code style, and composer audit
 
 ## Progress
 
@@ -166,7 +166,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8
 | 2. Module Upload Security | v1.0 | 2/2 | Done | 2026-06-26 |
 | 3. Module State Persistence | v1.0 | 2/2 | Done | 2026-06-27 |
 | 4. Dockerfile & Build Context | v1.1 | 2/2 | Verified ✅ | 2026-06-29 |
-| 5. Nginx Hardening | v1.1 | 0/2 | Planned | - |
-| 6. Docker Compose Security & Services | v1.1 | 0/2 | Not started | - |
-| 7. OPcache & Performance | v1.1 | 0/1 | Not started | - |
-| 8. CI Pipeline | v1.1 | 0/1 | Not started | - |
+| 5. Nginx Hardening | v1.1 | 2/2 | Done | 2026-06-29 |
+| 6. Docker Compose Security & Services | v1.1 | 2/2 | Done | 2026-06-29 |
+| 7. OPcache & Performance | v1.1 | 1/1 | Done | 2026-06-29 |
+| 8. CI Pipeline | v1.1 | 1/1 | Done | 2026-06-29 |
