@@ -7,7 +7,7 @@ node_modules/
 docker/nginx/
 docker/php/
 tests/
-Modules/
+# Modules/ — deliberately included; tenant module packages ship with the app image
 .planning/
 .claude/
 .editorconfig
