@@ -37,6 +37,26 @@ class DomainCloudflareSyncService
             'create_when_missing' => $createWhenMissing,
         ]);
 
+        // If Cloudflare already has this hostname (e.g., from a previous attempt whose
+        // local state was lost), find and link it rather than failing with "duplicate".
+        if (! $domain->cf_hostname_id && $createWhenMissing) {
+            $existing = $this->findExistingHostname($domain->domain);
+
+            if ($existing) {
+                $domain->cf_hostname_id = $existing['id'];
+                $domain->cf_hostname_status = $existing['status'] ?? null;
+                $domain->cf_ssl_status = $existing['ssl']['status'] ?? null;
+                $domain->cf_payload = $existing;
+                $domain->save();
+
+                $this->logCloudflareSync('info', 'cloudflare.hostname.linked_existing', $domain, [
+                    'existing_id' => $existing['id'],
+                ]);
+
+                return $this->sync($domain, createWhenMissing: false);
+            }
+        }
+
         // Missing hostname ids are only acceptable during the initial create call.
         $cf = $domain->cf_hostname_id
             ? $this->cloudflareService->getHostname($domain->cf_hostname_id)
@@ -55,6 +75,22 @@ class DomainCloudflareSyncService
         ]);
 
         return $domain;
+    }
+
+    /**
+     * Look for an existing Cloudflare custom hostname matching the given domain.
+     *
+     * Returns the raw Cloudflare result array, or null if not found.
+     */
+    private function findExistingHostname(string $domain): ?array
+    {
+        try {
+            $hostnames = $this->cloudflareService->listHostnames($domain);
+
+            return ! empty($hostnames) ? $hostnames[0] : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**
