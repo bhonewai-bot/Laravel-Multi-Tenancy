@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: INFRA Hardening
-current_phase: 05
-current_phase_name: nginx-hardening
-status: ready_to_plan
-stopped_at: context exhaustion at 100% (2026-06-30)
-last_updated: "2026-06-30T12:52:25.127Z"
+current_phase: 08
+current_phase_name: ci-pipeline
+status: milestone_complete
+stopped_at: all phases complete (2026-07-01)
+last_updated: "2026-07-01T00:00:00.000Z"
 last_activity: 2026-06-29
-last_activity_desc: Phase 04 human verification completed
+last_activity_desc: Phases 05-08 implemented and committed
 progress:
   total_phases: 5
   completed_phases: 5
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 14
+  completed_plans: 14
   percent: 100
 ---
 
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-06-27)
 
 ## Current Position
 
-Phase: 05 (nginx-hardening) — READY TO PLAN
-Plan: 0 of TBD
-Status: Phase 04 fully verified, ready to plan Phase 05
-Last activity: 2026-06-29 — Phase 04 human verification completed
+Phase: MILESTONE COMPLETE — v1.1 INFRA Hardening shipped
+Plan: 8 of 8
+Status: All phases (04-08) implemented, tested, and committed
+Last activity: 2026-06-29 — Phases 05-08 implemented
 
-Progress: [████░░░░░░] 40%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -50,6 +50,11 @@ Progress: [████░░░░░░] 40%
 | 1. Central Admin Authorization | 2 | - | - |
 | 2. Module Upload Security | 2 | - | - |
 | 3. Module State Persistence | 2 | - | - |
+| 4. Dockerfile & Build Context | 2 | - | - |
+| 5. Nginx Hardening | 2 | - | - |
+| 6. Docker Compose Security & Services | 2 | - | - |
+| 7. OPcache & Performance | 1 | - | - |
+| 8. CI Pipeline | 1 | - | - |
 
 ## Accumulated Context
 
@@ -88,7 +93,7 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/05-nginx-hardening/05-CONTEXT.md
+**Resume file:** N/A — milestone complete
 
-Last session: 2026-06-30T13:51:00Z
-Stopped at: Session resumed, proceeding to plan Phase 05
+Last session: 2026-07-01T00:00:00Z
+Stopped at: v1.1 milestone fully shipped, tracking docs updated
