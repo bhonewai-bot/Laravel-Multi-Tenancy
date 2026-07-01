@@ -44,13 +44,8 @@
                             @endif
                         </div>
 
-                        {{-- Right: Tenant badge + Theme toggle + User menu --}}
+                        {{-- Right: Theme toggle + User menu --}}
                         <div class="flex items-center gap-2">
-                            @if ($isTenant)
-                                <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-500/20">
-                                    {{ tenant()->id }}
-                                </span>
-                            @endif
 
                             <x-theme-toggle />
 

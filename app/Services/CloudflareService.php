@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -39,7 +40,7 @@ class CloudflareService
                         'settings' => ['min_tls_version' => '1.2'],
                     ],
                 ]);
-        } catch (\Illuminate\Http\Client\RequestException $e) {
+        } catch (RequestException $e) {
             $json = $e->response->json() ?? [];
 
             throw new RuntimeException($this->extractError($json, $e->getMessage()));
@@ -51,6 +52,37 @@ class CloudflareService
         }
 
         return $json;
+    }
+
+    /**
+     * List custom hostnames, optionally filtered by hostname.
+     *
+     * Side effects:
+     * - Performs an outbound HTTP request to Cloudflare.
+     *
+     * @return array<int, array>
+     */
+    public function listHostnames(?string $hostname = null): array
+    {
+        $this->ensureConfigured();
+
+        $query = $hostname ? ['hostname' => $hostname] : [];
+
+        $response = Http::timeout((int) config('cloudflare.api.timeout', 15))
+            ->retry(
+                (int) config('cloudflare.api.retry_times', 2),
+                (int) config('cloudflare.api.retry_sleep_ms', 200)
+            )
+            ->withToken((string) config('cloudflare.api.token'))
+            ->get($this->endpoint('/custom_hostnames'), $query);
+
+        $json = $response->json() ?? [];
+
+        if (! $response->successful() || ! ($json['success'] ?? false)) {
+            throw new RuntimeException($this->extractError($json, $response->body()));
+        }
+
+        return $json['result'] ?? [];
     }
 
     /**
