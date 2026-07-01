@@ -4,7 +4,6 @@ namespace App\Actions\Tenants;
 
 use App\Models\Tenant;
 use App\Services\TenantDomainService;
-use Illuminate\Support\Facades\DB;
 
 class CreateTenantAction
 {
@@ -13,58 +12,33 @@ class CreateTenantAction
         private SyncCloudflareDomainAction $syncCloudflareDomainAction,
     ) {}
 
+    /**
+     * Create a new tenant with its primary domain and Cloudflare sync.
+     *
+     * Runs without a database transaction because MySQL DDL (CREATE DATABASE in
+     * the TenantCreated event pipeline) causes an implicit commit that breaks any
+     * transaction guard. For production, enable TENANCY_PROVISIONING_QUEUE so
+     * the DDL work moves to a background job.
+     *
+     * @param  array{tenant_id: string, name: string, email: string, domain: string, description?: string|null}  $data
+     */
     public function execute(array $data): Tenant
     {
         $normalizedDomain = $this->domainService->normalize($data['domain']);
 
-        DB::beginTransaction();
+        $tenant = Tenant::create([
+            'id' => $data['tenant_id'],
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'description' => $data['description'] ?? null,
+        ]);
 
-        try {
-            $tenant = Tenant::create([
-                'id' => $data['tenant_id'],
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'description' => $data['description'] ?? null,
-            ]);
+        $domainModel = $tenant->domains()->create([
+            'domain' => $normalizedDomain,
+        ]);
 
-            // MySQL DDL (CREATE DATABASE in TenantCreated event) causes an
-            // implicit commit, so the transaction guard below tolerates that.
-            $domainModel = $tenant->domains()->create([
-                'domain' => $normalizedDomain,
-            ]);
+        $this->syncCloudflareDomainAction->execute($tenant, $domainModel);
 
-            $this->syncCloudflareDomainAction->execute($tenant, $domainModel);
-
-            $this->commitIfActive();
-
-            return $tenant;
-        } catch (\Throwable $e) {
-            $this->rollbackIfActive();
-
-            throw $e;
-        }
-    }
-
-    /**
-     * Commit the current transaction if one is still active.
-     *
-     * MySQL DDL statements (e.g., CREATE DATABASE during tenant provisioning)
-     * cause an implicit commit, so the transaction guard may already be closed.
-     */
-    private function commitIfActive(): void
-    {
-        if (DB::transactionLevel() > 0) {
-            DB::commit();
-        }
-    }
-
-    /**
-     * Roll back the current transaction if one is still active.
-     */
-    private function rollbackIfActive(): void
-    {
-        if (DB::transactionLevel() > 0) {
-            DB::rollBack();
-        }
+        return $tenant;
     }
 }
